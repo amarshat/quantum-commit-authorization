@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/qca-core", "crates/qca-cli"]
+resolver = "2"

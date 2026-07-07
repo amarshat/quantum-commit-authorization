@@ -1,0 +1,23 @@
+# local-only working notes, never commit
+internal/
+.claude/
+
+# build artifacts
+target/
+out/
+cache/
+broadcast/
+node_modules/
+
+# env and editor
+.env
+.env.*
+*.swp
+.DS_Store
+.vscode/
+.idea/
+
+# python
+__pycache__/
+*.pyc
+.venv/
