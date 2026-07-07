@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: forge test
+        working-directory: contracts
+        run: forge test -vv
+
+  tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo test
+        working-directory: tooling
+        run: cargo test --workspace
+
+  # The golden vectors are committed. If someone changes an encoding on
+  # either side without regenerating them, this job catches it even before
+  # the Foundry assertion does.
+  vector-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: regenerate and diff
+        working-directory: tooling
+        run: |
+          cargo run -q -p qca-cli -- vectors --depth 3 > /tmp/golden.json
+          diff /tmp/golden.json ../contracts/test/vectors/golden.json
