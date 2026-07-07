@@ -42,8 +42,9 @@ docs/        Protocol spec and threat model
 ## Roadmap
 
 - [x] Protocol spec and threat model
-- [x] Account contract: commit, reveal, nullifiers, expiry, root rotation
+- [x] Account contract: commit, reveal, nullifiers, expiry, root rotation, defensive burn
 - [x] Rust tooling and cross-implementation golden vectors
+- [x] First adversarial review pass (PQ crypto, MEV, formal); findings folded into the design and docs
 - [ ] Gas benchmarks vs on-chain ML-DSA / Falcon / SLH-DSA verification
 - [ ] Adversarial mempool simulation (reveal races, commit griefing, reorgs)
 - [ ] Recovery paths for lost leaf state

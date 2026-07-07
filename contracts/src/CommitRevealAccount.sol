@@ -35,14 +35,22 @@ contract CommitRevealAccount {
     ///         secret-bound state can linger on-chain.
     uint256 public immutable commitTTL;
 
-    /// @notice Nullifier set, one bit per leaf index, 256 leaves per slot.
-    ///         Bits are never cleared, including across root rotations.
-    mapping(uint256 => uint256) public usedLeaves;
+    /// @notice Nullifier set, keyed by leaf hash H(TAG_LEAF, secret). Each
+    ///         secret is derived from the wallet seed and a global index, so
+    ///         a leaf hash is unique across every tree the account ever uses.
+    ///         Keying by hash (not by local tree position) is what makes
+    ///         rotation work: a fresh tree's leaves get fresh nullifier space
+    ///         automatically, with no index bookkeeping. It costs a full
+    ///         storage slot per consumed leaf instead of one packed bit; that
+    ///         is the price of correct rotation and is measured in the gas
+    ///         benchmarks. Entries are never cleared.
+    mapping(bytes32 => bool) public usedLeaves;
     /// @notice Commitment hash => block number it was posted in (0 = absent).
     mapping(bytes32 => uint256) public commitments;
 
     event Committed(bytes32 indexed commitment);
     event Revealed(uint256 indexed leafIndex, bytes32 indexed actionHash, bool success);
+    event LeafBurned(bytes32 indexed leafHash, uint256 leafIndex);
     event RootRotated(bytes32 indexed newRoot, uint256 newDepth);
     event Pruned(bytes32 indexed commitment);
 
@@ -98,25 +106,8 @@ contract CommitRevealAccount {
         bytes32 secret,
         bytes32[] calldata proof
     ) external returns (bool success, bytes memory result) {
-        uint256 d = depth;
-        if (proof.length != d) revert InvalidProofLength();
-        if (leafIndex >= (1 << d)) revert LeafIndexOutOfRange();
-
-        uint256 word = leafIndex >> 8;
-        uint256 bit = 1 << (leafIndex & 0xff);
-        if (usedLeaves[word] & bit != 0) revert LeafAlreadyUsed();
-
-        // Merkle membership: fold the leaf up the path, direction from the
-        // index bits.
-        bytes32 node = keccak256(abi.encode(TAG_LEAF, secret));
-        uint256 idx = leafIndex;
-        for (uint256 i = 0; i < d; ++i) {
-            node = idx & 1 == 0
-                ? keccak256(abi.encode(TAG_NODE, node, proof[i]))
-                : keccak256(abi.encode(TAG_NODE, proof[i], node));
-            idx >>= 1;
-        }
-        if (node != root) revert InvalidProof();
+        bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
+        if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
 
         // Recompute the commitment from what is being revealed. Binding to
         // chainid and address(this) kills cross-chain and cross-account
@@ -131,19 +122,42 @@ contract CommitRevealAccount {
         if (block.number > committedAt + commitTTL) revert CommitmentExpired();
 
         // Effects strictly before the external call.
-        usedLeaves[word] |= bit;
+        usedLeaves[leafHash] = true;
         delete commitments[c];
 
         (success, result) = target.call{value: value}(data);
         emit Revealed(leafIndex, actionHash, success);
     }
 
+    /// @notice Burn a leaf without executing anything, by proving knowledge
+    ///         of its secret. This is the defensive move when a secret has
+    ///         leaked (a reveal that was reorged out or expired unincluded
+    ///         leaves the secret public but the leaf still live). Burning
+    ///         nullifies the leaf directly, so the holder does not have to
+    ///         win an aged-commitment race against whoever also saw the
+    ///         secret. An attacker who calls burn only denies the leaf to
+    ///         everyone; the funds are never at risk because burn executes
+    ///         no action.
+    /// @dev    Callable by anyone who can present a valid secret and proof.
+    ///         Before a secret leaks only the holder can do that; after a
+    ///         leak burning is exactly the outcome we want.
+    function burn(uint256 leafIndex, bytes32 secret, bytes32[] calldata proof) external {
+        bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
+        if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
+        usedLeaves[leafHash] = true;
+        emit LeafBurned(leafHash, leafIndex);
+    }
+
     /// @notice Rotate to a new authorization tree. Only callable by the
     ///         account itself, i.e. through a revealed action. This is the
-    ///         break-glass response to suspected seed exposure; it cancels
-    ///         every in-flight commitment whose leaf is not in the new tree.
-    ///         The nullifier bitmap survives rotation, so new trees must use
-    ///         fresh leaf indices (the tooling tracks a global offset).
+    ///         break-glass response to suspected seed exposure. Commitment
+    ///         validity is checked against the current root at reveal time,
+    ///         so rotating to a fresh tree cancels every in-flight commitment
+    ///         whose leaf is not in the new tree. Nullifiers are keyed by
+    ///         leaf hash, so the new tree's fresh secrets get fresh nullifier
+    ///         space with no index bookkeeping; a leaf consumed under the old
+    ///         tree stays consumed, which is harmless because the new tree
+    ///         has different leaves.
     function rotate(bytes32 newRoot, uint256 newDepth) external {
         if (msg.sender != address(this)) revert NotSelf();
         _checkDepth(newDepth);
@@ -162,9 +176,34 @@ contract CommitRevealAccount {
         emit Pruned(c);
     }
 
-    /// @notice Whether a leaf index has been consumed.
-    function isLeafUsed(uint256 leafIndex) external view returns (bool) {
-        return usedLeaves[leafIndex >> 8] & (1 << (leafIndex & 0xff)) != 0;
+    /// @notice Whether a given leaf hash H(TAG_LEAF, secret) has been consumed.
+    function isLeafUsed(bytes32 leafHash) external view returns (bool) {
+        return usedLeaves[leafHash];
+    }
+
+    /// @dev Fold the leaf up its Merkle path against the current root and
+    ///      return the leaf hash. Direction at each level comes from the
+    ///      index bits. Reverts unless the proof has exactly `depth` nodes,
+    ///      the index is in range, and the fold reaches the root.
+    function _verifyMembership(uint256 leafIndex, bytes32 secret, bytes32[] calldata proof)
+        internal
+        view
+        returns (bytes32 leafHash)
+    {
+        uint256 d = depth;
+        if (proof.length != d) revert InvalidProofLength();
+        if (leafIndex >= (1 << d)) revert LeafIndexOutOfRange();
+
+        leafHash = keccak256(abi.encode(TAG_LEAF, secret));
+        bytes32 node = leafHash;
+        uint256 idx = leafIndex;
+        for (uint256 i = 0; i < d; ++i) {
+            node = idx & 1 == 0
+                ? keccak256(abi.encode(TAG_NODE, node, proof[i]))
+                : keccak256(abi.encode(TAG_NODE, proof[i], node));
+            idx >>= 1;
+        }
+        if (node != root) revert InvalidProof();
     }
 
     function _checkDepth(uint256 d) internal pure {

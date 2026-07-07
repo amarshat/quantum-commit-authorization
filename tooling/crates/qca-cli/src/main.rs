@@ -2,7 +2,7 @@
 //! `keygen`, which pulls from the OS CSPRNG.
 
 use clap::{Parser, Subcommand};
-use qca_core::{action_hash, commitment, secret_at, tags, Hash, MerkleTree};
+use qca_core::{action_hash, commitment, secret_at, tags, u256_be, Hash, MerkleTree};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use serde::Serialize;
@@ -59,6 +59,11 @@ enum Cmd {
         data: String,
         #[arg(long)]
         index: u64,
+        /// Global index offset of the active tree. Must match the offset the
+        /// tree was built with, or the derived secret will not match the one
+        /// the proof reveals and the on-chain reveal will fail.
+        #[arg(long, default_value_t = 0)]
+        offset: u64,
     },
     /// Emit golden test vectors as JSON. The Foundry suite parses this file
     /// and asserts the contract computes identical bytes.
@@ -143,10 +148,13 @@ fn main() {
             };
             println!("{}", serde_json::to_string_pretty(&out).unwrap());
         }
-        Cmd::Commit { seed, chain_id, account, target, value, data, index } => {
-            let secret = secret_at(&parse_h32(&seed), index);
+        Cmd::Commit { seed, chain_id, account, target, value, data, index, offset } => {
+            // Derive with offset + index, exactly as `proof` and `root` do,
+            // so a rotated tree's commitment binds the same secret the proof
+            // will reveal.
+            let secret = secret_at(&parse_h32(&seed), offset + index);
             let data = hex::decode(data.trim_start_matches("0x")).expect("invalid hex data");
-            let a = action_hash(&parse_addr(&target), value, &data);
+            let a = action_hash(&parse_addr(&target), &u256_be(value), &data);
             let c = commitment(chain_id, &parse_addr(&account), &a, index, &secret);
             println!("{}", hx(&c));
         }
@@ -172,7 +180,7 @@ fn main() {
             let example_target = [0xBBu8; 20];
             let example_data = vec![0xDE, 0xAD, 0xBE, 0xEF];
             let (chain_id, value, leaf_index) = (1u64, 1_000_000_000_000_000_000u128, 5u64);
-            let a = action_hash(&example_target, value, &example_data);
+            let a = action_hash(&example_target, &u256_be(value), &example_data);
             let c = commitment(chain_id, &example_account, &a, leaf_index, &secret_at(&seed, leaf_index));
 
             let v = Vectors {

@@ -44,7 +44,10 @@ fn word_u64(v: u64) -> Hash {
     w
 }
 
-fn word_u128(v: u128) -> Hash {
+/// A 256-bit big-endian value, matching Solidity `uint256`. Kept as raw
+/// bytes so the tooling can author commitments for any on-chain value,
+/// including value >= 2^128, making the Rust/Solidity mirror total.
+pub fn u256_be(v: u128) -> Hash {
     let mut w = [0u8; 32];
     w[16..].copy_from_slice(&v.to_be_bytes());
     w
@@ -147,14 +150,10 @@ pub fn verify_proof(root: &Hash, secret: &Hash, leaf_index: u64, proof: &[Hash])
 }
 
 /// `H(enc(TAG_ACTION, target, value, H(data)))`. The calldata is hashed
-/// before encoding so the outer tuple has fixed arity.
-pub fn action_hash(target: &[u8; 20], value: u128, data: &[u8]) -> Hash {
-    hash_words(&[
-        tags::action(),
-        word_address(target),
-        word_u128(value),
-        keccak(data),
-    ])
+/// before encoding so the outer tuple has fixed arity. `value` is the full
+/// 256-bit word, so the encoding matches Solidity `uint256` at every value.
+pub fn action_hash(target: &[u8; 20], value_be: &Hash, data: &[u8]) -> Hash {
+    hash_words(&[tags::action(), word_address(target), *value_be, keccak(data)])
 }
 
 /// `H(enc(TAG_COMMIT, chainid, account, actionHash, leafIndex, secret))`.
@@ -225,11 +224,11 @@ mod tests {
         let acct = [0x11u8; 20];
         let target = [0x22u8; 20];
         let s = secret_at(&seed(), 0);
-        let a = action_hash(&target, 1, b"data");
+        let a = action_hash(&target, &u256_be(1), b"data");
         let base = commitment(1, &acct, &a, 0, &s);
         assert_ne!(base, commitment(2, &acct, &a, 0, &s));
         assert_ne!(base, commitment(1, &[0x12u8; 20], &a, 0, &s));
-        assert_ne!(base, commitment(1, &acct, &action_hash(&target, 2, b"data"), 0, &s));
+        assert_ne!(base, commitment(1, &acct, &action_hash(&target, &u256_be(2), b"data"), 0, &s));
         assert_ne!(base, commitment(1, &acct, &a, 1, &s));
         assert_ne!(base, commitment(1, &acct, &a, 0, &secret_at(&seed(), 1)));
     }

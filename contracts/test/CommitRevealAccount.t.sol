@@ -54,6 +54,10 @@ library TestTree {
         return keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
     }
 
+    function leafHashAt(bytes32 seed, uint256 index) internal pure returns (bytes32) {
+        return keccak256(abi.encode(TAG_LEAF, secretAt(seed, index)));
+    }
+
     function commitmentOf(address account, bytes32 aHash, uint256 leafIndex, bytes32 secret)
         internal
         view
@@ -121,7 +125,7 @@ contract CommitRevealAccountTest is Test {
         assertTrue(ok);
         assertEq(receiver.x(), 42);
         assertEq(receiver.paid(), 1 ether);
-        assertTrue(account.isLeafUsed(5));
+        assertTrue(account.isLeafUsed(TestTree.leafHashAt(SEED, 5)));
     }
 
     function testFuzz_anyLeafWorks(uint8 rawIndex) public {
@@ -240,7 +244,7 @@ contract CommitRevealAccountTest is Test {
         assertFalse(ok);
         // The secret went public in calldata; the leaf must be burned even
         // though the action reverted.
-        assertTrue(account.isLeafUsed(6));
+        assertTrue(account.isLeafUsed(TestTree.leafHashAt(SEED, 6)));
         assertEq(account.commitments(c), 0);
     }
 
@@ -276,26 +280,83 @@ contract CommitRevealAccountTest is Test {
         account.rotate(bytes32(uint256(1)), DEPTH);
     }
 
-    function test_rotationCancelsOldTree() public {
-        bytes32 newSeed = keccak256("rotated seed");
-        bytes32[] memory newLeaves = TestTree.leaves(newSeed, DEPTH);
-        bytes memory data = abi.encodeCall(CommitRevealAccount.rotate, (TestTree.rootOf(newLeaves), DEPTH));
+    bytes32 constant NEW_SEED = keccak256("rotated seed");
 
+    function rotateTo(bytes32 seed) internal returns (bytes32[] memory newLeaves) {
+        newLeaves = TestTree.leaves(seed, DEPTH);
+        bytes memory data = abi.encodeCall(CommitRevealAccount.rotate, (TestTree.rootOf(newLeaves), DEPTH));
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(account), 0, data, 0);
         age();
         (bool ok,) = account.reveal(address(account), 0, data, 0, secret, proof);
         assertTrue(ok);
         assertEq(account.root(), TestTree.rootOf(newLeaves));
+    }
+
+    function test_rotationCancelsOldTree() public {
+        rotateTo(NEW_SEED);
 
         // A commitment under the old tree can no longer prove membership.
         (, bytes32 oldSecret, bytes32[] memory oldProof) = commitAction(address(receiver), 0, "", 1);
         age();
         vm.expectRevert(CommitRevealAccount.InvalidProof.selector);
         account.reveal(address(receiver), 0, "", 1, oldSecret, oldProof);
+    }
 
-        // Nullifiers survive rotation: leaf 0 stays burned even though the
-        // new tree has a leaf at index 0.
-        assertTrue(account.isLeafUsed(0));
+    function test_rotationGivesFreshNullifierSpace() public {
+        // Consume index 0 in the old tree via the rotate action itself, then
+        // the new tree's index 0 (a different secret, different leaf hash)
+        // must still be usable. This is the property the old index-keyed
+        // nullifier broke.
+        bytes32[] memory newLeaves = rotateTo(NEW_SEED);
+        assertTrue(account.isLeafUsed(TestTree.leafHashAt(SEED, 0)));
+        assertFalse(account.isLeafUsed(TestTree.leafHashAt(NEW_SEED, 0)));
+
+        bytes memory data = abi.encodeCall(Receiver.setX, (77));
+        bytes32 newSecret = TestTree.secretAt(NEW_SEED, 0);
+        bytes32[] memory newProof = TestTree.proofFor(newLeaves, 0);
+        account.commit(
+            TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data), 0, newSecret)
+        );
+        age();
+        (bool ok,) = account.reveal(address(receiver), 0, data, 0, newSecret, newProof);
+        assertTrue(ok);
+        assertEq(receiver.x(), 77);
+    }
+
+    // Burn (defensive nullify) ------------------------------------------------
+
+    function test_burnNullifiesLeafWithoutAction() public {
+        bytes32 secret = TestTree.secretAt(SEED, 3);
+        bytes32[] memory proof = TestTree.proofFor(leaves, 3);
+        assertFalse(account.isLeafUsed(TestTree.leafHashAt(SEED, 3)));
+
+        account.burn(3, secret, proof);
+        assertTrue(account.isLeafUsed(TestTree.leafHashAt(SEED, 3)));
+    }
+
+    function test_burnedLeafCannotBeRevealed() public {
+        // Models the reorg/expiry case: the secret leaked, the holder burns
+        // the leaf, and no later commit-reveal on it can execute.
+        bytes memory data = abi.encodeCall(Receiver.setX, (1));
+        (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, data, 4);
+        account.burn(4, secret, proof);
+        age();
+        vm.expectRevert(CommitRevealAccount.LeafAlreadyUsed.selector);
+        account.reveal(address(receiver), 0, data, 4, secret, proof);
+    }
+
+    function test_burnRejectsBadProof() public {
+        bytes32[] memory proof = TestTree.proofFor(leaves, 2);
+        vm.expectRevert(CommitRevealAccount.InvalidProof.selector);
+        account.burn(2, keccak256("wrong"), proof);
+    }
+
+    function test_doubleBurnReverts() public {
+        bytes32 secret = TestTree.secretAt(SEED, 2);
+        bytes32[] memory proof = TestTree.proofFor(leaves, 2);
+        account.burn(2, secret, proof);
+        vm.expectRevert(CommitRevealAccount.LeafAlreadyUsed.selector);
+        account.burn(2, secret, proof);
     }
 
     // Prune ---------------------------------------------------------------

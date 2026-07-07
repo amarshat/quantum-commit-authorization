@@ -34,7 +34,7 @@ The tree is a complete binary tree of depth `d`. `secret_i` is one-time: it is e
 The account contract stores:
 
 - `root` (bytes32) and `depth` (uint256): the active authorization tree.
-- `usedLeaves`: a bitmap, `mapping(uint256 => uint256)`, one bit per leaf index. This is the nullifier set. Bits are never cleared, including across root rotations.
+- `usedLeaves`: `mapping(bytes32 => bool)`, keyed by leaf hash `H(TAG_LEAF, secret)`. This is the nullifier set. Keying by leaf hash rather than by leaf index is deliberate: each secret is derived from the seed and a global index, so a leaf hash is unique across every tree the account ever uses, and a rotated tree's fresh secrets get fresh nullifier space with no index bookkeeping. The cost is one storage slot per consumed leaf instead of one packed bit; the earlier index-bitmap design saved gas but made rotation reuse an old index's nullifier bit, so it was dropped. Entries are never cleared.
 - `commitments`: `mapping(bytes32 => uint256)`, commitment hash to the block number it was posted in. Zero means absent.
 - Immutable parameters `minCommitAge` and `commitTTL`, both in blocks.
 
@@ -64,24 +64,28 @@ The commitment hides `actionHash` and `leafIndex` because `secret_i` is a 32-byt
 `reveal(target, value, data, leafIndex, secret, proof[])` verifies, in order:
 
 1. `proof.length == depth` and `leafIndex < 2^depth`.
-2. Leaf unused: bit `leafIndex` of `usedLeaves` is 0.
-3. Membership: fold `H(enc(TAG_LEAF, secret))` up the path using `TAG_NODE`, taking left/right from the bits of `leafIndex`; result must equal `root`.
+2. Membership: fold `leafHash = H(enc(TAG_LEAF, secret))` up the path using `TAG_NODE`, taking left/right from the bits of `leafIndex`; result must equal `root`.
+3. Leaf unused: `usedLeaves[leafHash]` is false.
 4. Commitment: recompute `c` from `block.chainid`, `address(this)`, the action tuple, `leafIndex`, `secret`; require `commitments[c] != 0`.
-5. Age: `block.number >= commitBlock + minCommitAge`. A commitment can never be revealed in its own block; without a minimum age the anti-front-running property is void, because an attacker who sees a reveal in the mempool could commit and reveal a competing action in the same block.
+5. Age: `block.number >= commitBlock + minCommitAge`. A commitment can never be revealed in its own block; without a minimum age the anti-front-running property is void, because an attacker who sees a reveal in the mempool could commit and reveal a competing action in the same block. See the parameter note: `minCommitAge` also governs how reorg-safe the commit is when the secret is exposed, and those are two different budgets.
 6. Freshness: `block.number <= commitBlock + commitTTL`. Expired commitments are dead. Expiry bounds how long secret-bound state can linger and forces an attacker who steals a mempool-observed secret to race a live window instead of banking commitments indefinitely.
 
 Effects, strictly before the external call (checks-effects-interactions):
 
-7. Set the leaf's nullifier bit.
+7. Set `usedLeaves[leafHash] = true`.
 8. Delete `commitments[c]`.
-9. Execute `target.call{value: value}(data)`; bubble revert. A reverted action still consumes the leaf and the commitment: the secret was published in calldata the moment the reveal transaction hit the mempool, so it must never be reusable.
+9. Execute `target.call{value: value}(data)`; return the success flag without reverting. A reverted action still consumes the leaf and the commitment: the secret was published in calldata the moment the reveal transaction hit the mempool, so it must never be reusable. "Executed" throughout this document means the reveal reached this call and consumed the leaf, regardless of the callee's success flag.
+
+### Burn
+
+`burn(leafIndex, secret, proof)` proves membership exactly as reveal does and sets `usedLeaves[leafHash] = true` without executing any action. It is the defensive move for a leaked secret: a reveal that was reorged out or expired unincluded leaves the secret public while the leaf is still live on-chain, and burning nullifies that leaf directly instead of forcing the holder to win an aged-commitment race against everyone else who saw the secret. Anyone able to present a valid secret and proof may call it; before a leak only the holder can, and after a leak burning is the outcome we want. Burn executes nothing, so a hostile burn only denies the leaf, it never moves funds.
 
 ### Rotate
 
 Root rotation is a normal revealed action whose target is the account itself calling `rotate(newRoot, newDepth)` (guarded `onlySelf`). Semantics:
 
-- Outstanding commitments made under the old root become unrevealable only if their leaves are not in the new tree; commitment validity is checked against the current root at reveal time. Rotating to a fresh tree therefore cancels all in-flight commitments. This is deliberate: rotation is the break-glass response to suspected seed exposure.
-- The nullifier bitmap is not reset. If a new tree reuses an old leaf index with a fresh secret, the old bit would block it, so rotations should use disjoint index ranges or accept the loss; the tooling handles this by tracking a global index offset. (Design note: keying nullifiers by leaf hash instead of index was rejected because the bitmap packs 256 nullifiers per storage slot, and index reuse across rotations is a tooling problem, not a protocol one.)
+- Outstanding commitments made under the old root become unrevealable if their leaves are not in the new tree; commitment validity is checked against the current root at reveal time. Rotating to a fresh tree therefore cancels all in-flight commitments. This is deliberate: rotation is the break-glass response to suspected seed exposure.
+- Nullifiers are keyed by leaf hash, so a new tree built from fresh secrets gets fresh nullifier space automatically. A leaf consumed under the old tree stays consumed, which is harmless because the new tree's leaves have different hashes. There is no index bookkeeping and no capacity lost to rotation. (The tooling's `index_offset` exists only so that rotating within the same seed still produces distinct secrets; it is not required for correctness once nullifiers are hash-keyed.)
 
 ### Prune
 
@@ -89,22 +93,38 @@ Root rotation is a normal revealed action whose target is the account itself cal
 
 ## Parameters
 
-`minCommitAge` and `commitTTL` are set at deployment. The safety argument for `minCommitAge` is: an attacker who learns a secret from a pending reveal needs `minCommitAge` blocks between their commit and their reveal, so the victim's reveal only loses if it stays unincluded for longer than that. Larger values buy censorship margin and cost latency. Defaults used in tests: `minCommitAge = 4`, `commitTTL = 256`. These are placeholders until the adversarial simulation produces measured guidance; treat them as parameters under study, not recommendations.
+`minCommitAge` and `commitTTL` are set at deployment. `minCommitAge` carries two distinct safety budgets that must not be conflated:
+
+1. Anti-front-running margin. An attacker who learns a secret from a pending reveal needs `minCommitAge` blocks between their commit and their reveal, so the victim's already-aged reveal only loses if it stays unincluded for longer than that. Larger values buy censorship margin and cost latency.
+2. Commit reorg-safety. Broadcasting a reveal exposes the secret. If the commit it opens is not yet final, a reorg can drop the commit while the secret is now public, which is a theft window, not just a liveness loss (see the threat model). The operational rule is therefore stronger than "reveal once aged": do not broadcast a reveal until its commit is final. A small `minCommitAge` (the test default is 4) is fine for budget 1 but is far below Ethereum finality (~64 to 95 slots), so a high-value account must either wait for commit finality before revealing or run a `minCommitAge` sized to its own reorg tolerance.
+
+Defaults used in tests: `minCommitAge = 4`, `commitTTL = 256`. These are placeholders until the adversarial simulation produces measured guidance; treat them as parameters under study, not recommendations. In particular, `minCommitAge` should be sized against the builder concentration the account actually faces (censoring the reveal for the whole window against a coalition of block share p succeeds with probability ~`p^minCommitAge`), and the safe reveal window is narrower than the nominal `[commit + minCommitAge, commit + commitTTL]` once commit finality and the expiry edge are accounted for.
 
 ## Security properties (claimed)
 
-Stated here so they can be attacked and, later, mechanized:
+Stated here so they can be attacked and, later, mechanized. Each is conditional on the stated secrecy premise; the premise, not the mechanism, is what fails in the reorg and expiry cases.
 
-- **AUTH**: an action executes only if the holder of the corresponding leaf secret committed to exactly that `(chainid, account, action, leafIndex)` tuple.
-- **ONCE**: a leaf index authorizes at most one executed action across the account's lifetime, including across rotations, reorgs and reverted actions.
-- **NO-REBIND**: a commitment cannot be opened to any action tuple other than the one hashed into it (injective encoding plus keccak256 collision resistance).
-- **NO-RESURRECT**: consumed, expired or rotated-away authorizations can never execute later.
-- **HIDE**: before reveal, a commitment discloses nothing that enables any party, including a quantum-capable observer, to construct a valid reveal for any action.
+Secrecy premise: a leaf secret is known only to the honest owner until the moment that leaf's reveal becomes public. The contract cannot enforce this (commit is permissionless and binds the secret but authenticates no one); the properties below hold relative to it.
 
-Assumptions: keccak256 preimage and collision resistance against a quantum adversary (Grover-limited, so 128-bit preimage security at 256-bit output); chain finality semantics as delivered by the underlying consensus; no assumption of ECDSA security anywhere in the authorization path.
+- **AUTH**: an action executes only against a matching aged, unexpired commitment binding `(chainid, account, action, leafIndex, secret)` whose leaf verifies under the current root. Under the secrecy premise the committer is the owner; without it, the committer is whoever holds the secret. "Holder" is not a claim the contract makes, only "a party in possession of the secret."
+- **ONCE**: a leaf authorizes at most one execution per canonical chain, counting reverted actions as executions. This is not a cross-history statement: a reorg deeper than the reveal's inclusion depth resurrects the leaf and its commitment together (the EVM cannot see orphaned branches), and combined with the now-public secret that degrades the leaf to a race with no aged-commitment advantage. High-value actions must await finality.
+- **NO-REBIND**: a commitment cannot be opened to any action tuple other than the one hashed into it. This is second-preimage resistance on a fixed published `c` (one preimage is the victim's), not collision resistance.
+- **NO-RESURRECT**: consumed, expired or rotated-away authorizations cannot execute later, per canonical chain, subject to the same reorg caveat as ONCE.
+- **HIDE**: before reveal, the commitment discloses nothing computationally useful for constructing a valid reveal. Recovering the action or index from `c` is a preimage search over the 256-bit secret (~2^128 under Grover). The low-entropy fields (`actionHash`, `leafIndex`) are hidden only computationally and only while the secret is secret, not information-theoretically.
+
+Assumptions, per property:
+
+- NO-REBIND, AUTH membership soundness, and HIDE rest on keccak256 (second-)preimage resistance: ~2^128 against a Grover-equipped quantum adversary at 256-bit output.
+- No property rests on quantum collision resistance. Generic quantum collision on a 256-bit hash is only ~2^85 (Brassard-Hoyer-Tapp), well below the 2^128 floor, but it does not bite here because in every hash one preimage is fixed by the honest owner or by the honestly chosen root. Any future change that lets an adversary choose a root (guardian recovery, adversary-influenced rotation) would introduce a ~2^85 dependency and must be analyzed separately.
+- Root uniqueness per account is required: cross-account isolation rests on distinct roots, not on the commitment's account field (a permissionless committer can always re-commit an observed secret on any account whose current root contains that leaf). Deploying two accounts from one seed, or rotating back to a prior root, breaks this.
+- Chain finality as delivered by the underlying consensus. No assumption of ECDSA security anywhere in the authorization path.
 
 ## Known limitations
 
-- The reveal transaction's outer envelope is ECDSA-signed on present-day Ethereum. An attacker cannot alter the revealed action (NO-REBIND), and mempool-copying the envelope gains nothing, but full end-to-end PQ security needs account abstraction or protocol support for the envelope itself.
-- Nullifier state and commitment records grow with use; prune covers expiries, spent-leaf bits are permanent by design.
-- Censorship of reveals through the commit window is a liveness attack, not a theft attack; quantified in the threat model and the (planned) simulation.
+- The reveal transaction's outer envelope is ECDSA-signed on present-day Ethereum. An attacker cannot alter the revealed action (NO-REBIND), and the envelope is irrelevant to the reveal since anyone can submit their own, but full end-to-end PQ security needs account abstraction or protocol support for the envelope itself.
+- A reveal is a non-cancellable, submitter-independent bearer instrument. The recomputed commitment does not bind `msg.sender`, so once a reveal is public anyone can land the committed action from any account, and the committer cannot cancel it by replace-by-fee. The action is immutable (NO-REBIND), but its block and intra-block placement within the reveal window are handed to the market, which matters for MEV-sensitive actions.
+- Relayed or bundled reveals hand the secret to the relayer before it is public. A relayer can commit a theft action and withhold the victim's reveal, defeating the aged-commitment defense with no chain censorship required. Reveals must be self-submitted or sent only through a relayer trusted with the account's funds.
+- Burn-on-expiry depends on off-chain state. Whether a leaf's secret was ever broadcast in an unincluded reveal leaves no on-chain trace, so a wallet that rebuilds state by scanning events cannot reconstruct it. Wallets must record "leaf i exposed" durably before broadcasting a reveal (write-ahead) and treat any leaf with unknown reveal status as burned (fail closed). The on-chain `burn` gives such a leaf a race-free nullification.
+- Nullifier state and commitment records grow with use; prune reclaims expired commitments, spent-leaf entries are permanent by design.
+- Censorship of a reveal through the commit window is a liveness attack whose cost is bounded only when the victim actively fee-escalates the reveal across the whole window; a passive, near-basefee reveal reduces security to the builder lottery. Quantified in the threat model and the planned simulation.
+- `committedAt` must always be read from on-chain state, never assumed from a local commit receipt: an identical front-run commit can make the sender's own commit transaction revert while the commitment still exists at a slightly earlier block.
