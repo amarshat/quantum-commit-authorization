@@ -1,6 +1,9 @@
 [package]
 name = "qca-core"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+description = "Key derivation, Merkle trees and commitment construction for the commit-reveal PQ authorization protocol. Must stay byte-identical to the Solidity implementation."
+license = "MIT"
 
 [dependencies]
+sha3 = "0.10"
