@@ -34,6 +34,7 @@ import {CommitRevealAccount} from "../src/CommitRevealAccount.sol";
 contract GasBenchScript is Script {
     bytes32 constant TAG_ACTION = keccak256("QCA/v1/action");
     bytes32 constant TAG_COMMIT = keccak256("QCA/v1/commit");
+    bytes32 constant TAG_BURN = keccak256("QCA/v1/burn");
 
     uint256 constant MIN_COMMIT_AGE = 1;
     uint256 constant COMMIT_TTL = 256;
@@ -72,6 +73,10 @@ contract GasBenchScript is Script {
 
         account.commit(commitment(account, actionTarget(depth), ACTION_VALUE, "", idxAction, secretAction));
         account.commit(commitment(account, address(account), 0, "", idxNoop, secretNoop));
+        // Burn is age-gated now, so the defensive nullify is itself a two-tx
+        // flow: commit-to-burn, then burn. The burn commitment sits in the
+        // action slot as TAG_BURN, domain-separated from action commitments.
+        account.commit(burnCommitment(account, idxBurn, secretBurn));
 
         // Local prep execution runs the whole body in one block, where the
         // reveals would fail the minCommitAge check (and at anvil's genesis
@@ -107,5 +112,13 @@ contract GasBenchScript is Script {
     ) internal view returns (bytes32) {
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
         return keccak256(abi.encode(TAG_COMMIT, block.chainid, address(account), actionHash, index, secret));
+    }
+
+    function burnCommitment(CommitRevealAccount account, uint256 index, bytes32 secret)
+        internal
+        view
+        returns (bytes32)
+    {
+        return keccak256(abi.encode(TAG_COMMIT, block.chainid, address(account), TAG_BURN, index, secret));
     }
 }

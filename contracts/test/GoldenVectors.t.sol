@@ -13,6 +13,7 @@ contract GoldenVectorsTest is Test {
     bytes32 constant TAG_NODE = keccak256("QCA/v1/node");
     bytes32 constant TAG_ACTION = keccak256("QCA/v1/action");
     bytes32 constant TAG_COMMIT = keccak256("QCA/v1/commit");
+    bytes32 constant TAG_BURN = keccak256("QCA/v1/burn");
 
     string json;
 
@@ -26,6 +27,7 @@ contract GoldenVectorsTest is Test {
         assertEq(vm.parseJsonBytes32(json, ".tag_node"), TAG_NODE);
         assertEq(vm.parseJsonBytes32(json, ".tag_action"), TAG_ACTION);
         assertEq(vm.parseJsonBytes32(json, ".tag_commit"), TAG_COMMIT);
+        assertEq(vm.parseJsonBytes32(json, ".tag_burn"), TAG_BURN);
     }
 
     function test_leavesAndRootMatch() public view {
@@ -64,6 +66,9 @@ contract GoldenVectorsTest is Test {
 
         bytes32 c = keccak256(abi.encode(TAG_COMMIT, chainId, account, actionHash, leafIndex, secret));
         assertEq(c, vm.parseJsonBytes32(json, ".example_commitment"), "commitment mismatch");
+
+        bytes32 bc = keccak256(abi.encode(TAG_COMMIT, chainId, account, TAG_BURN, leafIndex, secret));
+        assertEq(bc, vm.parseJsonBytes32(json, ".example_burn_commitment"), "burn commitment mismatch");
     }
 
     /// The strongest form of the check: material produced by the Rust

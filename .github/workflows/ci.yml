@@ -65,3 +65,17 @@ jobs:
         run: |
           cargo run -q -p qca-cli -- vectors --depth 3 > /tmp/golden.json
           diff /tmp/golden.json ../contracts/test/vectors/golden.json
+
+  # The simulator result vectors back docs/GAME.md's figures and are
+  # committed. Regenerate under a fixed seed and fail on drift, same policy
+  # as the golden vectors. The sim's own unit tests (run in the tooling job)
+  # separately assert every closed-form bound in GAME.md.
+  sim-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: regenerate and diff
+        run: |
+          sim/run.sh
+          git diff --exit-code sim/results

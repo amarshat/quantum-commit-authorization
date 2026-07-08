@@ -157,16 +157,17 @@ def main() -> None:
 
     print("## CommitRevealAccount, receipt gas per transaction")
     print()
-    print("| depth | commit | reveal (1 ETH to fresh EOA) | reveal (authorization only) | burn | action flow | auth-only flow |")
-    print("|---|---|---|---|---|---|---|")
+    print("| depth | commit | reveal (1 ETH to fresh EOA) | reveal (authorization only) | burn | action flow | auth-only flow | burn flow |")
+    print("|---|---|---|---|---|---|---|---|")
     for d in DEPTHS:
         r = ours[d]
+        burn_flow = r["commit_burn"]["gasUsed"] + r["burn"]["gasUsed"]
         print(
             f"| {d} | {r['commit_action']['gasUsed']:,} "
             f"| {r['reveal_action']['gasUsed']:,} "
             f"| {r['reveal_noop']['gasUsed']:,} "
             f"| {r['burn']['gasUsed']:,} "
-            f"| {flow(d, 'action'):,} | {flow(d, 'noop'):,} |"
+            f"| {flow(d, 'action'):,} | {flow(d, 'noop'):,} | {burn_flow:,} |"
         )
     print()
     d16 = ours[16]
@@ -196,8 +197,11 @@ def main() -> None:
           "state footprint grows without bound over its lifetime, one word "
           "per action. Expired commitments can be pruned for a refund, but "
           "post-EIP-3529 a dedicated prune transaction costs more than it "
-          "reclaims, so the tables ignore prune. burn is the leak response "
-          "(reorged or expired reveal): one transaction per leaked leaf.")
+          "reclaims, so the tables ignore prune. Burn is the leak response "
+          "(reorged or expired reveal). It is age-gated exactly like reveal "
+          "(see docs/GAME.md on burn-griefing), so the defensive nullify is "
+          "itself a two-transaction flow, commit-to-burn then burn; the burn "
+          "flow column totals both.")
     print()
 
     print("## Direct on-chain PQ verification baselines, single transaction")

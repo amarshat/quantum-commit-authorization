@@ -6,6 +6,7 @@
   "tag_node": "0x406a59536a38eedba49c91796816b4f506bc8707675b4d44492dfd93e551f5de",
   "tag_action": "0xe19be852f14d0f38ffde3cf83284fc85c6aa01541f1cee47a10687bfc10fe9d9",
   "tag_commit": "0xd159c049ee905aed2a88bbe51255d7c5b6a9f594ca5aecd3eca2d090a922b76a",
+  "tag_burn": "0x96cd3c99ac0625a0a6000f4e8ae1d455eed7bf07456744811fb8161d5ce69112",
   "root": "0x0a55b38bd6e1b8bfe27873119ccad1251b8851013c9a3cb166b889c1d20f0bd7",
   "leaves": [
     {
@@ -96,5 +97,6 @@
   "example_data": "0xdeadbeef",
   "example_leaf_index": 5,
   "example_action_hash": "0x5664324db3e133b09fb0e6dc595bc7bcc4e2ba87d91cc5eb2a418369937d98da",
-  "example_commitment": "0x8a65409cc0752a469c5cf1b914020c12b65b3e8957ac530ea4d3e043a72c23c5"
+  "example_commitment": "0x8a65409cc0752a469c5cf1b914020c12b65b3e8957ac530ea4d3e043a72c23c5",
+  "example_burn_commitment": "0x4336a3e1bd83948ae3041639ccbd56756486d49fcaf32e6e5bff424b86fb5e6c"
 }

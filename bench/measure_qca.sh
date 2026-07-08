@@ -37,7 +37,7 @@ run = json.loads(Path("contracts/broadcast/GasBench.s.sol/31337/run-latest.json"
 gas_by_hash = {r["transactionHash"]: int(r["gasUsed"], 16) for r in run["receipts"]}
 status_by_hash = {r["transactionHash"]: int(r["status"], 16) for r in run["receipts"]}
 
-LABELS = ["deploy", "commit_action", "commit_noop", "reveal_action", "reveal_noop", "burn"]
+LABELS = ["deploy", "commit_action", "commit_noop", "commit_burn", "reveal_action", "reveal_noop", "burn"]
 DEPTHS = [8, 16, 20]
 txs = run["transactions"]
 assert len(txs) == len(LABELS) * len(DEPTHS), f"unexpected tx count {len(txs)}"

@@ -19,6 +19,12 @@ contract CommitRevealAccount {
     bytes32 internal constant TAG_NODE = keccak256("QCA/v1/node");
     bytes32 internal constant TAG_ACTION = keccak256("QCA/v1/action");
     bytes32 internal constant TAG_COMMIT = keccak256("QCA/v1/commit");
+    // Sits in the action-hash slot of a burn commitment. A burn opens a
+    // commitment whose "action" is this constant rather than a real action
+    // tuple, so a reveal commitment can never be opened as a burn or vice
+    // versa (that would require a preimage of keccak256 mapping to this
+    // tag), and a burn gets exactly the same aging as a reveal.
+    bytes32 internal constant TAG_BURN = keccak256("QCA/v1/burn");
 
     /// @notice Active authorization tree root.
     bytes32 public root;
@@ -129,22 +135,40 @@ contract CommitRevealAccount {
         emit Revealed(leafIndex, actionHash, success);
     }
 
-    /// @notice Burn a leaf without executing anything, by proving knowledge
-    ///         of its secret. This is the defensive move when a secret has
-    ///         leaked (a reveal that was reorged out or expired unincluded
-    ///         leaves the secret public but the leaf still live). Burning
-    ///         nullifies the leaf directly, so the holder does not have to
-    ///         win an aged-commitment race against whoever also saw the
-    ///         secret. An attacker who calls burn only denies the leaf to
-    ///         everyone; the funds are never at risk because burn executes
-    ///         no action.
-    /// @dev    Callable by anyone who can present a valid secret and proof.
-    ///         Before a secret leaks only the holder can do that; after a
-    ///         leak burning is exactly the outcome we want.
+    /// @notice Nullify a leaf without executing anything, by opening an aged
+    ///         burn commitment for it. This is the defensive move when a
+    ///         secret has leaked (a reveal that was reorged out or expired
+    ///         unincluded leaves the secret public but the leaf still live).
+    /// @dev    Burn is age-gated exactly like reveal, and deliberately so.
+    ///         An earlier design let anyone burn with just a secret and
+    ///         proof, no commitment. That was a one-transaction denial-of-
+    ///         service on every reveal: the moment a reveal is in the public
+    ///         mempool its secret and proof are visible, so an observer could
+    ///         copy them into an immediate burn, order it ahead of the
+    ///         reveal, and kill the leaf for the cost of one transaction, no
+    ///         censorship required (see docs/GAME.md, the burn-griefing
+    ///         result). Requiring an aged burn commitment removes that: an
+    ///         attacker who only learns the secret at reveal time cannot have
+    ///         a burn commitment already aged, so the victim's already-aged
+    ///         reveal wins the block. The cost is that race-free recovery is
+    ///         impossible: a holder recovering a leaked leaf must itself
+    ///         commit-to-burn and age, a symmetric race with any thief. That
+    ///         impossibility is a documented result, not a missing feature.
+    ///         The burn commitment is
+    ///         H(TAG_COMMIT, chainid, this, TAG_BURN, leafIndex, secret),
+    ///         domain-separated from reveal commitments by TAG_BURN.
     function burn(uint256 leafIndex, bytes32 secret, bytes32[] calldata proof) external {
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
+
+        bytes32 c = keccak256(abi.encode(TAG_COMMIT, block.chainid, address(this), TAG_BURN, leafIndex, secret));
+        uint256 committedAt = commitments[c];
+        if (committedAt == 0) revert UnknownCommitment();
+        if (block.number < committedAt + minCommitAge) revert CommitmentTooYoung();
+        if (block.number > committedAt + commitTTL) revert CommitmentExpired();
+
         usedLeaves[leafHash] = true;
+        delete commitments[c];
         emit LeafBurned(leafHash, leafIndex);
     }
 

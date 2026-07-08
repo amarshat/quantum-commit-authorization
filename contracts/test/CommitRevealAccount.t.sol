@@ -12,6 +12,7 @@ library TestTree {
     bytes32 internal constant TAG_NODE = keccak256("QCA/v1/node");
     bytes32 internal constant TAG_ACTION = keccak256("QCA/v1/action");
     bytes32 internal constant TAG_COMMIT = keccak256("QCA/v1/commit");
+    bytes32 internal constant TAG_BURN = keccak256("QCA/v1/burn");
 
     function secretAt(bytes32 seed, uint256 i) internal pure returns (bytes32) {
         return keccak256(abi.encode(TAG_SECRET, seed, i));
@@ -65,6 +66,10 @@ library TestTree {
     {
         return keccak256(abi.encode(TAG_COMMIT, block.chainid, account, aHash, leafIndex, secret));
     }
+
+    function burnCommitmentOf(address account, uint256 leafIndex, bytes32 secret) internal view returns (bytes32) {
+        return keccak256(abi.encode(TAG_COMMIT, block.chainid, account, TAG_BURN, leafIndex, secret));
+    }
 }
 
 contract Receiver {
@@ -107,6 +112,16 @@ contract CommitRevealAccountTest is Test {
         secret = TestTree.secretAt(SEED, leafIndex);
         proof = TestTree.proofFor(leaves, leafIndex);
         c = TestTree.commitmentOf(address(account), TestTree.actionHash(target, value, data), leafIndex, secret);
+        account.commit(c);
+    }
+
+    function commitBurn(uint256 leafIndex)
+        internal
+        returns (bytes32 c, bytes32 secret, bytes32[] memory proof)
+    {
+        secret = TestTree.secretAt(SEED, leafIndex);
+        proof = TestTree.proofFor(leaves, leafIndex);
+        c = TestTree.burnCommitmentOf(address(account), leafIndex, secret);
         account.commit(c);
     }
 
@@ -326,10 +341,9 @@ contract CommitRevealAccountTest is Test {
     // Burn (defensive nullify) ------------------------------------------------
 
     function test_burnNullifiesLeafWithoutAction() public {
-        bytes32 secret = TestTree.secretAt(SEED, 3);
-        bytes32[] memory proof = TestTree.proofFor(leaves, 3);
+        (, bytes32 secret, bytes32[] memory proof) = commitBurn(3);
         assertFalse(account.isLeafUsed(TestTree.leafHashAt(SEED, 3)));
-
+        age();
         account.burn(3, secret, proof);
         assertTrue(account.isLeafUsed(TestTree.leafHashAt(SEED, 3)));
     }
@@ -338,11 +352,48 @@ contract CommitRevealAccountTest is Test {
         // Models the reorg/expiry case: the secret leaked, the holder burns
         // the leaf, and no later commit-reveal on it can execute.
         bytes memory data = abi.encodeCall(Receiver.setX, (1));
-        (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, data, 4);
+        (, bytes32 secret, bytes32[] memory proof) = commitBurn(4);
+        age();
         account.burn(4, secret, proof);
+        // A subsequent action commitment on the same leaf can still be made
+        // and aged, but the reveal fails because the leaf is nullified.
+        account.commit(TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data), 4, secret));
         age();
         vm.expectRevert(CommitRevealAccount.LeafAlreadyUsed.selector);
         account.reveal(address(receiver), 0, data, 4, secret, proof);
+    }
+
+    function test_burnWithoutCommitmentReverts() public {
+        // The core of the burn-griefing fix: a burn with no aged commitment
+        // (the shape an attacker copies out of a pending reveal) is rejected.
+        bytes32 secret = TestTree.secretAt(SEED, 3);
+        bytes32[] memory proof = TestTree.proofFor(leaves, 3);
+        vm.expectRevert(CommitRevealAccount.UnknownCommitment.selector);
+        account.burn(3, secret, proof);
+    }
+
+    function test_burnTooYoungReverts() public {
+        (, bytes32 secret, bytes32[] memory proof) = commitBurn(3);
+        vm.roll(block.number + MIN_AGE - 1);
+        vm.expectRevert(CommitRevealAccount.CommitmentTooYoung.selector);
+        account.burn(3, secret, proof);
+    }
+
+    function test_burnExpiredReverts() public {
+        (, bytes32 secret, bytes32[] memory proof) = commitBurn(3);
+        vm.roll(block.number + TTL + 1);
+        vm.expectRevert(CommitRevealAccount.CommitmentExpired.selector);
+        account.burn(3, secret, proof);
+    }
+
+    function test_revealCommitmentCannotBurn() public {
+        // Domain separation: a commitment made for an action cannot be opened
+        // as a burn, and vice versa.
+        bytes memory data = abi.encodeCall(Receiver.setX, (1));
+        (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, data, 3);
+        age();
+        vm.expectRevert(CommitRevealAccount.UnknownCommitment.selector);
+        account.burn(3, secret, proof);
     }
 
     function test_burnRejectsBadProof() public {
@@ -352,11 +403,15 @@ contract CommitRevealAccountTest is Test {
     }
 
     function test_doubleBurnReverts() public {
-        bytes32 secret = TestTree.secretAt(SEED, 2);
-        bytes32[] memory proof = TestTree.proofFor(leaves, 2);
+        (, bytes32 secret, bytes32[] memory proof) = commitBurn(2);
+        age();
         account.burn(2, secret, proof);
+        // A second burn needs a second commitment; even with one, the leaf is
+        // already nullified.
+        (, bytes32 secret2, bytes32[] memory proof2) = commitBurn(2);
+        age();
         vm.expectRevert(CommitRevealAccount.LeafAlreadyUsed.selector);
-        account.burn(2, secret, proof);
+        account.burn(2, secret2, proof2);
     }
 
     // Prune ---------------------------------------------------------------

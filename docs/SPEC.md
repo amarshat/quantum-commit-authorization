@@ -15,6 +15,7 @@ Commit-reveal authorization for an EVM account using one-time hash secrets under
 | `TAG_NODE` | `QCA/v1/node` | Merkle inner nodes |
 | `TAG_ACTION` | `QCA/v1/action` | action tuple hashing |
 | `TAG_COMMIT` | `QCA/v1/commit` | commitments |
+| `TAG_BURN` | `QCA/v1/burn` | burn commitments (sits in the action slot) |
 
 ## Key material (off-chain)
 
@@ -78,7 +79,15 @@ Effects, strictly before the external call (checks-effects-interactions):
 
 ### Burn
 
-`burn(leafIndex, secret, proof)` proves membership exactly as reveal does and sets `usedLeaves[leafHash] = true` without executing any action. It is the defensive move for a leaked secret: a reveal that was reorged out or expired unincluded leaves the secret public while the leaf is still live on-chain, and burning nullifies that leaf directly instead of forcing the holder to win an aged-commitment race against everyone else who saw the secret. Anyone able to present a valid secret and proof may call it; before a leak only the holder can, and after a leak burning is the outcome we want. Burn executes nothing, so a hostile burn only denies the leaf, it never moves funds.
+`burn(leafIndex, secret, proof)` proves membership exactly as reveal does and, after opening an aged burn commitment, sets `usedLeaves[leafHash] = true` without executing any action. The burn commitment is domain-separated from action commitments by `TAG_BURN` sitting in the action-hash slot:
+
+```
+c_burn = H(enc(TAG_COMMIT, chainid, account, TAG_BURN, leafIndex, secret))
+```
+
+and burn checks it exactly as reveal checks its commitment: present, aged by `minCommitAge`, not past `commitTTL`. It is the defensive move for a leaked secret: a reveal that was reorged out or expired unincluded leaves the secret public while the leaf is still live on-chain, and burning nullifies it.
+
+Burn is age-gated deliberately, and this is a correction to an earlier design. The first version let anyone burn with just a secret and proof, no commitment. Because a burn's inputs are a subset of a reveal's calldata, that made burn a one-transaction denial-of-service on every reveal: an observer copies the secret and proof out of a pending reveal in the mempool, submits an immediate burn, orders it ahead of the reveal, and kills the leaf, no censorship required. Requiring an aged burn commitment removes this: an attacker who only learns the secret when the reveal is broadcast cannot already hold an aged burn commitment, so the victim's already-aged reveal wins. See [GAME.md](GAME.md) Section 6. The cost is that recovery from a genuinely leaked leaf is no longer race-free: the holder must itself commit-to-burn and age, a symmetric race with any thief. That is not a missing optimization; [GAME.md](GAME.md) Theorem 2' proves race-free recovery is impossible, because in the leaked state nothing on-chain distinguishes the holder from an attacker (both merely hold the secret). A hostile burn still moves no funds; after the fix it is bounded by the same aged-commitment race as theft.
 
 ### Rotate
 
@@ -124,7 +133,7 @@ Assumptions, per property:
 - The reveal transaction's outer envelope is ECDSA-signed on present-day Ethereum. An attacker cannot alter the revealed action (NO-REBIND), and the envelope is irrelevant to the reveal since anyone can submit their own, but full end-to-end PQ security needs account abstraction or protocol support for the envelope itself.
 - A reveal is a non-cancellable, submitter-independent bearer instrument. The recomputed commitment does not bind `msg.sender`, so once a reveal is public anyone can land the committed action from any account, and the committer cannot cancel it by replace-by-fee. The action is immutable (NO-REBIND), but its block and intra-block placement within the reveal window are handed to the market, which matters for MEV-sensitive actions.
 - Relayed or bundled reveals hand the secret to the relayer before it is public. A relayer can commit a theft action and withhold the victim's reveal, defeating the aged-commitment defense with no chain censorship required. Reveals must be self-submitted or sent only through a relayer trusted with the account's funds.
-- Burn-on-expiry depends on off-chain state. Whether a leaf's secret was ever broadcast in an unincluded reveal leaves no on-chain trace, so a wallet that rebuilds state by scanning events cannot reconstruct it. Wallets must record "leaf i exposed" durably before broadcasting a reveal (write-ahead) and treat any leaf with unknown reveal status as burned (fail closed). The on-chain `burn` gives such a leaf a race-free nullification.
+- Burn-on-expiry depends on off-chain state. Whether a leaf's secret was ever broadcast in an unincluded reveal leaves no on-chain trace, so a wallet that rebuilds state by scanning events cannot reconstruct it. Wallets must record "leaf i exposed" durably before broadcasting a reveal (write-ahead) and treat any leaf with unknown reveal status as burned (fail closed). The on-chain `burn` gives such a leaf a nullification path, but not a race-free one: burn is age-gated (see the Burn section), so recovering a leaked leaf is a symmetric race against any thief, and race-free recovery is provably impossible (GAME.md Theorem 2'). The real defense is not entering the leaked state: do not broadcast a reveal until its commit is final, and self-submit.
 - Nullifier state and commitment records grow with use; prune reclaims expired commitments, spent-leaf entries are permanent by design.
 - Censorship of a reveal through the commit window is a liveness attack whose cost is bounded only when the victim actively fee-escalates the reveal across the whole window; a passive, near-basefee reveal reduces security to the builder lottery. Quantified in the threat model and the planned simulation.
 - `committedAt` must always be read from on-chain state, never assumed from a local commit receipt: an identical front-run commit can make the sender's own commit transaction revert while the commitment still exists at a slightly earlier block.

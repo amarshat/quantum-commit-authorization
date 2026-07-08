@@ -2,7 +2,7 @@
 //! `keygen`, which pulls from the OS CSPRNG.
 
 use clap::{Parser, Subcommand};
-use qca_core::{action_hash, commitment, secret_at, tags, u256_be, Hash, MerkleTree};
+use qca_core::{action_hash, burn_commitment, commitment, secret_at, tags, u256_be, Hash, MerkleTree};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use serde::Serialize;
@@ -65,6 +65,22 @@ enum Cmd {
         #[arg(long, default_value_t = 0)]
         offset: u64,
     },
+    /// Compute the burn commitment hash for a leaf. Opens the age-gated
+    /// defensive nullify; no action is bound.
+    BurnCommit {
+        #[arg(long)]
+        seed: String,
+        #[arg(long)]
+        chain_id: u64,
+        /// The CommitRevealAccount address, 0x-hex.
+        #[arg(long)]
+        account: String,
+        #[arg(long)]
+        index: u64,
+        /// Global index offset of the active tree; must match the tree build.
+        #[arg(long, default_value_t = 0)]
+        offset: u64,
+    },
     /// Emit golden test vectors as JSON. The Foundry suite parses this file
     /// and asserts the contract computes identical bytes.
     Vectors {
@@ -114,6 +130,7 @@ struct Vectors {
     tag_node: String,
     tag_action: String,
     tag_commit: String,
+    tag_burn: String,
     root: String,
     leaves: Vec<VectorLeaf>,
     example_chain_id: u64,
@@ -124,6 +141,7 @@ struct Vectors {
     example_leaf_index: u64,
     example_action_hash: String,
     example_commitment: String,
+    example_burn_commitment: String,
 }
 
 fn main() {
@@ -158,6 +176,11 @@ fn main() {
             let c = commitment(chain_id, &parse_addr(&account), &a, index, &secret);
             println!("{}", hx(&c));
         }
+        Cmd::BurnCommit { seed, chain_id, account, index, offset } => {
+            let secret = secret_at(&parse_h32(&seed), offset + index);
+            let c = burn_commitment(chain_id, &parse_addr(&account), index, &secret);
+            println!("{}", hx(&c));
+        }
         Cmd::Vectors { depth } => {
             // Fixed, public seed: these are cross-implementation test
             // vectors, not key material.
@@ -182,6 +205,7 @@ fn main() {
             let (chain_id, value, leaf_index) = (1u64, 1_000_000_000_000_000_000u128, 5u64);
             let a = action_hash(&example_target, &u256_be(value), &example_data);
             let c = commitment(chain_id, &example_account, &a, leaf_index, &secret_at(&seed, leaf_index));
+            let bc = burn_commitment(chain_id, &example_account, leaf_index, &secret_at(&seed, leaf_index));
 
             let v = Vectors {
                 seed: hx(&seed),
@@ -191,6 +215,7 @@ fn main() {
                 tag_node: hx(&tags::node()),
                 tag_action: hx(&tags::action()),
                 tag_commit: hx(&tags::commit()),
+                tag_burn: hx(&tags::burn()),
                 root: hx(&tree.root()),
                 leaves,
                 example_chain_id: chain_id,
@@ -201,6 +226,7 @@ fn main() {
                 example_leaf_index: leaf_index,
                 example_action_hash: hx(&a),
                 example_commitment: hx(&c),
+                example_burn_commitment: hx(&bc),
             };
             println!("{}", serde_json::to_string_pretty(&v).unwrap());
         }

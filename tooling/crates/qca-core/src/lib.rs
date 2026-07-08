@@ -36,6 +36,11 @@ pub mod tags {
     pub fn commit() -> Hash {
         keccak(b"QCA/v1/commit")
     }
+    /// Sits in the action-hash slot of a burn commitment, domain-separating
+    /// it from an action commitment. See the contract's TAG_BURN.
+    pub fn burn() -> Hash {
+        keccak(b"QCA/v1/burn")
+    }
 }
 
 fn word_u64(v: u64) -> Hash {
@@ -172,6 +177,20 @@ pub fn commitment(
         word_u64(chain_id),
         word_address(account),
         *action_hash,
+        word_u64(leaf_index),
+        *secret,
+    ])
+}
+
+/// Burn commitment: identical shape to [`commitment`] but with `TAG_BURN` in
+/// the action slot, so it opens the age-gated `burn` path and can never be
+/// confused with an action commitment.
+pub fn burn_commitment(chain_id: u64, account: &[u8; 20], leaf_index: u64, secret: &Hash) -> Hash {
+    hash_words(&[
+        tags::commit(),
+        word_u64(chain_id),
+        word_address(account),
+        tags::burn(),
         word_u64(leaf_index),
         *secret,
     ])
