@@ -1,0 +1,74 @@
+[
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 0,
+      "burn_response": true
+    },
+    "trials": 2000000,
+    "victim_executes": 0,
+    "adversary_steals": 2000000,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 1.0,
+    "ci95": 0.0,
+    "bound_upper": 0.00010000000000000005,
+    "bound_lower": 0.000010000000000000006
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 0,
+      "burn_response": true
+    },
+    "trials": 2000000,
+    "victim_executes": 0,
+    "adversary_steals": 2000000,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 1.0,
+    "ci95": 0.0,
+    "bound_upper": 0.00390625,
+    "bound_lower": 0.0009765625
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 0,
+      "burn_response": true
+    },
+    "trials": 2000000,
+    "victim_executes": 0,
+    "adversary_steals": 2000000,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 1.0,
+    "ci95": 0.0,
+    "bound_upper": 0.0625,
+    "bound_lower": 0.03125
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 0,
+      "burn_response": true
+    },
+    "trials": 2000000,
+    "victim_executes": 0,
+    "adversary_steals": 2000000,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 1.0,
+    "ci95": 0.0,
+    "bound_upper": 0.31640625,
+    "bound_lower": 0.2373046875
+  }
+]

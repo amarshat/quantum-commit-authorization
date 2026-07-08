@@ -10,19 +10,19 @@ Build Profile: release
 anvil Version: 1.7.1-Homebrew
 ETHFALCON    7d5ecd41ce1e0346afc835d20a9014e5a076843e
 ETHDILITHIUM fc09dff86fa8024cf2b28d2c8ecdfa91b5b882b6
-qca          79cb7a3
-date         2026-07-08T10:48:03Z
+qca          2c65260
+date         2026-07-08T14:07:13Z
 ```
 
 Our numbers are transaction receipt gasUsed from anvil (prague hardfork), so intrinsic gas, calldata gas and EIP-7623 floors are measured, not modeled. Baseline execution gas is re-measured from the pinned upstream suites (in-test gasleft() deltas, warm and execution-only); their transaction totals are modeled as described in bench/report.py. Compiler settings differ per project and follow each project's own foundry.toml (ours: solc 0.8.35 via-ir; ETHFALCON: 0.8.25 cancun; ETHDILITHIUM: 0.8.30 osaka). Both residual asymmetries (warm baselines, uniform-zeros calldata) lean against us and are below 1% of any baseline number.
 
 ## CommitRevealAccount, receipt gas per transaction
 
-| depth | commit | reveal (1 ETH to fresh EOA) | reveal (authorization only) | burn | action flow | auth-only flow |
-|---|---|---|---|---|---|---|
-| 8 | 45,308 | 95,250 | 61,252 | 58,337 | 140,558 | 106,560 |
-| 16 | 45,308 | 102,623 | 68,625 | 65,708 | 147,931 | 113,933 |
-| 20 | 45,308 | 106,329 | 72,331 | 69,413 | 151,637 | 117,639 |
+| depth | commit | reveal (1 ETH to fresh EOA) | reveal (authorization only) | burn | action flow | auth-only flow | burn flow |
+|---|---|---|---|---|---|---|---|
+| 8 | 45,308 | 95,271 | 61,273 | 59,175 | 140,579 | 106,581 | 104,483 |
+| 16 | 45,308 | 102,644 | 68,646 | 66,547 | 147,952 | 113,954 | 111,855 |
+| 20 | 45,284 | 106,350 | 72,352 | 70,252 | 151,634 | 117,636 | 115,560 |
 
 A flow is one commit plus one reveal. The authorization-only reveal executes a zero-value self-call, which is the like-for-like row against baselines that only verify a signature. Reveal cost grows about 923 gas per tree level (one keccak plus 32 calldata bytes).
 
@@ -30,11 +30,11 @@ A flow is one commit plus one reveal. The authorization-only reveal executes a z
 
 | depth | deploy tx | capacity (leaves) | deploy amortized per action | rotate flow amortized |
 |---|---|---|---|---|
-| 8 | 617,386 | 256 | 2,411.7 | 416.2 |
-| 16 | 617,386 | 65,536 | 9.4 | 1.7 |
-| 20 | 617,386 | 1,048,576 | 0.6 | 0.1 |
+| 8 | 674,391 | 256 | 2,634.3 | 416.3 |
+| 16 | 674,391 | 65,536 | 10.3 | 1.7 |
+| 20 | 674,391 | 1,048,576 | 0.6 | 0.1 |
 
-Each reveal permanently occupies one nullifier storage slot; that 20K SSTORE is inside the reveal numbers above but the per-account state footprint grows without bound over its lifetime, one word per action. Expired commitments can be pruned for a refund, but post-EIP-3529 a dedicated prune transaction costs more than it reclaims, so the tables ignore prune. burn is the leak response (reorged or expired reveal): one transaction per leaked leaf.
+Each reveal permanently occupies one nullifier storage slot; that 20K SSTORE is inside the reveal numbers above but the per-account state footprint grows without bound over its lifetime, one word per action. Expired commitments can be pruned for a refund, but post-EIP-3529 a dedicated prune transaction costs more than it reclaims, so the tables ignore prune. Burn is the leak response (reorged or expired reveal). It is age-gated exactly like reveal (see docs/GAME.md on burn-griefing), so the defensive nullify is itself a two-transaction flow, commit-to-burn then burn; the burn flow column totals both.
 
 ## Direct on-chain PQ verification baselines, single transaction
 
@@ -48,11 +48,11 @@ Each reveal permanently occupies one nullifier storage slot; that 20K SSTORE is 
 
 ## Ratios
 
-Depth-16 authorization-only flow = 113,933 gas (like-for-like: baselines execute no action either); with the 1 ETH action included = 147,931 gas.
+Depth-16 authorization-only flow = 113,954 gas (like-for-like: baselines execute no action either); with the 1 ETH action included = 147,952 gas.
 
 | baseline | vs auth-only flow | vs action flow |
 |---|---|---|
-| ETHFALCON (Keccak PRNG, non-FIPS) | 14.1x | 10.9x |
+| ETHFALCON (Keccak PRNG, non-FIPS) | 14.1x | 10.8x |
 | Falcon-512 (NIST hash, precomputed NTT pk) | 34.8x | 26.8x |
 | Falcon-512 (FIPS-206, wire format) | 42.7x | 32.9x |
 | ML-DSA-44 (NIST) | 71.9x | 55.4x |
@@ -60,7 +60,7 @@ Depth-16 authorization-only flow = 113,933 gas (like-for-like: baselines execute
 
 ## Fee variance between the two transactions (depth 16)
 
-Cost in commit-block gas units: 45,308 + m x 102,623, where the reveal lands at m times the commit basefee. Break-even against the cheapest baseline (ETHFALCON (Keccak PRNG, non-FIPS), 1,605,156 gas) is m = 15.2. Under EIP-1559 the basefee grows at most 12.5% per block, so reaching that multiple takes about 23 consecutive completely full blocks between commit and reveal. That is not a guarantee: the commit stays valid for commitTTL (256 blocks here) and sustained congestion or censorship, exactly the adversarial conditions in the threat model, can push the reveal deep into that window. The holder can also simply wait out a spike anywhere inside the TTL, at the cost of delay. The paper must present m as an empirical distribution from historical basefee traces, not a bound.
+Cost in commit-block gas units: 45,308 + m x 102,644, where the reveal lands at m times the commit basefee. Break-even against the cheapest baseline (ETHFALCON (Keccak PRNG, non-FIPS), 1,605,156 gas) is m = 15.2. Under EIP-1559 the basefee grows at most 12.5% per block, so reaching that multiple takes about 23 consecutive completely full blocks between commit and reveal. That is not a guarantee: the commit stays valid for commitTTL (256 blocks here) and sustained congestion or censorship, exactly the adversarial conditions in the threat model, can push the reveal deep into that window. The holder can also simply wait out a spike anywhere inside the TTL, at the cost of delay. The paper must present m as an empirical distribution from historical basefee traces, not a bound.
 
 ## Cited baselines, not re-run
 

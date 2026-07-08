@@ -1,0 +1,20 @@
+[
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 2000000,
+    "victim_executes": 1929742,
+    "adversary_steals": 70258,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.035129,
+    "ci95": 0.0002551576501145266,
+    "bound_upper": 0.00390625,
+    "bound_lower": 0.0009765625
+  }
+]
