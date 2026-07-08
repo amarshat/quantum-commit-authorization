@@ -1,3 +1,7 @@
 [submodule "contracts/lib/forge-std"]
 	path = contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "private"]
+	path = private
+	url = git@github.com:amarshat/qca-private.git
+	update = none

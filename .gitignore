@@ -1,6 +1,6 @@
-# local-only working notes, never commit
-internal/
-.claude/
+# local symlinks into the private submodule, never commit
+internal
+.claude
 
 # build artifacts
 target/
