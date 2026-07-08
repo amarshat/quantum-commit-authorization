@@ -36,6 +36,9 @@ Honesty up front, since this space is full of overclaiming:
 contracts/   Solidity account contract and tests (Foundry)
 tooling/     Rust workspace: leaf derivation, Merkle trees, commitment
              construction, golden test vectors shared with the contracts
+bench/       Gas benchmarks against on-chain PQ signature verifiers
+             (ETHFALCON and ETHDILITHIUM vendored as pinned submodules);
+             results in bench/results/RESULTS.md
 docs/        Protocol spec and threat model
 ```
 
@@ -45,7 +48,7 @@ docs/        Protocol spec and threat model
 - [x] Account contract: commit, reveal, nullifiers, expiry, root rotation, defensive burn
 - [x] Rust tooling and cross-implementation golden vectors
 - [x] First adversarial review pass (PQ crypto, MEV, formal); findings folded into the design and docs
-- [ ] Gas benchmarks vs on-chain ML-DSA / Falcon / SLH-DSA verification
+- [x] Gas benchmarks vs on-chain ML-DSA and Falcon verification ([results](bench/results/RESULTS.md), measured from transaction receipts: the depth-16 commit+reveal flow totals 114K gas for authorization alone, 148K including a 1 ETH transfer, against 1.6M for the cheapest non-standard Falcon verifier and 8.2M for FIPS ML-DSA-44 per call; the two-tx structure breaks even only if basefee rises about 15x between commit and reveal; SLH-DSA rows are cited from upstream publications, not re-run, since no implementation has a license permitting vendoring)
 - [ ] Adversarial mempool simulation (reveal races, commit griefing, reorgs)
 - [ ] Recovery paths for lost leaf state
 

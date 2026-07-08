@@ -10,12 +10,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      # Not `submodules: recursive`: the private/ submodule is not readable
+      # from CI (and is marked update=none). Init public ones explicitly.
+      - name: init submodules
+        run: git submodule update --init contracts/lib/forge-std
+      # Pinned to the version the committed benchmark numbers were produced
+      # with, so every job compiles with the same toolchain.
       - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.7.1
       - name: forge test
         working-directory: contracts
         run: forge test -vv
+
+  # The benchmark receipts and RESULTS.md are committed and quoted in the
+  # paper. Re-measure receipts against anvil under the pinned toolchain and
+  # rebuild the report from committed inputs; fail on drift, same policy as
+  # the golden vectors.
+  gas-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: init submodules
+        run: git submodule update --init contracts/lib/forge-std
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.7.1
+      - name: re-measure receipts
+        run: bench/measure_qca.sh
+      - name: rebuild report
+        run: python3 bench/report.py > bench/results/RESULTS.md
+      - name: diff
+        run: git diff --exit-code bench/results/qca-receipts.json bench/results/RESULTS.md
 
   tooling:
     runs-on: ubuntu-latest
