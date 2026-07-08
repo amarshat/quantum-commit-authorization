@@ -5,3 +5,9 @@
 	path = private
 	url = git@github.com:amarshat/qca-private.git
 	update = none
+[submodule "bench/lib/ETHFALCON"]
+	path = bench/lib/ETHFALCON
+	url = https://github.com/ZKNoxHQ/ETHFALCON
+[submodule "bench/lib/ETHDILITHIUM"]
+	path = bench/lib/ETHDILITHIUM
+	url = https://github.com/ZKNoxHQ/ETHDILITHIUM
