@@ -1,0 +1,50 @@
+No files changed, compilation skipped
+
+Ran 11 tests for test/Benchmarks.t.sol:Benchmark
+[PASS] testBenchDecompressKAT() (gas: 425605)
+Logs:
+  Decompress KAT cost:    421703
+
+[PASS] testBenchDecompressKATandNTTCompact() (gas: 916716)
+Logs:
+  Decompress KAT and NTT Compact cost:    912805
+
+[PASS] testBenchEpervierEVM() (gas: 1594924)
+Logs:
+  Verify Epervier EVM cost:   1577001
+
+[PASS] testBenchFalconCore() (gas: 1547532)
+Logs:
+  Falcon core cost:       1443670
+
+[PASS] testBenchHashToPointEVM() (gas: 376118)
+Logs:
+  EVM HashToPoint cost:   94077
+
+[PASS] testBenchHashToPointNIST() (gas: 2466057)
+Logs:
+  NIST HashToPoint cost:  2183809
+
+[PASS] testBenchVerifyEVM() (gas: 1559470)
+Logs:
+  Verify EVM cost:        1547336
+
+[PASS] testBenchVerifyNIST() (gas: 3922966)
+Logs:
+  Verify NIST cost:       3910833
+
+[PASS] testBenchVerifyNISTCompliant() (gas: 4825579)
+Logs:
+  Verify NIST compliant cost: 4818843
+
+[PASS] testBenchmarkNTT() (gas: 501034)
+Logs:
+  NTT cost:               497562
+
+[PASS] testBenchmarkiNTT() (gas: 532557)
+Logs:
+  iNTT cost:              529086
+
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 14.21ms (48.78ms CPU time)
+
+Ran 1 test suite in 20.97ms (14.21ms CPU time): 11 tests passed, 0 failed, 0 skipped (11 total tests)

@@ -1,0 +1,10 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/dilithiumKATS.t.sol:KATDilithiumTest
+[PASS] testVerify() (gas: 12858212)
+Logs:
+  Gas used: 8125860
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 10.33ms (9.56ms CPU time)
+
+Ran 1 test suite in 10.80ms (10.33ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

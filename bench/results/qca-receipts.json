@@ -1,0 +1,101 @@
+{
+  "hardfork": "prague",
+  "depths": {
+    "8": {
+      "deploy": {
+        "gasUsed": 617386,
+        "inputBytes": 2761,
+        "zeroBytes": 276
+      },
+      "commit_action": {
+        "gasUsed": 45308,
+        "inputBytes": 36,
+        "zeroBytes": 0
+      },
+      "commit_noop": {
+        "gasUsed": 45308,
+        "inputBytes": 36,
+        "zeroBytes": 0
+      },
+      "reveal_action": {
+        "gasUsed": 95250,
+        "inputBytes": 516,
+        "zeroBytes": 212
+      },
+      "reveal_noop": {
+        "gasUsed": 61252,
+        "inputBytes": 516,
+        "zeroBytes": 202
+      },
+      "burn": {
+        "gasUsed": 58337,
+        "inputBytes": 388,
+        "zeroBytes": 94
+      }
+    },
+    "16": {
+      "deploy": {
+        "gasUsed": 617386,
+        "inputBytes": 2761,
+        "zeroBytes": 276
+      },
+      "commit_action": {
+        "gasUsed": 45308,
+        "inputBytes": 36,
+        "zeroBytes": 0
+      },
+      "commit_noop": {
+        "gasUsed": 45308,
+        "inputBytes": 36,
+        "zeroBytes": 0
+      },
+      "reveal_action": {
+        "gasUsed": 102623,
+        "inputBytes": 772,
+        "zeroBytes": 215
+      },
+      "reveal_noop": {
+        "gasUsed": 68625,
+        "inputBytes": 772,
+        "zeroBytes": 205
+      },
+      "burn": {
+        "gasUsed": 65708,
+        "inputBytes": 644,
+        "zeroBytes": 97
+      }
+    },
+    "20": {
+      "deploy": {
+        "gasUsed": 617386,
+        "inputBytes": 2761,
+        "zeroBytes": 276
+      },
+      "commit_action": {
+        "gasUsed": 45308,
+        "inputBytes": 36,
+        "zeroBytes": 0
+      },
+      "commit_noop": {
+        "gasUsed": 45308,
+        "inputBytes": 36,
+        "zeroBytes": 0
+      },
+      "reveal_action": {
+        "gasUsed": 106329,
+        "inputBytes": 900,
+        "zeroBytes": 215
+      },
+      "reveal_noop": {
+        "gasUsed": 72331,
+        "inputBytes": 900,
+        "zeroBytes": 205
+      },
+      "burn": {
+        "gasUsed": 69413,
+        "inputBytes": 772,
+        "zeroBytes": 97
+      }
+    }
+  }
+}
