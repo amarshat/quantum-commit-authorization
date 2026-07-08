@@ -244,6 +244,16 @@ fn resolve_leaked_live(
 
 /// Run `trials` independent games and aggregate.
 pub fn run_race(params: &RaceParams, model: &BuilderModel, trials: u64, seed: u64) -> RaceResult {
+    // A Markov chain with the given steady-state share exists only if the
+    // adversary is at least as likely to stay as its share; otherwise the
+    // implied switch-in probability exceeds 1 and the chain is invalid.
+    // Reject rather than silently produce garbage.
+    if let BuilderModel::Markov { beta, persistence } = *model {
+        assert!(
+            persistence >= beta,
+            "invalid Markov builder: persistence {persistence} < beta {beta} (no such chain)"
+        );
+    }
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     let mut counts = [0u64; 4];
     for _ in 0..trials {

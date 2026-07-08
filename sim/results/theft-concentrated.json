@@ -1,0 +1,92 @@
+[
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 2000000,
+    "victim_executes": 1976639,
+    "adversary_steals": 23361,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0116805,
+    "ci95": 0.0001489088372752128,
+    "bound_upper": 0.00010000000000000005,
+    "bound_lower": 0.000010000000000000006
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 2000000,
+    "victim_executes": 1947197,
+    "adversary_steals": 52803,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0264015,
+    "ci95": 0.00022220064873964299,
+    "bound_upper": 0.0016000000000000007,
+    "bound_lower": 0.0003200000000000002
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 2000000,
+    "victim_executes": 1909521,
+    "adversary_steals": 90479,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0452395,
+    "ci95": 0.00028803627996908966,
+    "bound_upper": 0.0081,
+    "bound_lower": 0.00243
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 2000000,
+    "victim_executes": 1859390,
+    "adversary_steals": 140610,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.070305,
+    "ci95": 0.00035432714707961627,
+    "bound_upper": 0.02560000000000001,
+    "bound_lower": 0.010240000000000006
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 2000000,
+    "victim_executes": 1789816,
+    "adversary_steals": 210184,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.105092,
+    "ci95": 0.0004250256080359733,
+    "bound_upper": 0.0625,
+    "bound_lower": 0.03125
+  }
+]

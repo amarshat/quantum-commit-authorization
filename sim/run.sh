@@ -29,10 +29,22 @@ $RUN sweep --ages 4 --betas 0.1,0.25,0.5,0.75 \
     --trials 2000000 --seed 4 > sim/results/recovery-adversary-ties.json
 
 # Concentrated builders: theft race at beta=0.25 under rising autocorrelation,
-# showing censorship gets cheaper than the i.i.d. baseline at equal share.
+# showing censorship success rises several-fold over the i.i.d. baseline at
+# equal share (non-monotonic in persistence: it peaks at moderate runs, since
+# extreme persistence rarely re-enters a run at the victim's reveal block).
 for P in 0.25 0.5 0.75 0.9; do
     $RUN sweep --ages 4 --betas 0.25 --persistence "$P" \
         --trials 2000000 --seed 5 > "sim/results/theft-markov-p${P}.json"
 done
+
+# The clean concentration figure: theft-vs-beta at a4 under moderate builder
+# autocorrelation (persistence 0.75), overlaid against the i.i.d. beta^a
+# baseline. Betas kept <= 0.5 so persistence >= beta holds (the Markov chain
+# is only valid when the adversary is at least as likely to stay as its
+# share). The story: a low-share adversary that clusters its blocks censors a
+# window it could never hold i.i.d., lifting small-beta theft by orders of
+# magnitude.
+$RUN sweep --ages 4 --betas 0.1,0.2,0.3,0.4,0.5 --persistence 0.75 \
+    --trials 2000000 --seed 6 > sim/results/theft-concentrated.json
 
 echo "wrote sim/results/*.json"
