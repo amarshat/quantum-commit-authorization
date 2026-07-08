@@ -41,6 +41,7 @@ bench/       Gas benchmarks against on-chain PQ signature verifiers
              results in bench/results/RESULTS.md
 docs/        Protocol spec, threat model, and the authorization game
 sim/         Committed simulator result vectors (tooling/qca-sim generates)
+fees/        Historical base-fee sample and the empirical fee-cost analysis
 ```
 
 ## Roadmap
@@ -52,8 +53,9 @@ sim/         Committed simulator result vectors (tooling/qca-sim generates)
 - [x] Gas benchmarks vs on-chain ML-DSA and Falcon verification ([results](bench/results/RESULTS.md), measured from transaction receipts: the depth-16 commit+reveal flow totals 114K gas for authorization alone, 148K including a 1 ETH transfer, against 1.6M for the cheapest non-standard Falcon verifier and 8.2M for FIPS ML-DSA-44 per call; the two-tx structure breaks even only if basefee rises about 15x between commit and reveal; SLH-DSA rows are cited from upstream publications, not re-run, since no implementation has a license permitting vendoring)
 - [x] Formal authorization game ([docs/GAME.md](docs/GAME.md)): the reveal race as a security game against a quantum mempool adversary, theft bounded by beta^a in the block-builder share, cross-checked by the simulator. An adversarial review of the model found a one-transaction denial-of-service (burn-griefing) that the first design missed; the fix (age-gating the defensive nullify) is in the contract, and its consequence is a clean impossibility result: race-free recovery from a leaked leaf cannot exist.
 - [x] Adversarial mempool simulator ([tooling/qca-sim](tooling/qca-sim)): Monte Carlo over the game, reproduces every closed-form bound and measures what the proofs cannot (fee-auction ties, concentrated builders, leaked-leaf recovery). Committed result vectors in [sim/results](sim/results).
-- [ ] Empirical basefee traces: turn the gas break-even multiple into a distribution over historical congestion
+- [x] Empirical base-fee analysis ([fees/results/RESULTS.md](fees/results/RESULTS.md)): replaying two years of real mainnet base fees (2024-2026), the two-transaction flow was cheaper than every measured PQ verifier at 100% of entry points over the operative minCommitAge window, and beats the cheapest Falcon verifier 99.7% of the time even under a full 256-block censorship delay. The single-number break-even is now a measured distribution.
 - [ ] Recovery paths for lost leaf state
+- [ ] Paper draft
 
 ## License
 

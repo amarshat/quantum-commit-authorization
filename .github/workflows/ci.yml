@@ -79,3 +79,16 @@ jobs:
         run: |
           sim/run.sh
           git diff --exit-code sim/results
+
+  # The empirical fee analysis is a pure function of the committed base-fee
+  # sample and the committed gas numbers. Recompute and fail on drift. The
+  # raw data (fees/data) is fetched once by fees/fetch.py and committed; CI
+  # never touches the network.
+  fee-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: recompute and diff
+        run: |
+          python3 fees/analyze.py
+          git diff --exit-code fees/results
