@@ -41,7 +41,8 @@ tooling/     Rust workspace: leaf derivation, Merkle trees, commitment
 bench/       Gas benchmarks against on-chain PQ signature verifiers
              (ETHFALCON and ETHDILITHIUM vendored as pinned submodules);
              results in bench/results/RESULTS.md
-docs/        Protocol spec, threat model, and the authorization game
+docs/        Protocol spec, threat model, the authorization game, and the
+             account-abstraction analysis (AA.md)
 sim/         Committed simulator result vectors (tooling/qca-sim generates)
 fees/        Historical base-fee sample and the empirical fee-cost analysis
 ```
