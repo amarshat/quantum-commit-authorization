@@ -204,6 +204,42 @@ def main() -> None:
           "flow column totals both.")
     print()
 
+    aa = RESULTS / "qca-4337-receipts.json"
+    if aa.exists():
+        a = json.loads(aa.read_text())
+        d = a["depth"]
+        base_action = ours[d]["reveal_action"]["gasUsed"]
+        base_auth = ours[d]["reveal_noop"]["gasUsed"]
+        print("## Under account abstraction (ERC-4337 v0.8), receipt gas")
+        print()
+        print(f"The base scheme's reveal is a plain transaction wrapped in the "
+              f"owner's ECDSA envelope. Carrying the same commit-reveal "
+              f"authorization inside a 4337 UserOp (see docs/AA.md) removes the "
+              f"signature from the account but relocates the ECDSA envelope to "
+              f"the bundler's handleOps. Measured through a real EntryPoint "
+              f"v0.8 at depth {d}, receipts from anvil:")
+        print()
+        print("| step | base scheme | under 4337 | 4337 overhead |")
+        print("|---|---|---|---|")
+        print(f"| commit | {ours[d]['commit_action']['gasUsed']:,} | {a['commit']:,} | ~0 (plain tx either way) |")
+        print(f"| reveal, 1 ETH action | {base_action:,} | {a['handleOps_action']:,} "
+              f"| {a['handleOps_action'] - base_action:,} ({a['handleOps_action'] / base_action:.2f}x) |")
+        print(f"| reveal, authorization only | {base_auth:,} | {a['handleOps_auth_only']:,} "
+              f"| {a['handleOps_auth_only'] - base_auth:,} ({a['handleOps_auth_only'] / base_auth:.2f}x) |")
+        print()
+        aa_auth_flow = a["commit"] + a["handleOps_auth_only"]
+        cheapest = min(baselines(), key=lambda r: r["total"])["total"]
+        print(f"The 4337 overhead is the EntryPoint wrapper plus the UserOp "
+              f"calldata, roughly {a['handleOps_auth_only'] - base_auth:,} to "
+              f"{a['handleOps_action'] - base_action:,} gas, and does not vary "
+              f"with tree depth (the Merkle part scales as the base scheme). "
+              f"The full authorization-only 4337 flow (commit plus handleOps) "
+              f"is {aa_auth_flow:,} gas, still {cheapest / aa_auth_flow:.1f}x "
+              f"cheaper than the cheapest direct PQ verifier. Aging is "
+              f"wall-clock here, not block-denominated, per the 4337 "
+              f"validation rules; see docs/AA.md.")
+        print()
+
     print("## Direct on-chain PQ verification baselines, single transaction")
     print()
     print("| scheme | exec (measured) | total tx (modeled) | one-time | total at N=1 | N=10 | N=100 | note |")

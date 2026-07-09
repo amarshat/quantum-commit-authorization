@@ -33,5 +33,8 @@ echo "== ETHDILITHIUM baselines (upstream KAT suites, no FFI) =="
 echo "== CommitRevealAccount (receipts from anvil) =="
 ./measure_qca.sh
 
+echo "== CommitRevealAccount under ERC-4337 v0.8 (receipts from anvil) =="
+./measure_4337.sh
+
 python3 report.py > results/RESULTS.md
 echo "wrote results/RESULTS.md"

@@ -21,3 +21,6 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+
+# 4337 benchmark scratch (deployed-address handoff)
+contracts/bench-4337-addrs.json

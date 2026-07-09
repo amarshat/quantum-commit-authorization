@@ -36,12 +36,14 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: v1.7.1
-      - name: re-measure receipts
+      - name: re-measure receipts (base scheme)
         run: bench/measure_qca.sh
+      - name: re-measure receipts (ERC-4337)
+        run: bench/measure_4337.sh
       - name: rebuild report
         run: python3 bench/report.py > bench/results/RESULTS.md
       - name: diff
-        run: git diff --exit-code bench/results/qca-receipts.json bench/results/RESULTS.md
+        run: git diff --exit-code bench/results/qca-receipts.json bench/results/qca-4337-receipts.json bench/results/RESULTS.md
 
   tooling:
     runs-on: ubuntu-latest
