@@ -11,3 +11,9 @@
 [submodule "bench/lib/ETHDILITHIUM"]
 	path = bench/lib/ETHDILITHIUM
 	url = https://github.com/ZKNoxHQ/ETHDILITHIUM
+[submodule "contracts/lib/account-abstraction"]
+	path = contracts/lib/account-abstraction
+	url = https://github.com/eth-infinitism/account-abstraction
+[submodule "contracts/lib/openzeppelin-contracts"]
+	path = contracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts

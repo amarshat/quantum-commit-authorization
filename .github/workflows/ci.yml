@@ -13,7 +13,7 @@ jobs:
       # Not `submodules: recursive`: the private/ submodule is not readable
       # from CI (and is marked update=none). Init public ones explicitly.
       - name: init submodules
-        run: git submodule update --init contracts/lib/forge-std
+        run: git submodule update --init contracts/lib/forge-std contracts/lib/account-abstraction contracts/lib/openzeppelin-contracts
       # Pinned to the version the committed benchmark numbers were produced
       # with, so every job compiles with the same toolchain.
       - uses: foundry-rs/foundry-toolchain@v1
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: init submodules
-        run: git submodule update --init contracts/lib/forge-std
+        run: git submodule update --init contracts/lib/forge-std contracts/lib/account-abstraction contracts/lib/openzeppelin-contracts
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: v1.7.1
