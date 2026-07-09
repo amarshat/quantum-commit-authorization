@@ -15,6 +15,14 @@ authors:
     # orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: fill in before release
 license: MIT
 repository-code: "https://github.com/amarshat/quantum-commit-authorization"
+doi: "10.5281/zenodo.21277122"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21277122"
+    description: "Concept DOI (all versions)"
+  - type: doi
+    value: "10.5281/zenodo.21277123"
+    description: "Version DOI (v0.1.0)"
 version: 0.1.0
 date-released: "2026-07-09"
 keywords:
