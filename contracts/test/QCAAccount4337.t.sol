@@ -29,6 +29,8 @@ contract QCAAccount4337Test is Test {
 
     uint256 constant MIN_AGE = 60; // seconds
     uint256 constant TTL = 3600;
+    uint256 constant MAX_FEE_CAP = 100 gwei; // committed fee ceiling
+    uint256 constant CALL_GAS_FLOOR = 200_000; // committed call-gas floor
 
     EntryPoint entryPoint;
     QCAAccount4337 account;
@@ -64,11 +66,23 @@ contract QCAAccount4337Test is Test {
 
     function commitmentOf(address target, uint256 value, bytes memory data) internal view returns (bytes32) {
         return keccak256(
-            abi.encode(TAG_COMMIT, block.chainid, address(account), actionHash(target, value, data), leafIndex, secret)
+            abi.encode(
+                TAG_COMMIT,
+                block.chainid,
+                address(account),
+                actionHash(target, value, data),
+                leafIndex,
+                secret,
+                MAX_FEE_CAP,
+                CALL_GAS_FLOOR
+            )
         );
     }
 
-    function buildOp(address target, uint256 value, bytes memory data)
+    /// Build a reveal op. `maxFee` and `callGasLimit` are the ACTUAL UserOp
+    /// fields; the committed bounds are MAX_FEE_CAP / CALL_GAS_FLOOR. An honest
+    /// op stays inside them; the adversary tests push past them.
+    function buildOp(address target, uint256 value, bytes memory data, uint256 maxFee, uint256 callGasLimit)
         internal
         view
         returns (PackedUserOperation memory op)
@@ -77,11 +91,19 @@ contract QCAAccount4337Test is Test {
         op.nonce = entryPoint.getNonce(address(account), 0);
         op.initCode = "";
         op.callData = abi.encodeCall(QCAAccount4337.execute, (target, value, data));
-        op.accountGasLimits = bytes32((uint256(1_000_000) << 128) | uint256(1_000_000));
+        op.accountGasLimits = bytes32((uint256(1_500_000) << 128) | callGasLimit);
         op.preVerificationGas = 100_000;
-        op.gasFees = bytes32((uint256(1 gwei) << 128) | uint256(1 gwei));
+        op.gasFees = bytes32((uint256(1 gwei) << 128) | maxFee);
         op.paymasterAndData = "";
-        op.signature = abi.encode(leafIndex, secret, proof);
+        op.signature = abi.encode(leafIndex, secret, proof, MAX_FEE_CAP, CALL_GAS_FLOOR);
+    }
+
+    function buildOp(address target, uint256 value, bytes memory data)
+        internal
+        view
+        returns (PackedUserOperation memory op)
+    {
+        return buildOp(target, value, data, 1 gwei, 1_000_000);
     }
 
     function test_commitRevealExecutesThroughEntryPoint() public {
@@ -128,6 +150,51 @@ contract QCAAccount4337Test is Test {
         vm.expectRevert(); // no commitment for the swapped action
         entryPoint.handleOps(ops, payable(address(0xB0B)));
         assertEq(receiver.x(), 0, "attacker action must not execute");
+    }
+
+    function test_bundlerCannotInflateFeeToDrainDeposit() public {
+        // F1: a bundler replays the reveal with maxFeePerGas above the
+        // committed cap to drain the account's deposit as fees. The committed
+        // fee cap makes validation reject it.
+        bytes memory data = abi.encodeCall(Receiver.setX, (42));
+        account.commit(commitmentOf(address(receiver), 0, data));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = buildOp(address(receiver), 0, data, MAX_FEE_CAP + 1, 1_000_000);
+        vm.expectRevert(); // FeeCapExceeded inside validation
+        entryPoint.handleOps(ops, payable(address(0xB0B)));
+        assertEq(receiver.x(), 0);
+    }
+
+    function test_bundlerCannotStarveCallGasToBurnLeaf() public {
+        // F3: a bundler sets callGasLimit below the committed floor to starve
+        // execute, consuming the leaf without running the action. The floor
+        // makes validation reject it, so the leaf survives.
+        bytes memory data = abi.encodeCall(Receiver.setX, (42));
+        account.commit(commitmentOf(address(receiver), 0, data));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = buildOp(address(receiver), 0, data, 1 gwei, CALL_GAS_FLOOR - 1);
+        vm.expectRevert(); // CallGasBelowFloor inside validation
+        entryPoint.handleOps(ops, payable(address(0xB0B)));
+        assertFalse(account.usedLeaves(keccak256(abi.encode(TAG_LEAF, secret))), "leaf must not be burned");
+    }
+
+    function test_rotateViaSelfActionCancelsOldTree() public {
+        // F5: rotation is reachable as a committed self-action and switches the
+        // root, the break-glass response. After rotating to a fresh root, a
+        // reveal against the old tree no longer validates.
+        bytes32 newRoot = keccak256("fresh tree");
+        bytes memory rotateData = abi.encodeCall(QCAAccount4337.rotate, (newRoot, 8));
+        account.commit(commitmentOf(address(account), 0, rotateData));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = buildOp(address(account), 0, rotateData);
+        entryPoint.handleOps(ops, payable(address(0xB0B)));
+        assertEq(account.root(), newRoot, "root did not rotate");
     }
 
     function test_leafCannotBeReused() public {

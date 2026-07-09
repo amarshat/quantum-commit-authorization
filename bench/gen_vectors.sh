@@ -15,7 +15,7 @@ for DEPTH in 8 16 20; do
   OUT="contracts/test/vectors/bench-depth${DEPTH}.json"
   # The CLI emits pretty-printed JSON objects back to back; decode them
   # streamingly instead of splitting on braces.
-  (cd tooling && for IDX in 5 7 9; do
+  (cd tooling && for IDX in 5 7 9 11 13; do
       cargo run -q --release -p qca-cli -- proof --seed "$SEED" --depth "$DEPTH" --index "$IDX"
    done) | python3 -c "
 import json, sys

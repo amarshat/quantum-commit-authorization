@@ -207,37 +207,61 @@ def main() -> None:
     aa = RESULTS / "qca-4337-receipts.json"
     if aa.exists():
         a = json.loads(aa.read_text())
-        d = a["depth"]
-        base_action = ours[d]["reveal_action"]["gasUsed"]
-        base_auth = ours[d]["reveal_noop"]["gasUsed"]
+        aad = {int(k): v for k, v in a["depths"].items()}
         print("## Under account abstraction (ERC-4337 v0.8), receipt gas")
         print()
-        print(f"The base scheme's reveal is a plain transaction wrapped in the "
-              f"owner's ECDSA envelope. Carrying the same commit-reveal "
-              f"authorization inside a 4337 UserOp (see docs/AA.md) removes the "
-              f"signature from the account but relocates the ECDSA envelope to "
-              f"the bundler's handleOps. Measured through a real EntryPoint "
-              f"v0.8 at depth {d}, receipts from anvil:")
+        print("The base scheme's reveal is a plain transaction wrapped in the "
+              "owner's ECDSA envelope. Carrying the same commit-reveal "
+              "authorization inside a 4337 UserOp (see docs/AA.md) removes the "
+              "signature from the account but relocates the ECDSA envelope to "
+              "the bundler's handleOps. All rows are authorization-only reveals "
+              "(a zero-value self-call), measured through a real EntryPoint "
+              "v0.8, receipts from anvil.")
         print()
-        print("| step | base scheme | under 4337 | 4337 overhead |")
-        print("|---|---|---|---|")
-        print(f"| commit | {ours[d]['commit_action']['gasUsed']:,} | {a['commit']:,} | ~0 (plain tx either way) |")
-        print(f"| reveal, 1 ETH action | {base_action:,} | {a['handleOps_action']:,} "
-              f"| {a['handleOps_action'] - base_action:,} ({a['handleOps_action'] / base_action:.2f}x) |")
-        print(f"| reveal, authorization only | {base_auth:,} | {a['handleOps_auth_only']:,} "
-              f"| {a['handleOps_auth_only'] - base_auth:,} ({a['handleOps_auth_only'] / base_auth:.2f}x) |")
+        print("| depth | base reveal | 4337 solo (1 op/bundle) | solo overhead | 4337 marginal (in a bundle) | one-time nonce init |")
+        print("|---|---|---|---|---|---|")
+        for d in DEPTHS:
+            base_auth = ours[d]["reveal_noop"]["gasUsed"]
+            r = aad[d]
+            print(
+                f"| {d} | {base_auth:,} | {r['single_op']:,} "
+                f"| +{r['single_op'] - base_auth:,} | {r['marginal_per_op']:,} "
+                f"| {r['nonce_init_onetime']:,} |"
+            )
         print()
-        aa_auth_flow = a["commit"] + a["handleOps_auth_only"]
-        cheapest = min(baselines(), key=lambda r: r["total"])["total"]
-        print(f"The 4337 overhead is the EntryPoint wrapper plus the UserOp "
-              f"calldata, roughly {a['handleOps_auth_only'] - base_auth:,} to "
-              f"{a['handleOps_action'] - base_action:,} gas, and does not vary "
-              f"with tree depth (the Merkle part scales as the base scheme). "
-              f"The full authorization-only 4337 flow (commit plus handleOps) "
-              f"is {aa_auth_flow:,} gas, still {cheapest / aa_auth_flow:.1f}x "
-              f"cheaper than the cheapest direct PQ verifier. Aging is "
-              f"wall-clock here, not block-denominated, per the 4337 "
-              f"validation rules; see docs/AA.md.")
+        d = 16
+        base_auth = ours[d]["reveal_noop"]["gasUsed"]
+        r = aad[d]
+        fixed = r["single_op"] - r["marginal_per_op"]
+        solo_flow = ours[d]["commit_action"]["gasUsed"] + r["single_op"]
+        amort_flow = ours[d]["commit_action"]["gasUsed"] + r["marginal_per_op"]
+        cheapest = min(baselines(), key=lambda x: x["total"])["total"]
+        print(f"Three honest numbers, not one. A reveal sent alone in its own "
+              f"bundle (the worst case) costs {r['single_op']:,} gas at depth "
+              f"{d}, {r['single_op'] - base_auth:,} over the base reveal. That "
+              f"overhead is almost entirely per-bundle fixed cost (the outer "
+              f"intrinsic gas, the beneficiary payout, EntryPoint setup), about "
+              f"{fixed:,} gas, which a real bundler amortizes across every op "
+              f"in the bundle: the marginal cost of one more reveal in a bundle "
+              f"is {r['marginal_per_op']:,} gas, essentially the base reveal "
+              f"itself. Separately, an account pays a one-time "
+              f"{r['nonce_init_onetime']:,}-gas EntryPoint nonce-slot "
+              f"initialization on its very first op ever (a cold SSTORE, like "
+              f"the deploy, not a per-reveal cost). The solo overhead is flat "
+              f"across tree depth (both the base reveal and the 4337 reveal "
+              f"carry the same Merkle proof, which cancels in the difference).")
+        print()
+        print(f"The full authorization-only flow (commit plus reveal) is "
+              f"{solo_flow:,} gas solo and {amort_flow:,} gas amortized, still "
+              f"{cheapest / solo_flow:.1f}x to {cheapest / amort_flow:.1f}x "
+              f"cheaper than the cheapest direct PQ verifier. Two caveats the "
+              f"paper must carry: the flow assumes the account holds an "
+              f"EntryPoint deposit (measured with missingAccountFunds = 0; a "
+              f"pay-per-op account adds the prefund transfer), and "
+              f"preVerificationGas and the gas limits are EntryPoint accounting "
+              f"bounds, not part of the measured gasUsed. Aging is wall-clock "
+              f"here, not block-denominated, per the 4337 validation rules; see "
+              f"docs/AA.md.")
         print()
 
     print("## Direct on-chain PQ verification baselines, single transaction")

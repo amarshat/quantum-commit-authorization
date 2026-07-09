@@ -1,4 +1,4 @@
-# Commit-reveal under account abstraction v0.1
+# Commit-reveal under account abstraction v0.2
 
 [SPEC.md](SPEC.md) authorizes an account by hash-based commit-reveal instead of
 a signature, and [GAME.md](GAME.md) proves that authorization degrades a
@@ -6,19 +6,24 @@ quantum key break to a bounded censorship race. Both have one stated gap: on
 today's Ethereum the reveal transaction is carried in an ECDSA-signed envelope
 (the sender and gas payer is an ECDSA EOA), which a quantum adversary can
 break. This document asks whether native account abstraction closes that gap,
-and answers precisely: it does not, and cannot, on post-Pectra mainnet. What it
-does do is relocate the ECDSA envelope from the owner's EOA to a bundler's, and
-in doing so it exposes the revealed secret to that bundler. The value of this
-document is (1) a theorem that no account on current mainnet has an
-ECDSA-free authorization path, and (2) a lemma that the bundler's view of the
-secret is survivable, reducing to censorship rather than theft, exactly when the
-commitment binds the whole action.
+and answers precisely: it does not, and cannot, on post-Pectra L1 mainnet. What
+it does do is relocate the ECDSA envelope from the owner's EOA to a bundler's,
+and in doing so it exposes the revealed secret to that bundler. The value of
+this document is (1) a theorem that no account on current L1 mainnet has an
+ECDSA-free authorization path (native AA removes it, and is already live on some
+L2s), and (2) a precise account of what that bundler can do: with the action,
+the fee ceiling, and the call-gas floor all bound into the commitment, a
+bundler that sees the reveal only in the public mempool is limited to
+censorship; but the default single-bundler path, where the reveal is handed to
+one bundler privately, is relay capitulation, i.e. deterministic theft, exactly
+the base scheme's Theorem 3. Survivability is real but conditional, and this
+document states the conditions rather than assuming them.
 
 ## 1. The four inclusion paths
 
 An account authorized by commit-reveal must still get its reveal included in a
-block. On post-Pectra mainnet (mid-2026) every path to inclusion terminates in
-an ECDSA-signed transaction:
+block. On post-Pectra L1 mainnet (mid-2026) every path to inclusion terminates
+in an ECDSA-signed transaction:
 
 1. **EIP-7702 (delegated EOA).** The account is an EOA that has set its code to
    commit-reveal logic. But the 7702 authorization tuple is a secp256k1
@@ -38,22 +43,35 @@ an ECDSA-signed transaction:
 4. **Native account abstraction (EIP-7701 / RIP-7560).** A protocol-level AA
    transaction type validated by the account's own logic, with no bundler EOA
    and no ECDSA envelope at the protocol level. This is the only architecture
-   that removes ECDSA end to end. It is not shipped and not scheduled.
+   that removes ECDSA end to end. It is **not shipped on Ethereum L1 mainnet
+   and has no fork slot there.** It is, however, live on some L2s: zkSync Era
+   has run native account abstraction on mainnet since 2023 (every account is a
+   contract, validated by the protocol via the account's own logic in the
+   bootloader, transaction type 0x71, no secp256k1 envelope), and RIP-7560 is
+   in testing. So the theorem below is an L1 statement, and L2s with native AA
+   are where the end-to-end construction is already deployable.
 
-### Theorem 1 (no ECDSA-free account on current mainnet)
+### Theorem 1 (no ECDSA-free account on L1 mainnet)
 
-On post-Pectra Ethereum mainnet there is no account whose authorization and
-inclusion path is free of a secp256k1 signature.
+On post-Pectra Ethereum **L1** mainnet there is no account whose authorization
+and inclusion path is free of a secp256k1 signature.
 
-*Proof.* Inclusion requires a transaction. Only two transaction origins exist
-today: an externally owned account, whose transaction is secp256k1-signed by
-construction, and a 7702-delegated EOA, whose delegation is itself
-secp256k1-signed and revocable by the same key (path 1). A 4337 UserOp is not a
-transaction; it must be wrapped by an `EntryPoint.handleOps` transaction, whose
-origin is one of the two above (paths 2, 3). The only escape is a transaction
-type whose validity is not gated by a secp256k1 signature, i.e. native AA (path
-4), which does not exist on mainnet. Hence every inclusion path contains a
-secp256k1 signature. ∎
+*Proof.* Inclusion requires an L1 transaction. Every L1 EIP-2718 transaction
+type available post-Pectra (legacy, 2930, 1559, 4844, and the 7702 set-code
+type) carries a secp256k1 signature over its origin: an externally owned
+account signs its transaction by construction, and a 7702-delegated EOA's
+delegation is itself secp256k1-signed and revocable by the same key (path 1).
+A 4337 UserOp is not a transaction; it must be wrapped by an
+`EntryPoint.handleOps` transaction, whose origin is one of the above (paths 2,
+3), and paymaster sponsorship, gasless relays, meta-transactions, and a
+contract acting as bundler all still bottom out at an ECDSA `tx.origin`. The
+only escape is a transaction type whose validity is not gated by a secp256k1
+signature, i.e. native AA (path 4), which does not exist on L1. Hence every L1
+inclusion path contains a secp256k1 signature. ∎
+
+The L1 scope is essential: on an L2 with native AA (zkSync Era) the same
+construction has no ECDSA anywhere, which is exactly why native AA is the
+target architecture and the L2 deployment is the end-to-end existence proof.
 
 The consequence for our scheme is exact: 4337 moves the ECDSA envelope from the
 owner's own EOA (the base scheme's stated limitation) to a bundler's EOA. This
@@ -82,6 +100,20 @@ Two ERC-7562 validation rules shape the design, and both are honored:
   post time and validation returns `validAfter = commitTime + minCommitAge`,
   which the EntryPoint enforces outside the banned-opcode scope.
 
+Two more rules bear on adversary analysis, not just construction:
+
+- Writing the account's own storage in validation (the nullifier set,
+  clearing the commitment) is permitted by STO-010 too, read *and* write, with
+  no staking requirement; the account stays an unstaked entity. But a write in
+  validation means one op invalidates sibling ops of the same account in the
+  mempool (a second reveal for the same leaf becomes invalid), so bundlers drop
+  them, which is a mempool-drop censorship surface (Section 4), not a rule
+  violation.
+- Emitting the nullifier event in validation (so a scanning wallet can
+  reconstruct consumed leaves, matching the base scheme's write-ahead recovery)
+  uses LOG, which is not banned. The base scheme's event-scan recovery would
+  otherwise be lost on the 4337 path.
+
 ### Semantic change: aging is now wall-clock
 
 Because validation cannot read block numbers, the commitment stores
@@ -89,59 +121,89 @@ Because validation cannot read block numbers, the commitment stores
 anti-front-running argument of [GAME.md](GAME.md) is unchanged in structure (an
 adversary who extracts the secret still needs their own commitment to age the
 full window while the victim's is already aged), but the window is measured in
-time, not block height. Under variable block times the two differ; a paper
-using this construction must state the aging unit and re-express the block-share
-adversary accordingly (a fixed wall-clock window spans a variable number of
-blocks, so the effective `a` in `beta^a` varies with block time). This is a real
-difference from the base scheme, not a cosmetic one, and is the price of the
-4337 validation rules.
+time, not block height. Two consequences a paper must carry: a fixed wall-clock
+window spans a variable number of blocks, so the effective `a` in `beta^a`
+varies with block time; and `block.timestamp` is proposer-set within consensus
+drift, so a proposer can back-date the stored `committedAt` and forward-date the
+reveal block to shave up to about twice the drift tolerance off the real aging
+window. `minCommitAge` (seconds) must therefore carry a margin well above both
+the block time and the consensus timestamp tolerance. This is a real difference
+from the base scheme, not cosmetic, and is the price of the 4337 validation
+rules.
 
-## 3. Binding, and why exposure is survivable
+## 3. Binding, and the limits of survivability
 
-The heart of the construction is that validation parses the same `callData`
-bytes the EntryPoint will execute. Validation requires
-`callData = execute.selector || abi.encode(target, value, data)`, recomputes the
-action hash from exactly those fields, and requires a matching commitment. The
-EntryPoint then executes that same `callData`. So the authorized action and the
-executed action are byte-identical.
+The construction binds, into the commitment, everything a bundler could
+otherwise choose at reveal time to its own advantage:
 
-### Lemma 2 (binding downgrades exposure to griefing)
+- **The action.** Validation requires
+  `callData = execute.selector || abi.encode(target, value, data)`, recomputes
+  the action hash from exactly those fields, and the EntryPoint executes that
+  same `callData`. Authorized action and executed action are byte-identical.
+- **The fee ceiling.** The commitment binds a `maxFeeCap`, and validation
+  rejects any UserOp whose `maxFeePerGas` exceeds it. Without this, a bundler
+  replays the reveal with `maxFeePerGas` set astronomically; the EntryPoint
+  charges `actualGas * effectiveGasPrice` from the account's deposit and pays it
+  to the bundler as fees, draining the deposit. That is theft, not griefing, and
+  it is closed only by binding the fee ceiling.
+- **The call-gas floor.** The commitment binds a `callGasFloor`, and validation
+  rejects any UserOp whose `callGasLimit` is below it. Without this, a bundler
+  sets `callGasLimit` just high enough to pass validation but too low for
+  `execute` to complete; the leaf is nullified in validation, the action's inner
+  call runs out of gas, and the bundle still succeeds. The result is a forced,
+  repeatable, irrecoverable leaf burn (worse than censorship, which is
+  recoverable). Binding the floor closes it.
 
-Suppose the commitment binds the full action tuple `(target, value, data)` and
-the leaf is nullified on use. Then a bundler (or any mempool observer) who
-learns the secret from a pending reveal UserOp can cause the action to be
-censored or replayed unchanged, but cannot cause any other action to execute on
-that leaf.
+The fee and gas fields are UserOp calldata, not banned opcodes, so validation
+may read them; binding them is the fix the following lemmas demand.
 
-*Proof.* To execute an action `A'` on leaf `i`, an opener needs a commitment
-`c' = H(TAG_COMMIT, chainid, account, H(TAG_ACTION, A'), i, secret)` that exists
-and is aged. The observer has `secret` but, for any `A' != A`, has no such aged
-commitment: `c'` differs from the victim's `c` (second-preimage resistance on
-the action hash), and a freshly posted `c'` is not aged. Re-submitting the
-victim's own reveal executes `A` itself, which the nullifier lets happen at most
-once. So the observer's reachable outcomes are censor (drop the victim's op) or
-replay-`A` (harmless), never a chosen `A'`. ∎
+### Lemma 3 (any unbound reveal-time field reintroduces theft or forced burn)
 
-This is verified directly against a real EntryPoint v0.8 in
-`test/QCAAccount4337.t.sol` (`test_bundlerCannotRetargetAction`): a UserOp that
-reuses the revealed secret for a different action is rejected in validation.
+If any field the EntryPoint acts on is chosen at reveal time and not covered by
+the commitment, a bundler re-submits the revealed secret with that field set to
+an attacker value and the aged commitment still matches.
 
-### Lemma 3 (loose binding reintroduces theft)
-
-If any executed field is chosen at reveal time and not covered by the
-commitment, a bundler front-runs by re-submitting the revealed secret with that
-field set to an attacker value, and theft returns.
-
-*Proof.* If field `f` is outside `c`, then `A` and `A'` differing only in `f`
-share the same commitment `c`, which is aged; the observer opens `c` with `A'`.
+*Proof.* If field `f` is outside `c`, then two UserOps differing only in `f`
+share the same aged commitment `c`; the bundler opens `c` with its chosen `f`.
+For `f = maxFeePerGas` this drains the deposit (theft); for `f = callGasLimit`
+it forces a leaf burn; for `f = target/value/data` it would retarget the action.
 ∎
 
-Lemma 3 is why the construction binds the entire action and refuses any
-bundler-substitutable field (the 4337 `beneficiary` and gas-payment surface
-included): those must not carry security-relevant values. The gap between Lemmas
-2 and 3 is a single design invariant, and a paper should present it as the
-crux: commit-reveal composes with a hostile bundler exactly to the extent that
-binding is complete.
+The three tests `test_bundlerCannotRetargetAction`,
+`test_bundlerCannotInflateFeeToDrainDeposit`, and
+`test_bundlerCannotStarveCallGasToBurnLeaf` exercise exactly these three fields
+against a real EntryPoint v0.8. This is the crux: commit-reveal composes with a
+hostile bundler only to the extent that binding is complete, and completeness
+here means the action *and* the fee ceiling *and* the call-gas floor.
+
+### Lemma 2 (with complete binding, a public-mempool bundler is limited to censorship, under a precondition)
+
+Suppose the commitment binds the full action, the fee ceiling, and the call-gas
+floor, and the leaf is nullified on use. Suppose further that the reveal reaches
+the **public** alt-mempool and the victim re-broadcasts on non-inclusion within
+`minCommitAge`. Then a bundler that observes the reveal can censor it or replay
+the committed action unchanged, but cannot execute any other action, drain the
+deposit, or force a leaf burn.
+
+*Proof.* By Lemma 3's contrapositive, with the action, fee ceiling, and gas
+floor all bound, no reveal-time field is free, so the only reachable outcomes on
+the observed reveal are include-as-committed or drop. Dropping is censorship; by
+the public-mempool-plus-re-broadcast assumption the victim re-lands the reveal
+before an attacker's freshly posted competing commitment could age, so
+censorship does not become theft. ∎
+
+**The precondition is not optional, and dropping it is the base scheme's own
+Theorem 3.** If the reveal is instead handed to a single bundler privately (the
+common wallet UX: a user sends a UserOp to one bundler's RPC), that bundler has
+the reveal before it is public, and [GAME.md](GAME.md) Theorem 3 applies
+verbatim: the bundler commits its own competing action, withholds the victim's
+reveal for `minCommitAge`, ages its commitment, and reveals for theft with
+probability 1 against a passive victim. So the honest statement is: the 4337
+construction downgrades a **public-mempool** bundler to censorship, but the
+**default single-bundler** path is relay capitulation, i.e. deterministic theft,
+inheriting the four-condition envelope of the base threat model (self-submitted,
+public, against a final commit, actively re-broadcast). A paper must not present
+"survivable" without that envelope; the survivability is real but conditional.
 
 ## 4. The bundler as adversary
 
@@ -162,26 +224,34 @@ two adjustments:
   must therefore assume a fully adversarial bundler and rely on the option to
   switch or self-bundle plus complete binding, never on any bundler's honesty.
 
-The theft bound of [GAME.md](GAME.md) Theorem 1 carries over unchanged in form
-(theft still requires an aged competing commitment, still `beta^a` in the
-censoring share), with `beta` reinterpreted as collusion share and `a` in
-wall-clock units. The burn-griefing analysis carries over too: the age-gated
-burn here is a plain transaction, not a UserOp, so it is available even when the
+For a **public-mempool** reveal the theft bound of [GAME.md](GAME.md) Theorem 1
+carries over in form (theft still needs an aged competing commitment, still
+`beta^a` in the censoring share), with `beta` the collusion share of usable
+bundlers and `a` in wall-clock units. For a **privately relayed** reveal there
+is no bound: it is Theorem 3, deterministic theft, unless the victim re-lands it
+publicly within `minCommitAge`. The recovery primitives carry over and, unlike
+the reveal, run as plain transactions: the age-gated `burn` and the `rotate`
+break-glass are both ordinary calls on the account, available even when the
 account cannot get a UserOp bundled, which is the right property for a recovery
-move.
+move and the reason the 4337 account implements both rather than routing them
+through the EntryPoint.
 
 ## 5. What this buys, and what it does not
 
 Buys: the account holder no longer needs a quantum-vulnerable signing key of
 their own to authorize a spend; the authorization is pure commit-reveal, carried
-in 4337 validation, with no signature in the account. The bundler's view of the
-secret is survivable under binding (Lemma 2). The recovery primitive stays
-available as a plain transaction.
+in 4337 validation, with no signature in the account. A hostile bundler that
+only sees the reveal in the public mempool is limited to censorship, provided
+the action, the fee ceiling, and the call-gas floor are all bound (Lemma 2,
+Lemma 3). Recovery (`burn`, `rotate`) stays available as plain transactions.
 
-Does not buy: an ECDSA-free inclusion path (Theorem 1); it relocates the
-envelope to the bundler. Does not remove the timing and censorship powers of
-whoever includes the op. Does not, by itself, make the aging block-denominated
-again.
+Does not buy: an ECDSA-free inclusion path on L1 (Theorem 1); it relocates the
+envelope to the bundler. Does not make the default single-bundler UX safe: that
+path is relay capitulation (Theorem 3), and safety there requires either public
+self-submission with re-broadcast or a bundler trusted with the account's funds.
+Does not remove the timing and censorship powers of whoever includes the op, and
+adds a proposer timestamp lever via wall-clock aging. Does not, by itself, make
+the aging block-denominated again.
 
 The end-to-end ECDSA-free account is reachable only under native AA (path 4).
 Against a native-AA reference (EIP-7701 / RIP-7560), the same validation logic

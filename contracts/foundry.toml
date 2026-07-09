@@ -15,5 +15,7 @@ via_ir = true
 # 4337 benchmark (script/Bench4337.s.sol); it is gitignored.
 fs_permissions = [
     { access = "read", path = "./test/vectors" },
-    { access = "read-write", path = "./bench-4337-addrs.json" },
+    { access = "read-write", path = "./bench-4337-addrs-8.json" },
+    { access = "read-write", path = "./bench-4337-addrs-16.json" },
+    { access = "read-write", path = "./bench-4337-addrs-20.json" },
 ]

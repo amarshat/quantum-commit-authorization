@@ -61,8 +61,14 @@ contract QCAAccount4337 is IAccount {
     mapping(bytes32 => uint256) public commitments;
 
     event Committed(bytes32 indexed commitment);
-    event Executed(uint256 indexed leafIndex, bytes32 indexed actionHash, bool success);
+    /// Emitted at nullification (in validation), so a scanning wallet can
+    /// reconstruct which leaf a reveal consumed. The base scheme relies on
+    /// this for write-ahead recovery; the 4337 path must not lose it.
+    event LeafConsumed(bytes32 indexed leafHash, uint256 leafIndex);
+    event Executed(bytes32 indexed actionHash, bool success);
     event LeafBurned(bytes32 indexed leafHash, uint256 leafIndex);
+    event RootRotated(bytes32 indexed newRoot, uint256 newDepth);
+    event Pruned(bytes32 indexed commitment);
 
     error NotEntryPoint();
     error CommitmentExists();
@@ -74,8 +80,12 @@ contract QCAAccount4337 is IAccount {
     error UnknownCommitment();
     error CommitmentTooYoung();
     error CommitmentExpired();
+    error CommitmentLive();
     error LeafAlreadyUsed();
     error BadCallData();
+    error FeeCapExceeded();
+    error CallGasBelowFloor();
+    error NotSelf();
 
     modifier onlyEntryPoint() {
         if (msg.sender != address(entryPoint)) revert NotEntryPoint();
@@ -106,31 +116,55 @@ contract QCAAccount4337 is IAccount {
     }
 
     /// @notice ERC-4337 validation. The reveal material (leaf index, secret,
-    ///         Merkle proof) is carried in userOp.signature; the action is
-    ///         userOp.callData, which the EntryPoint will execute verbatim if
-    ///         this returns success. Because validation parses the SAME
-    ///         callData bytes the EntryPoint executes, what is authorized is
-    ///         exactly what runs: a bundler cannot retarget the action. That
-    ///         binding is what keeps a bundler who sees the revealed secret to
-    ///         censorship and replay-of-the-committed-action, never theft.
-    /// @dev    Effects (nullifier set, commitment cleared) happen here. If the
-    ///         EntryPoint later rejects the op because the returned time range
-    ///         excludes the current block, the whole handleOps reverts and
-    ///         these writes roll back, so the leaf is consumed only when the
-    ///         op is actually included.
+    ///         Merkle proof, and the committed fee cap and call-gas floor) is
+    ///         carried in userOp.signature; the action is userOp.callData,
+    ///         which the EntryPoint executes verbatim if this returns success.
+    ///
+    ///         Binding is the whole game. The commitment binds not only the
+    ///         action (target, value, data, parsed from the same callData bytes
+    ///         the EntryPoint executes, so a bundler cannot retarget) but also
+    ///         a maximum fee-per-gas and a minimum call-gas limit. Both are
+    ///         necessary: without a fee cap a bundler replays the reveal with
+    ///         maxFeePerGas set astronomically and drains the account's
+    ///         EntryPoint deposit as fees to itself (theft, not griefing);
+    ///         without a call-gas floor a bundler sets callGasLimit just low
+    ///         enough to starve execute, so the leaf is consumed (nullified
+    ///         below) while the action never runs, a forced irrecoverable leaf
+    ///         burn. Binding both closes those surfaces. Even so, a bundler
+    ///         that receives the reveal privately can still withhold it and win
+    ///         a withhold-and-age race (GAME.md Theorem 3); this construction
+    ///         downgrades a PUBLIC-mempool bundler to censorship, not a trusted
+    ///         private one. See docs/AA.md.
+    /// @dev    Effects (nullifier set, commitment cleared, LeafConsumed event)
+    ///         happen here. If the EntryPoint later rejects the op because the
+    ///         returned time range excludes the current block, the whole
+    ///         handleOps reverts and these writes roll back. Note "consumed"
+    ///         means validation passed and the bundle did not revert; the
+    ///         action itself may still revert (it consumes the leaf anyway,
+    ///         because the secret is already public), but it cannot be starved
+    ///         below the committed call-gas floor.
     function validateUserOp(PackedUserOperation calldata userOp, bytes32, uint256 missingAccountFunds)
         external
         onlyEntryPoint
         returns (uint256 validationData)
     {
-        (uint256 leafIndex, bytes32 secret, bytes32[] memory proof) = _decodeAuth(userOp.signature);
+        (uint256 leafIndex, bytes32 secret, bytes32[] memory proof, uint256 maxFeeCap, uint256 callGasFloor) =
+            _decodeAuth(userOp.signature);
         (address target, uint256 value, bytes memory data) = _decodeExecute(userOp.callData);
+
+        // Enforce the committed gas envelope against the actual UserOp fields.
+        // gasFees packs maxPriorityFeePerGas (high 128) | maxFeePerGas (low
+        // 128); accountGasLimits packs verificationGasLimit | callGasLimit.
+        if (uint128(uint256(userOp.gasFees)) > maxFeeCap) revert FeeCapExceeded();
+        if (uint128(uint256(userOp.accountGasLimits)) < callGasFloor) revert CallGasBelowFloor();
 
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
 
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
-        bytes32 c = keccak256(abi.encode(TAG_COMMIT, block.chainid, address(this), actionHash, leafIndex, secret));
+        bytes32 c = keccak256(
+            abi.encode(TAG_COMMIT, block.chainid, address(this), actionHash, leafIndex, secret, maxFeeCap, callGasFloor)
+        );
 
         uint256 committedAt = commitments[c];
         if (committedAt == 0) revert UnknownCommitment();
@@ -138,6 +172,7 @@ contract QCAAccount4337 is IAccount {
         // Effects strictly before the EntryPoint executes callData.
         usedLeaves[leafHash] = true;
         delete commitments[c];
+        emit LeafConsumed(leafHash, leafIndex);
 
         _payPrefund(missingAccountFunds);
 
@@ -151,9 +186,10 @@ contract QCAAccount4337 is IAccount {
 
     /// @notice Execute the committed action. Only the EntryPoint may call this,
     ///         and it does so only after validateUserOp authorized this exact
-    ///         callData. A reverted action still counts as executed: the leaf
-    ///         was already nullified in validation, because the secret became
-    ///         public the moment the UserOp entered the mempool.
+    ///         callData with a call-gas limit at or above the committed floor.
+    ///         A reverted action still counts as executed: the leaf was already
+    ///         nullified in validation, because the secret became public the
+    ///         moment the UserOp entered the mempool.
     function execute(address target, uint256 value, bytes calldata data)
         external
         onlyEntryPoint
@@ -161,8 +197,31 @@ contract QCAAccount4337 is IAccount {
     {
         (success, result) = target.call{value: value}(data);
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
-        // leafIndex is not needed for the action; emit 0 as a placeholder.
-        emit Executed(0, actionHash, success);
+        emit Executed(actionHash, success);
+    }
+
+    /// @notice Rotate to a new authorization tree. Reachable only as a
+    ///         committed, revealed self-action (execute with target == this),
+    ///         so it inherits the full commit-reveal authorization. This is the
+    ///         break-glass response to suspected seed exposure and to sustained
+    ///         griefing, and it must exist in the 4337 account for the same
+    ///         reason it does in the base scheme.
+    function rotate(bytes32 newRoot, uint256 newDepth) external {
+        if (msg.sender != address(this)) revert NotSelf();
+        _checkDepth(newDepth);
+        root = newRoot;
+        depth = newDepth;
+        emit RootRotated(newRoot, newDepth);
+    }
+
+    /// @notice Delete an expired commitment for the storage refund. Anyone may
+    ///         call; live commitments cannot be pruned.
+    function prune(bytes32 c) external {
+        uint256 committedAt = commitments[c];
+        if (committedAt == 0) revert UnknownCommitment();
+        if (block.timestamp <= committedAt + commitTTL) revert CommitmentLive();
+        delete commitments[c];
+        emit Pruned(c);
     }
 
     /// @notice Age-gated defensive nullify, matching the base scheme's burn.
@@ -188,13 +247,17 @@ contract QCAAccount4337 is IAccount {
 
     // --- decoding -----------------------------------------------------------
 
-    /// @dev userOp.signature = abi.encode(leafIndex, secret, proof).
+    /// @dev userOp.signature = abi.encode(leafIndex, secret, proof, maxFeeCap,
+    ///      callGasFloor). maxFeeCap and callGasFloor are the gas-envelope
+    ///      bounds bound into the commitment; validation both recomputes the
+    ///      commitment from them and enforces the actual UserOp gas fields
+    ///      against them.
     function _decodeAuth(bytes calldata sig)
         internal
         pure
-        returns (uint256 leafIndex, bytes32 secret, bytes32[] memory proof)
+        returns (uint256 leafIndex, bytes32 secret, bytes32[] memory proof, uint256 maxFeeCap, uint256 callGasFloor)
     {
-        return abi.decode(sig, (uint256, bytes32, bytes32[]));
+        return abi.decode(sig, (uint256, bytes32, bytes32[], uint256, uint256));
     }
 
     /// @dev userOp.callData = execute.selector ++ abi.encode(target,value,data).
