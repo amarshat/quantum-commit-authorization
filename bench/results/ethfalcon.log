@@ -45,6 +45,6 @@ Logs:
 Logs:
   iNTT cost:              529086
 
-Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 20.39ms (39.50ms CPU time)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 16.43ms (54.11ms CPU time)
 
-Ran 1 test suite in 20.74ms (20.39ms CPU time): 11 tests passed, 0 failed, 0 skipped (11 total tests)
+Ran 1 test suite in 24.75ms (16.43ms CPU time): 11 tests passed, 0 failed, 0 skipped (11 total tests)

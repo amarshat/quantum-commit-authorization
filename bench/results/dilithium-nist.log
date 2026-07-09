@@ -5,6 +5,6 @@ Ran 1 test for test/dilithiumKATS.t.sol:KATDilithiumTest
 Logs:
   Gas used: 8125860
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 10.02ms (9.50ms CPU time)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 9.96ms (9.48ms CPU time)
 
-Ran 1 test suite in 10.44ms (10.02ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+Ran 1 test suite in 10.48ms (9.96ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

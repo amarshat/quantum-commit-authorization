@@ -10,8 +10,8 @@ Build Profile: release
 anvil Version: 1.7.1-Homebrew
 ETHFALCON    7d5ecd41ce1e0346afc835d20a9014e5a076843e
 ETHDILITHIUM fc09dff86fa8024cf2b28d2c8ecdfa91b5b882b6
-qca          v0.1.0-9-gf6d1180-dirty
-date         2026-07-09T15:50:39Z
+qca          v0.1.0-10-g65c69fc
+date         2026-07-09T15:51:17Z
 ```
 
 Our numbers are transaction receipt gasUsed from anvil (prague hardfork), so intrinsic gas, calldata gas and EIP-7623 floors are measured, not modeled. Baseline execution gas is re-measured from the pinned upstream suites (in-test gasleft() deltas, warm and execution-only); their transaction totals are modeled as described in bench/report.py. Compiler settings differ per project and follow each project's own foundry.toml (ours: solc 0.8.35 via-ir; ETHFALCON: 0.8.25 cancun; ETHDILITHIUM: 0.8.30 osaka). Both residual asymmetries (warm baselines, uniform-zeros calldata) lean against us and are below 1% of any baseline number.
