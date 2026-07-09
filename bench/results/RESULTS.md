@@ -10,8 +10,8 @@ Build Profile: release
 anvil Version: 1.7.1-Homebrew
 ETHFALCON    7d5ecd41ce1e0346afc835d20a9014e5a076843e
 ETHDILITHIUM fc09dff86fa8024cf2b28d2c8ecdfa91b5b882b6
-qca          2c65260
-date         2026-07-08T14:07:13Z
+qca          v0.1.0-7-g2dfdc97
+date         2026-07-09T15:24:40Z
 ```
 
 Our numbers are transaction receipt gasUsed from anvil (prague hardfork), so intrinsic gas, calldata gas and EIP-7623 floors are measured, not modeled. Baseline execution gas is re-measured from the pinned upstream suites (in-test gasleft() deltas, warm and execution-only); their transaction totals are modeled as described in bench/report.py. Compiler settings differ per project and follow each project's own foundry.toml (ours: solc 0.8.35 via-ir; ETHFALCON: 0.8.25 cancun; ETHDILITHIUM: 0.8.30 osaka). Both residual asymmetries (warm baselines, uniform-zeros calldata) lean against us and are below 1% of any baseline number.
@@ -35,6 +35,18 @@ A flow is one commit plus one reveal. The authorization-only reveal executes a z
 | 20 | 674,391 | 1,048,576 | 0.6 | 0.1 |
 
 Each reveal permanently occupies one nullifier storage slot; that 20K SSTORE is inside the reveal numbers above but the per-account state footprint grows without bound over its lifetime, one word per action. Expired commitments can be pruned for a refund, but post-EIP-3529 a dedicated prune transaction costs more than it reclaims, so the tables ignore prune. Burn is the leak response (reorged or expired reveal). It is age-gated exactly like reveal (see docs/GAME.md on burn-griefing), so the defensive nullify is itself a two-transaction flow, commit-to-burn then burn; the burn flow column totals both.
+
+## Under account abstraction (ERC-4337 v0.8), receipt gas
+
+The base scheme's reveal is a plain transaction wrapped in the owner's ECDSA envelope. Carrying the same commit-reveal authorization inside a 4337 UserOp (see docs/AA.md) removes the signature from the account but relocates the ECDSA envelope to the bundler's handleOps. Measured through a real EntryPoint v0.8 at depth 16, receipts from anvil:
+
+| step | base scheme | under 4337 | 4337 overhead |
+|---|---|---|---|
+| commit | 45,308 | 45,278 | ~0 (plain tx either way) |
+| reveal, 1 ETH action | 102,644 | 162,529 | 59,885 (1.58x) |
+| reveal, authorization only | 68,646 | 111,438 | 42,792 (1.62x) |
+
+The 4337 overhead is the EntryPoint wrapper plus the UserOp calldata, roughly 42,792 to 59,885 gas, and does not vary with tree depth (the Merkle part scales as the base scheme). The full authorization-only 4337 flow (commit plus handleOps) is 156,716 gas, still 10.2x cheaper than the cheapest direct PQ verifier. Aging is wall-clock here, not block-denominated, per the 4337 validation rules; see docs/AA.md.
 
 ## Direct on-chain PQ verification baselines, single transaction
 

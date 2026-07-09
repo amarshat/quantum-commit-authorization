@@ -1,0 +1,7 @@
+{
+  "hardfork": "prague",
+  "depth": 16,
+  "commit": 45278,
+  "handleOps_action": 162529,
+  "handleOps_auth_only": 111438
+}
