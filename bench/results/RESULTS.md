@@ -10,8 +10,8 @@ Build Profile: release
 anvil Version: 1.7.1-Homebrew
 ETHFALCON    7d5ecd41ce1e0346afc835d20a9014e5a076843e
 ETHDILITHIUM fc09dff86fa8024cf2b28d2c8ecdfa91b5b882b6
-qca          v0.1.0-7-g2dfdc97
-date         2026-07-09T15:24:40Z
+qca          v0.1.0-9-gf6d1180-dirty
+date         2026-07-09T15:50:39Z
 ```
 
 Our numbers are transaction receipt gasUsed from anvil (prague hardfork), so intrinsic gas, calldata gas and EIP-7623 floors are measured, not modeled. Baseline execution gas is re-measured from the pinned upstream suites (in-test gasleft() deltas, warm and execution-only); their transaction totals are modeled as described in bench/report.py. Compiler settings differ per project and follow each project's own foundry.toml (ours: solc 0.8.35 via-ir; ETHFALCON: 0.8.25 cancun; ETHDILITHIUM: 0.8.30 osaka). Both residual asymmetries (warm baselines, uniform-zeros calldata) lean against us and are below 1% of any baseline number.
@@ -38,15 +38,17 @@ Each reveal permanently occupies one nullifier storage slot; that 20K SSTORE is 
 
 ## Under account abstraction (ERC-4337 v0.8), receipt gas
 
-The base scheme's reveal is a plain transaction wrapped in the owner's ECDSA envelope. Carrying the same commit-reveal authorization inside a 4337 UserOp (see docs/AA.md) removes the signature from the account but relocates the ECDSA envelope to the bundler's handleOps. Measured through a real EntryPoint v0.8 at depth 16, receipts from anvil:
+The base scheme's reveal is a plain transaction wrapped in the owner's ECDSA envelope. Carrying the same commit-reveal authorization inside a 4337 UserOp (see docs/AA.md) removes the signature from the account but relocates the ECDSA envelope to the bundler's handleOps. All rows are authorization-only reveals (a zero-value self-call), measured through a real EntryPoint v0.8, receipts from anvil.
 
-| step | base scheme | under 4337 | 4337 overhead |
-|---|---|---|---|
-| commit | 45,308 | 45,278 | ~0 (plain tx either way) |
-| reveal, 1 ETH action | 102,644 | 162,529 | 59,885 (1.58x) |
-| reveal, authorization only | 68,646 | 111,438 | 42,792 (1.62x) |
+| depth | base reveal | 4337 solo (1 op/bundle) | solo overhead | 4337 marginal (in a bundle) | one-time nonce init |
+|---|---|---|---|---|---|
+| 8 | 61,273 | 105,035 | +43,762 | 57,898 | 17,085 |
+| 16 | 68,646 | 113,006 | +44,360 | 65,844 | 17,085 |
+| 20 | 72,352 | 117,013 | +44,661 | 69,836 | 17,085 |
 
-The 4337 overhead is the EntryPoint wrapper plus the UserOp calldata, roughly 42,792 to 59,885 gas, and does not vary with tree depth (the Merkle part scales as the base scheme). The full authorization-only 4337 flow (commit plus handleOps) is 156,716 gas, still 10.2x cheaper than the cheapest direct PQ verifier. Aging is wall-clock here, not block-denominated, per the 4337 validation rules; see docs/AA.md.
+Three honest numbers, not one. A reveal sent alone in its own bundle (the worst case) costs 113,006 gas at depth 16, 44,360 over the base reveal. That overhead is almost entirely per-bundle fixed cost (the outer intrinsic gas, the beneficiary payout, EntryPoint setup), about 47,162 gas, which a real bundler amortizes across every op in the bundle: the marginal cost of one more reveal in a bundle is 65,844 gas, essentially the base reveal itself. Separately, an account pays a one-time 17,085-gas EntryPoint nonce-slot initialization on its very first op ever (a cold SSTORE, like the deploy, not a per-reveal cost). The solo overhead is flat across tree depth (both the base reveal and the 4337 reveal carry the same Merkle proof, which cancels in the difference).
+
+The full authorization-only flow (commit plus reveal) is 158,314 gas solo and 111,152 gas amortized, still 10.1x to 14.4x cheaper than the cheapest direct PQ verifier. Two caveats the paper must carry: the flow assumes the account holds an EntryPoint deposit (measured with missingAccountFunds = 0; a pay-per-op account adds the prefund transfer), and preVerificationGas and the gas limits are EntryPoint accounting bounds, not part of the measured gasUsed. Aging is wall-clock here, not block-denominated, per the 4337 validation rules; see docs/AA.md.
 
 ## Direct on-chain PQ verification baselines, single transaction
 

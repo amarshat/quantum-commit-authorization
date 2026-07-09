@@ -1,7 +1,26 @@
 {
   "hardfork": "prague",
-  "depth": 16,
-  "commit": 45278,
-  "handleOps_action": 162529,
-  "handleOps_auth_only": 111438
+  "depths": {
+    "8": {
+      "warmup_first_op": 122120,
+      "single_op": 105035,
+      "bundle_of_two": 162933,
+      "marginal_per_op": 57898,
+      "nonce_init_onetime": 17085
+    },
+    "16": {
+      "warmup_first_op": 130091,
+      "single_op": 113006,
+      "bundle_of_two": 178850,
+      "marginal_per_op": 65844,
+      "nonce_init_onetime": 17085
+    },
+    "20": {
+      "warmup_first_op": 134098,
+      "single_op": 117013,
+      "bundle_of_two": 186849,
+      "marginal_per_op": 69836,
+      "nonce_init_onetime": 17085
+    }
+  }
 }
