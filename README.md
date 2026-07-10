@@ -45,6 +45,7 @@ docs/        Protocol spec, threat model, the authorization game, and the
              account-abstraction analysis (AA.md)
 sim/         Committed simulator result vectors (tooling/qca-sim generates)
 fees/        Historical base-fee sample and the empirical fee-cost analysis
+contracts-zksync/  zkSync Era native-AA build (zero-ECDSA account, foundry-zksync)
 ```
 
 ## Roadmap

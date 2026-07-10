@@ -1,0 +1,177 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
+
+import {Test} from "forge-std/Test.sol";
+import {Transaction} from
+    "@matterlabs/zksync-contracts/contracts/system-contracts/libraries/TransactionHelper.sol";
+import {
+    ACCOUNT_VALIDATION_SUCCESS_MAGIC
+} from "@matterlabs/zksync-contracts/contracts/system-contracts/interfaces/IAccount.sol";
+import {BOOTLOADER_FORMAL_ADDRESS} from
+    "@matterlabs/zksync-contracts/contracts/system-contracts/Constants.sol";
+import {QCAAccountZkSync} from "../src/QCAAccountZkSync.sol";
+
+contract Receiver {
+    uint256 public x;
+
+    function setX(uint256 v) external payable {
+        x = v;
+    }
+}
+
+/// Drives the zkSync native-AA account through the bootloader-facing entry
+/// points (validateTransaction then executeTransaction) with a crafted
+/// type-0x71 Transaction, using a small depth-2 tree built in-test.
+contract QCAAccountZkSyncTest is Test {
+    bytes32 constant TAG_SECRET = keccak256("QCA/v1/secret");
+    bytes32 constant TAG_LEAF = keccak256("QCA/v1/leaf");
+    bytes32 constant TAG_NODE = keccak256("QCA/v1/node");
+    bytes32 constant TAG_ACTION = keccak256("QCA/v1/action");
+    bytes32 constant TAG_COMMIT = keccak256("QCA/v1/commit");
+
+    uint256 constant DEPTH = 2;
+    uint256 constant MIN_AGE = 60;
+    uint256 constant TTL = 3600;
+    uint256 constant MAX_FEE_CAP = 100 gwei;
+    uint256 constant CALL_GAS_FLOOR = 200_000;
+    bytes32 constant SEED = keccak256("zksync test seed");
+
+    QCAAccountZkSync account;
+    Receiver receiver;
+    bytes32[] leaves;
+
+    function secretAt(uint256 i) internal pure returns (bytes32) {
+        return keccak256(abi.encode(TAG_SECRET, SEED, i));
+    }
+
+    function leafAt(uint256 i) internal pure returns (bytes32) {
+        return keccak256(abi.encode(TAG_LEAF, secretAt(i)));
+    }
+
+    function setUp() public {
+        leaves = new bytes32[](4);
+        for (uint256 i = 0; i < 4; i++) {
+            leaves[i] = leafAt(i);
+        }
+        bytes32 n0 = keccak256(abi.encode(TAG_NODE, leaves[0], leaves[1]));
+        bytes32 n1 = keccak256(abi.encode(TAG_NODE, leaves[2], leaves[3]));
+        bytes32 root = keccak256(abi.encode(TAG_NODE, n0, n1));
+
+        account = new QCAAccountZkSync{value: 10 ether}(root, DEPTH, MIN_AGE, TTL);
+        receiver = new Receiver();
+        vm.warp(1_000_000);
+    }
+
+    function proofFor(uint256 index) internal view returns (bytes32[] memory proof) {
+        proof = new bytes32[](2);
+        proof[0] = leaves[index ^ 1];
+        bytes32 n0 = keccak256(abi.encode(TAG_NODE, leaves[0], leaves[1]));
+        bytes32 n1 = keccak256(abi.encode(TAG_NODE, leaves[2], leaves[3]));
+        proof[1] = index < 2 ? n1 : n0;
+    }
+
+    function commitmentOf(address target, uint256 value, bytes memory data, uint256 index)
+        internal
+        view
+        returns (bytes32)
+    {
+        bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
+        return keccak256(
+            abi.encode(
+                TAG_COMMIT, block.chainid, address(account), actionHash, index, secretAt(index), MAX_FEE_CAP, CALL_GAS_FLOOR
+            )
+        );
+    }
+
+    function buildTx(address target, uint256 value, bytes memory data, uint256 index)
+        internal
+        view
+        returns (Transaction memory t)
+    {
+        t.txType = 0x71;
+        t.from = uint256(uint160(address(account)));
+        t.to = uint256(uint160(target));
+        t.gasLimit = 1_000_000;
+        t.gasPerPubdataByteLimit = 50000;
+        t.maxFeePerGas = 1 gwei;
+        t.maxPriorityFeePerGas = 1 gwei;
+        t.nonce = 0;
+        t.value = value;
+        t.data = data;
+        t.signature = abi.encode(index, secretAt(index), proofFor(index), MAX_FEE_CAP, CALL_GAS_FLOOR);
+    }
+
+    // The execute path has no system call, so it is fully exercisable in
+    // forge-test. The full validate path (which increments the nonce through
+    // the NonceHolder system contract) is exercised on anvil-zksync / testnet,
+    // not here; foundry-zksync's test VM does not run that system call.
+
+    function test_executeRunsAndNullifies() public {
+        bytes memory data = abi.encodeCall(Receiver.setX, (42));
+        address target = address(receiver);
+        account.commit(commitmentOf(target, 0, data, 1));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        Transaction memory t = buildTx(target, 0, data, 1);
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        account.executeTransaction(keccak256("h"), keccak256("h"), t);
+
+        assertEq(receiver.x(), 42, "action did not execute");
+        assertTrue(account.usedLeaves(leafAt(1)), "leaf not nullified");
+    }
+
+    function test_tooYoungRevertsWithoutBurningLeaf() public {
+        bytes memory data = abi.encodeCall(Receiver.setX, (7));
+        address target = address(receiver);
+        account.commit(commitmentOf(target, 0, data, 1));
+        // Not aged: execute must revert and, crucially, NOT consume the leaf
+        // (nullification is strictly after the aging check).
+        Transaction memory t = buildTx(target, 0, data, 1);
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.CommitmentTooYoung.selector);
+        account.executeTransaction(keccak256("h"), keccak256("h"), t);
+
+        assertFalse(account.usedLeaves(leafAt(1)), "premature reveal must not burn the leaf");
+    }
+
+    function test_feeCapBindingRejectsInflatedFee() public {
+        bytes memory data = abi.encodeCall(Receiver.setX, (1));
+        address target = address(receiver);
+        account.commit(commitmentOf(target, 0, data, 1));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        Transaction memory t = buildTx(target, 0, data, 1);
+        t.maxFeePerGas = MAX_FEE_CAP + 1; // sequencer inflates the fee
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.FeeCapExceeded.selector);
+        account.validateTransaction(keccak256("h"), keccak256("h"), t);
+    }
+
+    function test_callGasFloorRejectsStarvation() public {
+        bytes memory data = abi.encodeCall(Receiver.setX, (1));
+        address target = address(receiver);
+        account.commit(commitmentOf(target, 0, data, 1));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        Transaction memory t = buildTx(target, 0, data, 1);
+        t.gasLimit = CALL_GAS_FLOOR - 1; // sequencer starves the call gas
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.CallGasBelowFloor.selector);
+        account.validateTransaction(keccak256("h"), keccak256("h"), t);
+    }
+
+    function test_unknownActionRejectedInExecute() public {
+        // A bundler/sequencer that reuses the secret for a different action has
+        // no matching commitment: execute reverts, leaf survives.
+        bytes memory committed = abi.encodeCall(Receiver.setX, (42));
+        account.commit(commitmentOf(address(receiver), 0, committed, 1));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        bytes memory swapped = abi.encodeCall(Receiver.setX, (999));
+        Transaction memory t = buildTx(address(receiver), 0, swapped, 1);
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.UnknownCommitment.selector);
+        account.executeTransaction(keccak256("h"), keccak256("h"), t);
+        assertEq(receiver.x(), 0);
+    }
+}
