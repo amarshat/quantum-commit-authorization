@@ -50,8 +50,10 @@ The constructor sets the initial `root` and `depth`. The deployment transaction 
 ```
 action    = (target, value, data)
 actionHash = H(enc(TAG_ACTION, target, value, H(data)))
-c          = H(enc(TAG_COMMIT, chainid, account, actionHash, leafIndex, secret_leafIndex))
+c          = H(enc(TAG_COMMIT, chainid, account, actionHash, leafIndex, secret_leafIndex, callGasLimit))
 ```
+
+`callGasLimit` is the execution-gas budget the reveal will forward to the action, bound into the commitment. It closes a gas-starvation grief: without it, anyone who copied a pending reveal's public calldata could front-run it under a constrained outer gas limit so the action ran out of gas (its failure is swallowed, see Reveal step 10) while the leaf was still consumed, a one-transaction forced leaf burn against the victim's own aged commitment. Binding the budget and checking it is available *before* the leaf is consumed means a starved copy reverts and the leaf survives; only a caller who forwards the committed budget consumes the leaf, and the action then receives exactly that budget.
 
 `commit(c)` stores `commitments[c] = block.number`. Rules:
 
@@ -62,20 +64,21 @@ The commitment hides `actionHash` and `leafIndex` because `secret_i` is a 32-byt
 
 ### Reveal
 
-`reveal(target, value, data, leafIndex, secret, proof[])` verifies, in order:
+`reveal(target, value, data, leafIndex, secret, callGasLimit, proof[])` verifies, in order:
 
 1. `proof.length == depth` and `leafIndex < 2^depth`.
 2. Membership: fold `leafHash = H(enc(TAG_LEAF, secret))` up the path using `TAG_NODE`, taking left/right from the bits of `leafIndex`; result must equal `root`.
 3. Leaf unused: `usedLeaves[leafHash]` is false.
-4. Commitment: recompute `c` from `block.chainid`, `address(this)`, the action tuple, `leafIndex`, `secret`; require `commitments[c] != 0`.
+4. Commitment: recompute `c` from `block.chainid`, `address(this)`, the action tuple, `leafIndex`, `secret`, `callGasLimit`; require `commitments[c] != 0`.
 5. Age: `block.number >= commitBlock + minCommitAge`. A commitment can never be revealed in its own block; without a minimum age the anti-front-running property is void, because an attacker who sees a reveal in the mempool could commit and reveal a competing action in the same block. See the parameter note: `minCommitAge` also governs how reorg-safe the commit is when the secret is exposed, and those are two different budgets.
 6. Freshness: `block.number <= commitBlock + commitTTL`. Expired commitments are dead. Expiry bounds how long secret-bound state can linger and forces an attacker who steals a mempool-observed secret to race a live window instead of banking commitments indefinitely.
+7. Gas: enough gas remains to forward the committed `callGasLimit` to the action under EIP-150 (`gasleft` covers `callGasLimit * 64/63` plus the effects and event). This is checked *before* any state mutation, so a reveal that cannot fund the committed budget reverts without consuming the leaf. It is the anti-starvation gate: a copied reveal submitted with a throttled outer gas limit fails here, leaving the leaf live.
 
 Effects, strictly before the external call (checks-effects-interactions):
 
-7. Set `usedLeaves[leafHash] = true`.
-8. Delete `commitments[c]`.
-9. Execute `target.call{value: value}(data)`; return the success flag without reverting. A reverted action still consumes the leaf and the commitment: the secret was published in calldata the moment the reveal transaction hit the mempool, so it must never be reusable. "Executed" throughout this document means the reveal reached this call and consumed the leaf, regardless of the callee's success flag.
+8. Set `usedLeaves[leafHash] = true`.
+9. Delete `commitments[c]`.
+10. Execute `target.call{gas: callGasLimit, value: value}(data)`; return the success flag without reverting. A reverted action still consumes the leaf and the commitment: the secret was published in calldata the moment the reveal transaction hit the mempool, so it must never be reusable. "Executed" throughout this document means the reveal reached this call and consumed the leaf, regardless of the callee's success flag.
 
 ### Burn
 

@@ -59,12 +59,12 @@ library TestTree {
         return keccak256(abi.encode(TAG_LEAF, secretAt(seed, index)));
     }
 
-    function commitmentOf(address account, bytes32 aHash, uint256 leafIndex, bytes32 secret)
+    function commitmentOf(address account, bytes32 aHash, uint256 leafIndex, bytes32 secret, uint256 callGasLimit)
         internal
         view
         returns (bytes32)
     {
-        return keccak256(abi.encode(TAG_COMMIT, block.chainid, account, aHash, leafIndex, secret));
+        return keccak256(abi.encode(TAG_COMMIT, block.chainid, account, aHash, leafIndex, secret, callGasLimit));
     }
 
     function burnCommitmentOf(address account, uint256 leafIndex, bytes32 secret) internal view returns (bytes32) {
@@ -90,6 +90,8 @@ contract CommitRevealAccountTest is Test {
     uint256 constant DEPTH = 3;
     uint256 constant MIN_AGE = 4;
     uint256 constant TTL = 64;
+    // Committed execution-gas budget bound into every test commitment/reveal.
+    uint256 constant CALL_GAS = 1_000_000;
     bytes32 constant SEED = keccak256("test seed");
 
     CommitRevealAccount account;
@@ -111,7 +113,7 @@ contract CommitRevealAccountTest is Test {
     {
         secret = TestTree.secretAt(SEED, leafIndex);
         proof = TestTree.proofFor(leaves, leafIndex);
-        c = TestTree.commitmentOf(address(account), TestTree.actionHash(target, value, data), leafIndex, secret);
+        c = TestTree.commitmentOf(address(account), TestTree.actionHash(target, value, data), leafIndex, secret, CALL_GAS);
         account.commit(c);
     }
 
@@ -129,6 +131,13 @@ contract CommitRevealAccountTest is Test {
         vm.roll(block.number + MIN_AGE);
     }
 
+    function _reveal(address t, uint256 v, bytes memory d, uint256 i, bytes32 s, bytes32[] memory p)
+        internal
+        returns (bool ok, bytes memory r)
+    {
+        return account.reveal(t, v, d, i, s, CALL_GAS, p);
+    }
+
     // Happy path --------------------------------------------------------
 
     function test_commitRevealExecutes() public {
@@ -136,7 +145,7 @@ contract CommitRevealAccountTest is Test {
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 1 ether, data, 5);
         age();
 
-        (bool ok,) = account.reveal(address(receiver), 1 ether, data, 5, secret, proof);
+        (bool ok,) = _reveal(address(receiver), 1 ether, data, 5, secret, proof);
         assertTrue(ok);
         assertEq(receiver.x(), 42);
         assertEq(receiver.paid(), 1 ether);
@@ -148,7 +157,7 @@ contract CommitRevealAccountTest is Test {
         bytes memory data = abi.encodeCall(Receiver.setX, (7));
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, data, leafIndex);
         age();
-        (bool ok,) = account.reveal(address(receiver), 0, data, leafIndex, secret, proof);
+        (bool ok,) = _reveal(address(receiver), 0, data, leafIndex, secret, proof);
         assertTrue(ok);
     }
 
@@ -164,34 +173,34 @@ contract CommitRevealAccountTest is Test {
         bytes32 secret = TestTree.secretAt(SEED, 1);
         bytes32[] memory proof = TestTree.proofFor(leaves, 1);
         vm.expectRevert(CommitRevealAccount.UnknownCommitment.selector);
-        account.reveal(address(receiver), 0, "", 1, secret, proof);
+        _reveal(address(receiver), 0, "", 1, secret, proof);
     }
 
     function test_sameBlockRevealReverts() public {
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, "", 1);
         vm.expectRevert(CommitRevealAccount.CommitmentTooYoung.selector);
-        account.reveal(address(receiver), 0, "", 1, secret, proof);
+        _reveal(address(receiver), 0, "", 1, secret, proof);
     }
 
     function test_underagedRevealReverts() public {
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, "", 1);
         vm.roll(block.number + MIN_AGE - 1);
         vm.expectRevert(CommitRevealAccount.CommitmentTooYoung.selector);
-        account.reveal(address(receiver), 0, "", 1, secret, proof);
+        _reveal(address(receiver), 0, "", 1, secret, proof);
     }
 
     function test_expiredRevealReverts() public {
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, "", 1);
         vm.roll(block.number + TTL + 1);
         vm.expectRevert(CommitRevealAccount.CommitmentExpired.selector);
-        account.reveal(address(receiver), 0, "", 1, secret, proof);
+        _reveal(address(receiver), 0, "", 1, secret, proof);
     }
 
     function test_revealAtExactTTLBoundaryWorks() public {
         bytes memory data = abi.encodeCall(Receiver.setX, (9));
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, data, 1);
         vm.roll(block.number + TTL);
-        (bool ok,) = account.reveal(address(receiver), 0, data, 1, secret, proof);
+        (bool ok,) = _reveal(address(receiver), 0, data, 1, secret, proof);
         assertTrue(ok);
     }
 
@@ -201,17 +210,17 @@ contract CommitRevealAccountTest is Test {
         bytes memory data = abi.encodeCall(Receiver.setX, (1));
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, data, 2);
         age();
-        account.reveal(address(receiver), 0, data, 2, secret, proof);
+        _reveal(address(receiver), 0, data, 2, secret, proof);
 
         // Second commitment for the same leaf, different action: nullifier
         // blocks it even though the commitment itself is valid.
         bytes memory data2 = abi.encodeCall(Receiver.setX, (2));
         account.commit(
-            TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data2), 2, secret)
+            TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data2), 2, secret, CALL_GAS)
         );
         age();
         vm.expectRevert(CommitRevealAccount.LeafAlreadyUsed.selector);
-        account.reveal(address(receiver), 0, data2, 2, secret, proof);
+        _reveal(address(receiver), 0, data2, 2, secret, proof);
     }
 
     function test_revealCannotRebindAction() public {
@@ -224,14 +233,14 @@ contract CommitRevealAccountTest is Test {
         // exist.
         bytes memory hijacked = abi.encodeCall(Receiver.setX, (999));
         vm.expectRevert(CommitRevealAccount.UnknownCommitment.selector);
-        account.reveal(address(receiver), 0, hijacked, 3, secret, proof);
+        _reveal(address(receiver), 0, hijacked, 3, secret, proof);
     }
 
     function test_wrongSecretFailsMembership() public {
         (,, bytes32[] memory proof) = commitAction(address(receiver), 0, "", 4);
         age();
         vm.expectRevert(CommitRevealAccount.InvalidProof.selector);
-        account.reveal(address(receiver), 0, "", 4, keccak256("wrong"), proof);
+        _reveal(address(receiver), 0, "", 4, keccak256("wrong"), proof);
     }
 
     function test_wrongProofLengthReverts() public {
@@ -239,13 +248,13 @@ contract CommitRevealAccountTest is Test {
         age();
         bytes32[] memory shortProof = new bytes32[](DEPTH - 1);
         vm.expectRevert(CommitRevealAccount.InvalidProofLength.selector);
-        account.reveal(address(receiver), 0, "", 4, secret, shortProof);
+        _reveal(address(receiver), 0, "", 4, secret, shortProof);
     }
 
     function test_outOfRangeLeafIndexReverts() public {
         bytes32[] memory proof = new bytes32[](DEPTH);
         vm.expectRevert(CommitRevealAccount.LeafIndexOutOfRange.selector);
-        account.reveal(address(receiver), 0, "", 1 << DEPTH, bytes32(0), proof);
+        _reveal(address(receiver), 0, "", 1 << DEPTH, bytes32(0), proof);
     }
 
     // Failure semantics ----------------------------------------------------
@@ -255,7 +264,7 @@ contract CommitRevealAccountTest is Test {
         (bytes32 c, bytes32 secret, bytes32[] memory proof) = commitAction(address(receiver), 0, data, 6);
         age();
 
-        (bool ok,) = account.reveal(address(receiver), 0, data, 6, secret, proof);
+        (bool ok,) = _reveal(address(receiver), 0, data, 6, secret, proof);
         assertFalse(ok);
         // The secret went public in calldata; the leaf must be burned even
         // though the action reverted.
@@ -275,17 +284,17 @@ contract CommitRevealAccountTest is Test {
         address attacker = makeAddr("attacker");
         bytes32 theftHash = TestTree.actionHash(attacker, 5 ether, "");
         vm.prank(attacker);
-        account.commit(TestTree.commitmentOf(address(account), theftHash, 7, secret));
+        account.commit(TestTree.commitmentOf(address(account), theftHash, 7, secret, CALL_GAS));
 
         // Attacker's commitment must age minCommitAge blocks. The victim's
         // aged reveal lands first and consumes the leaf.
-        (bool ok,) = account.reveal(address(receiver), 0, data, 7, secret, proof);
+        (bool ok,) = _reveal(address(receiver), 0, data, 7, secret, proof);
         assertTrue(ok);
 
         age();
         vm.prank(attacker);
         vm.expectRevert(CommitRevealAccount.LeafAlreadyUsed.selector);
-        account.reveal(attacker, 5 ether, "", 7, secret, proof);
+        _reveal(attacker, 5 ether, "", 7, secret, proof);
     }
 
     // Rotation ---------------------------------------------------------------
@@ -302,7 +311,7 @@ contract CommitRevealAccountTest is Test {
         bytes memory data = abi.encodeCall(CommitRevealAccount.rotate, (TestTree.rootOf(newLeaves), DEPTH));
         (, bytes32 secret, bytes32[] memory proof) = commitAction(address(account), 0, data, 0);
         age();
-        (bool ok,) = account.reveal(address(account), 0, data, 0, secret, proof);
+        (bool ok,) = _reveal(address(account), 0, data, 0, secret, proof);
         assertTrue(ok);
         assertEq(account.root(), TestTree.rootOf(newLeaves));
     }
@@ -314,7 +323,7 @@ contract CommitRevealAccountTest is Test {
         (, bytes32 oldSecret, bytes32[] memory oldProof) = commitAction(address(receiver), 0, "", 1);
         age();
         vm.expectRevert(CommitRevealAccount.InvalidProof.selector);
-        account.reveal(address(receiver), 0, "", 1, oldSecret, oldProof);
+        _reveal(address(receiver), 0, "", 1, oldSecret, oldProof);
     }
 
     function test_rotationGivesFreshNullifierSpace() public {
@@ -330,10 +339,10 @@ contract CommitRevealAccountTest is Test {
         bytes32 newSecret = TestTree.secretAt(NEW_SEED, 0);
         bytes32[] memory newProof = TestTree.proofFor(newLeaves, 0);
         account.commit(
-            TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data), 0, newSecret)
+            TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data), 0, newSecret, CALL_GAS)
         );
         age();
-        (bool ok,) = account.reveal(address(receiver), 0, data, 0, newSecret, newProof);
+        (bool ok,) = _reveal(address(receiver), 0, data, 0, newSecret, newProof);
         assertTrue(ok);
         assertEq(receiver.x(), 77);
     }
@@ -357,10 +366,10 @@ contract CommitRevealAccountTest is Test {
         account.burn(4, secret, proof);
         // A subsequent action commitment on the same leaf can still be made
         // and aged, but the reveal fails because the leaf is nullified.
-        account.commit(TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data), 4, secret));
+        account.commit(TestTree.commitmentOf(address(account), TestTree.actionHash(address(receiver), 0, data), 4, secret, CALL_GAS));
         age();
         vm.expectRevert(CommitRevealAccount.LeafAlreadyUsed.selector);
-        account.reveal(address(receiver), 0, data, 4, secret, proof);
+        _reveal(address(receiver), 0, data, 4, secret, proof);
     }
 
     function test_burnWithoutCommitmentReverts() public {

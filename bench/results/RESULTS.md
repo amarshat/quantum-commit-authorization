@@ -20,9 +20,9 @@ Our numbers are transaction receipt gasUsed from anvil (prague hardfork), so int
 
 | depth | commit | reveal (1 ETH to fresh EOA) | reveal (authorization only) | burn | action flow | auth-only flow | burn flow |
 |---|---|---|---|---|---|---|---|
-| 8 | 45,308 | 95,271 | 61,273 | 59,175 | 140,579 | 106,581 | 104,483 |
-| 16 | 45,308 | 102,644 | 68,646 | 66,547 | 147,952 | 113,954 | 111,855 |
-| 20 | 45,284 | 106,350 | 72,352 | 70,252 | 151,634 | 117,636 | 115,560 |
+| 8 | 45,308 | 95,575 | 61,577 | 59,154 | 140,883 | 106,885 | 104,462 |
+| 16 | 45,308 | 102,948 | 68,950 | 66,526 | 148,256 | 114,258 | 111,834 |
+| 20 | 45,308 | 106,654 | 72,656 | 70,231 | 151,962 | 117,964 | 115,539 |
 
 A flow is one commit plus one reveal. The authorization-only reveal executes a zero-value self-call, which is the like-for-like row against baselines that only verify a signature. Reveal cost grows about 923 gas per tree level (one keccak plus 32 calldata bytes).
 
@@ -30,9 +30,9 @@ A flow is one commit plus one reveal. The authorization-only reveal executes a z
 
 | depth | deploy tx | capacity (leaves) | deploy amortized per action | rotate flow amortized |
 |---|---|---|---|---|
-| 8 | 674,391 | 256 | 2,634.3 | 416.3 |
-| 16 | 674,391 | 65,536 | 10.3 | 1.7 |
-| 20 | 674,391 | 1,048,576 | 0.6 | 0.1 |
+| 8 | 684,071 | 256 | 2,672.2 | 417.5 |
+| 16 | 684,071 | 65,536 | 10.4 | 1.7 |
+| 20 | 684,071 | 1,048,576 | 0.7 | 0.1 |
 
 Each reveal permanently occupies one nullifier storage slot; that 20K SSTORE is inside the reveal numbers above but the per-account state footprint grows without bound over its lifetime, one word per action. Expired commitments can be pruned for a refund, but post-EIP-3529 a dedicated prune transaction costs more than it reclaims, so the tables ignore prune. Burn is the leak response (reorged or expired reveal). It is age-gated exactly like reveal (see docs/GAME.md on burn-griefing), so the defensive nullify is itself a two-transaction flow, commit-to-burn then burn; the burn flow column totals both.
 
@@ -42,13 +42,13 @@ The base scheme's reveal is a plain transaction wrapped in the owner's ECDSA env
 
 | depth | base reveal | 4337 solo (1 op/bundle) | solo overhead | 4337 marginal (in a bundle) | one-time nonce init |
 |---|---|---|---|---|---|
-| 8 | 61,273 | 105,035 | +43,762 | 57,898 | 17,085 |
-| 16 | 68,646 | 113,006 | +44,360 | 65,844 | 17,085 |
-| 20 | 72,352 | 117,013 | +44,661 | 69,836 | 17,085 |
+| 8 | 61,577 | 105,276 | +43,699 | 58,134 | 17,085 |
+| 16 | 68,950 | 113,247 | +44,297 | 66,080 | 17,085 |
+| 20 | 72,656 | 117,253 | +44,597 | 70,074 | 17,085 |
 
-Three honest numbers, not one. A reveal sent alone in its own bundle (the worst case) costs 113,006 gas at depth 16, 44,360 over the base reveal. That overhead is almost entirely per-bundle fixed cost (the outer intrinsic gas, the beneficiary payout, EntryPoint setup), about 47,162 gas, which a real bundler amortizes across every op in the bundle: the marginal cost of one more reveal in a bundle is 65,844 gas, essentially the base reveal itself. Separately, an account pays a one-time 17,085-gas EntryPoint nonce-slot initialization on its very first op ever (a cold SSTORE, like the deploy, not a per-reveal cost). The solo overhead is flat across tree depth (both the base reveal and the 4337 reveal carry the same Merkle proof, which cancels in the difference).
+Three honest numbers, not one. A reveal sent alone in its own bundle (the worst case) costs 113,247 gas at depth 16, 44,297 over the base reveal. That overhead is almost entirely per-bundle fixed cost (the outer intrinsic gas, the beneficiary payout, EntryPoint setup), about 47,167 gas, which a real bundler amortizes across every op in the bundle: the marginal cost of one more reveal in a bundle is 66,080 gas, essentially the base reveal itself. Separately, an account pays a one-time 17,085-gas EntryPoint nonce-slot initialization on its very first op ever (a cold SSTORE, like the deploy, not a per-reveal cost). The solo overhead is flat across tree depth (both the base reveal and the 4337 reveal carry the same Merkle proof, which cancels in the difference).
 
-The full authorization-only flow (commit plus reveal) is 158,314 gas solo and 111,152 gas amortized, still 10.1x to 14.4x cheaper than the cheapest direct PQ verifier. Two caveats the paper must carry: the flow assumes the account holds an EntryPoint deposit (measured with missingAccountFunds = 0; a pay-per-op account adds the prefund transfer), and preVerificationGas and the gas limits are EntryPoint accounting bounds, not part of the measured gasUsed. Aging is wall-clock here, not block-denominated, per the 4337 validation rules; see docs/AA.md.
+The full authorization-only flow (commit plus reveal) is 158,555 gas solo and 111,388 gas amortized, still 10.1x to 14.4x cheaper than the cheapest direct PQ verifier. Two caveats the paper must carry: the flow assumes the account holds an EntryPoint deposit (measured with missingAccountFunds = 0; a pay-per-op account adds the prefund transfer), and preVerificationGas and the gas limits are EntryPoint accounting bounds, not part of the measured gasUsed. Aging is wall-clock here, not block-denominated, per the 4337 validation rules; see docs/AA.md.
 
 ## Direct on-chain PQ verification baselines, single transaction
 
@@ -62,19 +62,19 @@ The full authorization-only flow (commit plus reveal) is 158,314 gas solo and 11
 
 ## Ratios
 
-Depth-16 authorization-only flow = 113,954 gas (like-for-like: baselines execute no action either); with the 1 ETH action included = 147,952 gas.
+Depth-16 authorization-only flow = 114,258 gas (like-for-like: baselines execute no action either); with the 1 ETH action included = 148,256 gas.
 
 | baseline | vs auth-only flow | vs action flow |
 |---|---|---|
-| ETHFALCON (Keccak PRNG, non-FIPS) | 14.1x | 10.8x |
-| Falcon-512 (NIST hash, precomputed NTT pk) | 34.8x | 26.8x |
-| Falcon-512 (FIPS-206, wire format) | 42.7x | 32.9x |
-| ML-DSA-44 (NIST) | 71.9x | 55.4x |
-| ETHDILITHIUM (Keccak, non-FIPS) | 43.0x | 33.1x |
+| ETHFALCON (Keccak PRNG, non-FIPS) | 14.0x | 10.8x |
+| Falcon-512 (NIST hash, precomputed NTT pk) | 34.7x | 26.8x |
+| Falcon-512 (FIPS-206, wire format) | 42.6x | 32.8x |
+| ML-DSA-44 (NIST) | 71.7x | 55.2x |
+| ETHDILITHIUM (Keccak, non-FIPS) | 42.8x | 33.0x |
 
 ## Fee variance between the two transactions (depth 16)
 
-Cost in commit-block gas units: 45,308 + m x 102,644, where the reveal lands at m times the commit basefee. Break-even against the cheapest baseline (ETHFALCON (Keccak PRNG, non-FIPS), 1,605,156 gas) is m = 15.2. Under EIP-1559 the basefee grows at most 12.5% per block, so reaching that multiple takes about 23 consecutive completely full blocks between commit and reveal. That is not a guarantee: the commit stays valid for commitTTL (256 blocks here) and sustained congestion or censorship, exactly the adversarial conditions in the threat model, can push the reveal deep into that window. The holder can also simply wait out a spike anywhere inside the TTL, at the cost of delay. The paper must present m as an empirical distribution from historical basefee traces, not a bound.
+Cost in commit-block gas units: 45,308 + m x 102,948, where the reveal lands at m times the commit basefee. Break-even against the cheapest baseline (ETHFALCON (Keccak PRNG, non-FIPS), 1,605,156 gas) is m = 15.2. Under EIP-1559 the basefee grows at most 12.5% per block, so reaching that multiple takes about 23 consecutive completely full blocks between commit and reveal. That is not a guarantee: the commit stays valid for commitTTL (256 blocks here) and sustained congestion or censorship, exactly the adversarial conditions in the threat model, can push the reveal deep into that window. The holder can also simply wait out a spike anywhere inside the TTL, at the cost of delay. The paper must present m as an empirical distribution from historical basefee traces, not a bound.
 
 ## Cited baselines, not re-run
 

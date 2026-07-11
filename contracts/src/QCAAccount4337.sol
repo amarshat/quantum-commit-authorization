@@ -85,6 +85,7 @@ contract QCAAccount4337 is IAccount {
     error BadCallData();
     error FeeCapExceeded();
     error CallGasBelowFloor();
+    error PreVerificationGasAboveCeiling();
     error NotSelf();
 
     modifier onlyEntryPoint() {
@@ -123,14 +124,19 @@ contract QCAAccount4337 is IAccount {
     ///         Binding is the whole game. The commitment binds not only the
     ///         action (target, value, data, parsed from the same callData bytes
     ///         the EntryPoint executes, so a bundler cannot retarget) but also
-    ///         a maximum fee-per-gas and a minimum call-gas limit. Both are
-    ///         necessary: without a fee cap a bundler replays the reveal with
-    ///         maxFeePerGas set astronomically and drains the account's
-    ///         EntryPoint deposit as fees to itself (theft, not griefing);
-    ///         without a call-gas floor a bundler sets callGasLimit just low
-    ///         enough to starve execute, so the leaf is consumed (nullified
-    ///         below) while the action never runs, a forced irrecoverable leaf
-    ///         burn. Binding both closes those surfaces. Even so, a bundler
+    ///         a maximum fee-per-gas, a minimum call-gas limit and a maximum
+    ///         preVerificationGas. All three are necessary: without a fee cap a
+    ///         bundler replays the reveal with maxFeePerGas set astronomically
+    ///         and drains the account's EntryPoint deposit as fees to itself
+    ///         (theft, not griefing); without a call-gas floor a bundler sets
+    ///         callGasLimit just low enough to starve execute, so the leaf is
+    ///         consumed (nullified below) while the action never runs, a forced
+    ///         irrecoverable leaf burn; and without a preVerificationGas ceiling
+    ///         a bundler inflates that flat, unbounded charge, which the
+    ///         EntryPoint adds to the gas billed to the account and pays to the
+    ///         beneficiary, draining the deposit even though the per-gas price
+    ///         is capped (the fee cap bounds price per unit, not unit count).
+    ///         Binding all three closes those surfaces. Even so, a bundler
     ///         that receives the reveal privately can still withhold it and win
     ///         a withhold-and-age race (GAME.md Theorem 3); this construction
     ///         downgrades a PUBLIC-mempool bundler to censorship, not a trusted
@@ -148,22 +154,42 @@ contract QCAAccount4337 is IAccount {
         onlyEntryPoint
         returns (uint256 validationData)
     {
-        (uint256 leafIndex, bytes32 secret, bytes32[] memory proof, uint256 maxFeeCap, uint256 callGasFloor) =
-            _decodeAuth(userOp.signature);
+        (
+            uint256 leafIndex,
+            bytes32 secret,
+            bytes32[] memory proof,
+            uint256 maxFeeCap,
+            uint256 callGasFloor,
+            uint256 maxPvgCeil
+        ) = _decodeAuth(userOp.signature);
         (address target, uint256 value, bytes memory data) = _decodeExecute(userOp.callData);
 
         // Enforce the committed gas envelope against the actual UserOp fields.
         // gasFees packs maxPriorityFeePerGas (high 128) | maxFeePerGas (low
         // 128); accountGasLimits packs verificationGasLimit | callGasLimit.
+        // preVerificationGas is a flat, bundler-chosen charge with no protocol
+        // ceiling, so it needs an explicit committed cap or it becomes a
+        // deposit-drain axis the fee cap does not close.
         if (uint128(uint256(userOp.gasFees)) > maxFeeCap) revert FeeCapExceeded();
         if (uint128(uint256(userOp.accountGasLimits)) < callGasFloor) revert CallGasBelowFloor();
+        if (userOp.preVerificationGas > maxPvgCeil) revert PreVerificationGasAboveCeiling();
 
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
 
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
         bytes32 c = keccak256(
-            abi.encode(TAG_COMMIT, block.chainid, address(this), actionHash, leafIndex, secret, maxFeeCap, callGasFloor)
+            abi.encode(
+                TAG_COMMIT,
+                block.chainid,
+                address(this),
+                actionHash,
+                leafIndex,
+                secret,
+                maxFeeCap,
+                callGasFloor,
+                maxPvgCeil
+            )
         );
 
         uint256 committedAt = commitments[c];
@@ -248,16 +274,23 @@ contract QCAAccount4337 is IAccount {
     // --- decoding -----------------------------------------------------------
 
     /// @dev userOp.signature = abi.encode(leafIndex, secret, proof, maxFeeCap,
-    ///      callGasFloor). maxFeeCap and callGasFloor are the gas-envelope
-    ///      bounds bound into the commitment; validation both recomputes the
-    ///      commitment from them and enforces the actual UserOp gas fields
-    ///      against them.
+    ///      callGasFloor, maxPvgCeil). The three gas-envelope bounds (fee cap,
+    ///      call-gas floor, preVerificationGas ceiling) are bound into the
+    ///      commitment; validation both recomputes the commitment from them and
+    ///      enforces the actual UserOp gas fields against them.
     function _decodeAuth(bytes calldata sig)
         internal
         pure
-        returns (uint256 leafIndex, bytes32 secret, bytes32[] memory proof, uint256 maxFeeCap, uint256 callGasFloor)
+        returns (
+            uint256 leafIndex,
+            bytes32 secret,
+            bytes32[] memory proof,
+            uint256 maxFeeCap,
+            uint256 callGasFloor,
+            uint256 maxPvgCeil
+        )
     {
-        return abi.decode(sig, (uint256, bytes32, bytes32[], uint256, uint256));
+        return abi.decode(sig, (uint256, bytes32, bytes32[], uint256, uint256, uint256));
     }
 
     /// @dev userOp.callData = execute.selector ++ abi.encode(target,value,data).

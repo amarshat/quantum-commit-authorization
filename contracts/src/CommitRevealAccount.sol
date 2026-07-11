@@ -6,9 +6,11 @@ pragma solidity ^0.8.26;
 ///         root instead of per-transaction signatures. Spending is two-phase:
 ///         commit a hash binding the exact action and a leaf secret, wait
 ///         minCommitAge blocks, then reveal the secret and Merkle path to
-///         execute. Security rests on keccak256 preimage and collision
-///         resistance, which survive a quantum adversary; no elliptic-curve
-///         assumption exists anywhere in the authorization path.
+///         execute. Security rests on keccak256 preimage and second-preimage
+///         resistance (not generic collision resistance; see docs/SPEC.md),
+///         which survive a quantum adversary with only a Grover-halved margin;
+///         no elliptic-curve assumption exists anywhere in the authorization
+///         path.
 /// @dev    Normative reference: docs/SPEC.md. The Rust tooling in tooling/
 ///         must produce byte-identical hashes for every structure here.
 contract CommitRevealAccount {
@@ -72,6 +74,7 @@ contract CommitRevealAccount {
     error InvalidDepth();
     error InvalidWindow();
     error NotSelf();
+    error InsufficientGas();
 
     constructor(bytes32 root_, uint256 depth_, uint256 minCommitAge_, uint256 commitTTL_) payable {
         _checkDepth(depth_);
@@ -104,12 +107,27 @@ contract CommitRevealAccount {
     ///         mempool, so it must never authorize anything again. Reverting
     ///         here would roll the nullifier back and hand the leaf to
     ///         whoever saw the calldata.
+    ///
+    ///         `callGasLimit` is bound into the commitment and forwarded to the
+    ///         action verbatim. It closes a gas-starvation grief: without it,
+    ///         anyone who copied a pending reveal's public calldata could
+    ///         front-run it under a constrained outer gas limit, so the action
+    ///         ran out of gas (returning false, which this function swallows)
+    ///         while the leaf was still consumed, a one-transaction forced leaf
+    ///         burn against the victim's own aged commitment, no fresh
+    ///         commitment or censorship needed. Because the gas budget is
+    ///         committed and checked BEFORE the leaf is consumed, an attacker
+    ///         who supplies too little gas makes the whole transaction revert,
+    ///         leaving the leaf intact; only a caller who forwards the committed
+    ///         budget can consume it, and then the action gets exactly that
+    ///         budget regardless of the outer gas limit.
     function reveal(
         address target,
         uint256 value,
         bytes calldata data,
         uint256 leafIndex,
         bytes32 secret,
+        uint256 callGasLimit,
         bytes32[] calldata proof
     ) external returns (bool success, bytes memory result) {
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
@@ -117,21 +135,32 @@ contract CommitRevealAccount {
 
         // Recompute the commitment from what is being revealed. Binding to
         // chainid and address(this) kills cross-chain and cross-account
-        // replay; binding actionHash and secret in one preimage means the
-        // opening cannot be rebound to a different action.
+        // replay; binding actionHash, secret and callGasLimit in one preimage
+        // means the opening cannot be rebound to a different action or starved
+        // of the execution gas the committer chose.
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
-        bytes32 c = keccak256(abi.encode(TAG_COMMIT, block.chainid, address(this), actionHash, leafIndex, secret));
+        bytes32 c = keccak256(
+            abi.encode(TAG_COMMIT, block.chainid, address(this), actionHash, leafIndex, secret, callGasLimit)
+        );
 
         uint256 committedAt = commitments[c];
         if (committedAt == 0) revert UnknownCommitment();
         if (block.number < committedAt + minCommitAge) revert CommitmentTooYoung();
         if (block.number > committedAt + commitTTL) revert CommitmentExpired();
 
+        // Guarantee the committed gas budget can actually reach the action
+        // BEFORE consuming the leaf. Under EIP-150 a call receives at most
+        // 63/64 of gasleft, so callGasLimit needs callGasLimit*64/63 available;
+        // the extra 40k covers the two SSTOREs, the event and slack for the
+        // returndata copy. Reverting here (not after nullifying) is the whole
+        // fix: a starved copy cannot burn the leaf.
+        if (gasleft() < callGasLimit + callGasLimit / 63 + 40_000) revert InsufficientGas();
+
         // Effects strictly before the external call.
         usedLeaves[leafHash] = true;
         delete commitments[c];
 
-        (success, result) = target.call{value: value}(data);
+        (success, result) = target.call{gas: callGasLimit, value: value}(data);
         emit Revealed(leafIndex, actionHash, success);
     }
 

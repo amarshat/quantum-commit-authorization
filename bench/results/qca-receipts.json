@@ -3,9 +3,9 @@
   "depths": {
     "8": {
       "deploy": {
-        "gasUsed": 674391,
-        "inputBytes": 3041,
-        "zeroBytes": 341
+        "gasUsed": 684071,
+        "inputBytes": 3086,
+        "zeroBytes": 345
       },
       "commit_action": {
         "gasUsed": 45308,
@@ -23,26 +23,26 @@
         "zeroBytes": 0
       },
       "reveal_action": {
-        "gasUsed": 95271,
-        "inputBytes": 516,
-        "zeroBytes": 212
+        "gasUsed": 95575,
+        "inputBytes": 548,
+        "zeroBytes": 241
       },
       "reveal_noop": {
-        "gasUsed": 61273,
-        "inputBytes": 516,
-        "zeroBytes": 202
+        "gasUsed": 61577,
+        "inputBytes": 548,
+        "zeroBytes": 231
       },
       "burn": {
-        "gasUsed": 59175,
+        "gasUsed": 59154,
         "inputBytes": 388,
         "zeroBytes": 94
       }
     },
     "16": {
       "deploy": {
-        "gasUsed": 674391,
-        "inputBytes": 3041,
-        "zeroBytes": 341
+        "gasUsed": 684071,
+        "inputBytes": 3086,
+        "zeroBytes": 345
       },
       "commit_action": {
         "gasUsed": 45308,
@@ -60,31 +60,31 @@
         "zeroBytes": 0
       },
       "reveal_action": {
-        "gasUsed": 102644,
-        "inputBytes": 772,
-        "zeroBytes": 215
+        "gasUsed": 102948,
+        "inputBytes": 804,
+        "zeroBytes": 244
       },
       "reveal_noop": {
-        "gasUsed": 68646,
-        "inputBytes": 772,
-        "zeroBytes": 205
+        "gasUsed": 68950,
+        "inputBytes": 804,
+        "zeroBytes": 234
       },
       "burn": {
-        "gasUsed": 66547,
+        "gasUsed": 66526,
         "inputBytes": 644,
         "zeroBytes": 97
       }
     },
     "20": {
       "deploy": {
-        "gasUsed": 674391,
-        "inputBytes": 3041,
-        "zeroBytes": 341
+        "gasUsed": 684071,
+        "inputBytes": 3086,
+        "zeroBytes": 345
       },
       "commit_action": {
-        "gasUsed": 45284,
+        "gasUsed": 45308,
         "inputBytes": 36,
-        "zeroBytes": 2
+        "zeroBytes": 0
       },
       "commit_noop": {
         "gasUsed": 45308,
@@ -97,17 +97,17 @@
         "zeroBytes": 0
       },
       "reveal_action": {
-        "gasUsed": 106350,
-        "inputBytes": 900,
-        "zeroBytes": 215
+        "gasUsed": 106654,
+        "inputBytes": 932,
+        "zeroBytes": 244
       },
       "reveal_noop": {
-        "gasUsed": 72352,
-        "inputBytes": 900,
-        "zeroBytes": 205
+        "gasUsed": 72656,
+        "inputBytes": 932,
+        "zeroBytes": 234
       },
       "burn": {
-        "gasUsed": 70252,
+        "gasUsed": 70231,
         "inputBytes": 772,
         "zeroBytes": 97
       }

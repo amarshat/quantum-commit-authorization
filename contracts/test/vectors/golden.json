@@ -96,7 +96,8 @@
   "example_value": 1000000000000000000,
   "example_data": "0xdeadbeef",
   "example_leaf_index": 5,
+  "example_call_gas_limit": 1000000,
   "example_action_hash": "0x5664324db3e133b09fb0e6dc595bc7bcc4e2ba87d91cc5eb2a418369937d98da",
-  "example_commitment": "0x8a65409cc0752a469c5cf1b914020c12b65b3e8957ac530ea4d3e043a72c23c5",
+  "example_commitment": "0x2a78f23fb0b4fdcbc0acd9fe378159f9a1961c0ace3c5f4abf9c37d54a5dd298",
   "example_burn_commitment": "0x4336a3e1bd83948ae3041639ccbd56756486d49fcaf32e6e5bff424b86fb5e6c"
 }

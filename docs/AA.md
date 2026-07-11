@@ -12,9 +12,9 @@ and in doing so it exposes the revealed secret to that bundler. The value of
 this document is (1) a theorem that no account on current L1 mainnet has an
 ECDSA-free authorization path (native AA removes it, and is already live on some
 L2s), and (2) a precise account of what that bundler can do: with the action,
-the fee ceiling, and the call-gas floor all bound into the commitment, a
-bundler that sees the reveal only in the public mempool is limited to
-censorship; but the default single-bundler path, where the reveal is handed to
+the fee ceiling, the call-gas floor, and the preVerificationGas ceiling all
+bound into the commitment, a bundler that sees the reveal only in the public
+mempool is limited to censorship; but the default single-bundler path, where the reveal is handed to
 one bundler privately, is relay capitulation, i.e. deterministic theft, exactly
 the base scheme's Theorem 3. Survivability is real but conditional, and this
 document states the conditions rather than assuming them.
@@ -153,6 +153,18 @@ otherwise choose at reveal time to its own advantage:
   call runs out of gas, and the bundle still succeeds. The result is a forced,
   repeatable, irrecoverable leaf burn (worse than censorship, which is
   recoverable). Binding the floor closes it.
+- **The preVerificationGas ceiling.** The commitment binds a `maxPvgCeil`, and
+  validation rejects any UserOp whose `preVerificationGas` exceeds it. This one
+  was missed in the first implementation and is the sharper theft axis, because
+  the fee ceiling alone bounds the *price* per gas but not the *number* of gas
+  units charged. `preVerificationGas` is a flat, bundler-chosen quantity the
+  EntryPoint adds to the gas billed to the account and pays to the beneficiary,
+  with no protocol upper bound; the account does not read `userOpHash`, so
+  inflating it does not disturb the commitment recompute. A bundler inflates it,
+  passes validation, and drains the deposit at the capped price but an uncapped
+  quantity. Binding a ceiling closes it. (Empirically, an op with
+  `preVerificationGas` raised from 100k to 5M drained an extra 4.9M gas worth of
+  deposit, exactly `(5M - 100k) x gasPrice`, straight to the beneficiary.)
 
 The fee and gas fields are UserOp calldata, not banned opcodes, so validation
 may read them; binding them is the fix the following lemmas demand.
@@ -165,21 +177,27 @@ an attacker value and the aged commitment still matches.
 
 *Proof.* If field `f` is outside `c`, then two UserOps differing only in `f`
 share the same aged commitment `c`; the bundler opens `c` with its chosen `f`.
-For `f = maxFeePerGas` this drains the deposit (theft); for `f = callGasLimit`
+For `f = maxFeePerGas` or `f = preVerificationGas` this drains the deposit
+(theft, on the price and the quantity axis respectively); for `f = callGasLimit`
 it forces a leaf burn; for `f = target/value/data` it would retarget the action.
 ∎
 
-The three tests `test_bundlerCannotRetargetAction`,
-`test_bundlerCannotInflateFeeToDrainDeposit`, and
-`test_bundlerCannotStarveCallGasToBurnLeaf` exercise exactly these three fields
-against a real EntryPoint v0.8. This is the crux: commit-reveal composes with a
-hostile bundler only to the extent that binding is complete, and completeness
-here means the action *and* the fee ceiling *and* the call-gas floor.
+`preVerificationGas` is the concrete instance this lemma flagged in the abstract
+but the first implementation left unbound: the lemma is only useful if the field
+enumeration is exhaustive over everything the EntryPoint charges or executes, and
+a red-team review found `preVerificationGas` was not in it. The four tests
+`test_bundlerCannotRetargetAction`, `test_bundlerCannotInflateFeeToDrainDeposit`,
+`test_bundlerCannotStarveCallGasToBurnLeaf`, and
+`test_bundlerCannotInflatePreVerificationGasToDrainDeposit` exercise exactly
+these fields against a real EntryPoint v0.8. This is the crux: commit-reveal
+composes with a hostile bundler only to the extent that binding is complete, and
+completeness here means the action *and* the fee ceiling *and* the call-gas floor
+*and* the preVerificationGas ceiling.
 
 ### Lemma 2 (with complete binding, a public-mempool bundler is limited to censorship, under a precondition)
 
-Suppose the commitment binds the full action, the fee ceiling, and the call-gas
-floor, and the leaf is nullified on use. Suppose further that the reveal reaches
+Suppose the commitment binds the full action, the fee ceiling, the call-gas
+floor, and the preVerificationGas ceiling, and the leaf is nullified on use. Suppose further that the reveal reaches
 the **public** alt-mempool and the victim re-broadcasts on non-inclusion within
 `minCommitAge`. Then a bundler that observes the reveal can censor it or replay
 the committed action unchanged, but cannot execute any other action, drain the
@@ -242,7 +260,7 @@ Buys: the account holder no longer needs a quantum-vulnerable signing key of
 their own to authorize a spend; the authorization is pure commit-reveal, carried
 in 4337 validation, with no signature in the account. A hostile bundler that
 only sees the reveal in the public mempool is limited to censorship, provided
-the action, the fee ceiling, and the call-gas floor are all bound (Lemma 2,
+the action, the fee ceiling, the call-gas floor, and the preVerificationGas ceiling are all bound (Lemma 2,
 Lemma 3). Recovery (`burn`, `rotate`) stays available as plain transactions.
 
 Does not buy: an ECDSA-free inclusion path on L1 (Theorem 1); it relocates the

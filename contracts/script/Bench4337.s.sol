@@ -36,6 +36,7 @@ contract Bench4337Script is Script {
     uint256 constant TTL = 100_000;
     uint256 constant MAX_FEE_CAP = 100 gwei;
     uint256 constant CALL_GAS_FLOOR = 200_000;
+    uint256 constant MAX_PVG_CEIL = 200_000;
 
     function deployPhase(uint256 depth) external {
         string memory json = vm.readFile(vectorFile(depth));
@@ -110,7 +111,7 @@ contract Bench4337Script is Script {
         o.accountGasLimits = bytes32((uint256(1_500_000) << 128) | uint256(1_000_000));
         o.preVerificationGas = 100_000;
         o.gasFees = bytes32((uint256(1 gwei) << 128) | uint256(1 gwei));
-        o.signature = abi.encode(leafIndex, secret, proof, MAX_FEE_CAP, CALL_GAS_FLOOR);
+        o.signature = abi.encode(leafIndex, secret, proof, MAX_FEE_CAP, CALL_GAS_FLOOR, MAX_PVG_CEIL);
     }
 
     function leaf(string memory json, uint256 i)
@@ -135,7 +136,15 @@ contract Bench4337Script is Script {
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
         return keccak256(
             abi.encode(
-                TAG_COMMIT, block.chainid, address(account), actionHash, index, secret, MAX_FEE_CAP, CALL_GAS_FLOOR
+                TAG_COMMIT,
+                block.chainid,
+                address(account),
+                actionHash,
+                index,
+                secret,
+                MAX_FEE_CAP,
+                CALL_GAS_FLOOR,
+                MAX_PVG_CEIL
             )
         );
     }

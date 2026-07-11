@@ -161,16 +161,20 @@ pub fn action_hash(target: &[u8; 20], value_be: &Hash, data: &[u8]) -> Hash {
     hash_words(&[tags::action(), word_address(target), *value_be, keccak(data)])
 }
 
-/// `H(enc(TAG_COMMIT, chainid, account, actionHash, leafIndex, secret))`.
-/// Binding chain id and account kills cross-chain and cross-account replay;
-/// the high-entropy secret inside the preimage is what makes the commitment
-/// hiding.
+/// `H(enc(TAG_COMMIT, chainid, account, actionHash, leafIndex, secret,
+/// callGasLimit))`. Binding chain id and account kills cross-chain and
+/// cross-account replay; the high-entropy secret inside the preimage is what
+/// makes the commitment hiding. `call_gas_limit` is the execution-gas budget
+/// the reveal forwards to the action; binding it stops a copied reveal from
+/// being replayed under a starved gas envelope that burns the leaf without
+/// running the action (see the contract's reveal).
 pub fn commitment(
     chain_id: u64,
     account: &[u8; 20],
     action_hash: &Hash,
     leaf_index: u64,
     secret: &Hash,
+    call_gas_limit: u64,
 ) -> Hash {
     hash_words(&[
         tags::commit(),
@@ -179,6 +183,7 @@ pub fn commitment(
         *action_hash,
         word_u64(leaf_index),
         *secret,
+        word_u64(call_gas_limit),
     ])
 }
 
@@ -244,11 +249,12 @@ mod tests {
         let target = [0x22u8; 20];
         let s = secret_at(&seed(), 0);
         let a = action_hash(&target, &u256_be(1), b"data");
-        let base = commitment(1, &acct, &a, 0, &s);
-        assert_ne!(base, commitment(2, &acct, &a, 0, &s));
-        assert_ne!(base, commitment(1, &[0x12u8; 20], &a, 0, &s));
-        assert_ne!(base, commitment(1, &acct, &action_hash(&target, &u256_be(2), b"data"), 0, &s));
-        assert_ne!(base, commitment(1, &acct, &a, 1, &s));
-        assert_ne!(base, commitment(1, &acct, &a, 0, &secret_at(&seed(), 1)));
+        let base = commitment(1, &acct, &a, 0, &s, 1_000_000);
+        assert_ne!(base, commitment(2, &acct, &a, 0, &s, 1_000_000));
+        assert_ne!(base, commitment(1, &[0x12u8; 20], &a, 0, &s, 1_000_000));
+        assert_ne!(base, commitment(1, &acct, &action_hash(&target, &u256_be(2), b"data"), 0, &s, 1_000_000));
+        assert_ne!(base, commitment(1, &acct, &a, 1, &s, 1_000_000));
+        assert_ne!(base, commitment(1, &acct, &a, 0, &secret_at(&seed(), 1), 1_000_000));
+        assert_ne!(base, commitment(1, &acct, &a, 0, &s, 2_000_000));
     }
 }

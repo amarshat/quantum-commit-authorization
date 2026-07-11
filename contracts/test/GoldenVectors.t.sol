@@ -61,10 +61,12 @@ contract GoldenVectorsTest is Test {
         bytes32 secret =
             vm.parseJsonBytes32(json, string.concat(".leaves[", vm.toString(leafIndex), "].secret"));
 
+        uint256 callGasLimit = vm.parseJsonUint(json, ".example_call_gas_limit");
+
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
         assertEq(actionHash, vm.parseJsonBytes32(json, ".example_action_hash"), "action hash mismatch");
 
-        bytes32 c = keccak256(abi.encode(TAG_COMMIT, chainId, account, actionHash, leafIndex, secret));
+        bytes32 c = keccak256(abi.encode(TAG_COMMIT, chainId, account, actionHash, leafIndex, secret, callGasLimit));
         assertEq(c, vm.parseJsonBytes32(json, ".example_commitment"), "commitment mismatch");
 
         bytes32 bc = keccak256(abi.encode(TAG_COMMIT, chainId, account, TAG_BURN, leafIndex, secret));
@@ -88,14 +90,15 @@ contract GoldenVectorsTest is Test {
             bytes32[] memory proof = vm.parseJsonBytes32Array(json, string.concat(base, ".proof"));
 
             address target = address(uint160(0xB0B0 + i));
+            uint256 callGasLimit = 100_000;
             bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, uint256(1 wei), keccak256("")));
             account.commit(
-                keccak256(abi.encode(TAG_COMMIT, block.chainid, address(account), actionHash, i, secret))
+                keccak256(abi.encode(TAG_COMMIT, block.chainid, address(account), actionHash, i, secret, callGasLimit))
             );
             height += 4;
             vm.roll(height);
 
-            (bool ok,) = account.reveal(target, 1 wei, "", i, secret, proof);
+            (bool ok,) = account.reveal(target, 1 wei, "", i, secret, callGasLimit, proof);
             assertTrue(ok, "rust-generated proof rejected by contract");
         }
     }

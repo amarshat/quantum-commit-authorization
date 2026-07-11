@@ -31,6 +31,7 @@ contract QCAAccount4337Test is Test {
     uint256 constant TTL = 3600;
     uint256 constant MAX_FEE_CAP = 100 gwei; // committed fee ceiling
     uint256 constant CALL_GAS_FLOOR = 200_000; // committed call-gas floor
+    uint256 constant MAX_PVG_CEIL = 200_000; // committed preVerificationGas ceiling
 
     EntryPoint entryPoint;
     QCAAccount4337 account;
@@ -74,7 +75,8 @@ contract QCAAccount4337Test is Test {
                 leafIndex,
                 secret,
                 MAX_FEE_CAP,
-                CALL_GAS_FLOOR
+                CALL_GAS_FLOOR,
+                MAX_PVG_CEIL
             )
         );
     }
@@ -95,7 +97,7 @@ contract QCAAccount4337Test is Test {
         op.preVerificationGas = 100_000;
         op.gasFees = bytes32((uint256(1 gwei) << 128) | maxFee);
         op.paymasterAndData = "";
-        op.signature = abi.encode(leafIndex, secret, proof, MAX_FEE_CAP, CALL_GAS_FLOOR);
+        op.signature = abi.encode(leafIndex, secret, proof, MAX_FEE_CAP, CALL_GAS_FLOOR, MAX_PVG_CEIL);
     }
 
     function buildOp(address target, uint256 value, bytes memory data)
@@ -180,6 +182,27 @@ contract QCAAccount4337Test is Test {
         vm.expectRevert(); // CallGasBelowFloor inside validation
         entryPoint.handleOps(ops, payable(address(0xB0B)));
         assertFalse(account.usedLeaves(keccak256(abi.encode(TAG_LEAF, secret))), "leaf must not be burned");
+    }
+
+    function test_bundlerCannotInflatePreVerificationGasToDrainDeposit() public {
+        // F2: preVerificationGas is a flat, bundler-chosen charge the EntryPoint
+        // adds to the gas billed to the account and pays to the beneficiary,
+        // with no protocol ceiling. The committed fee cap bounds price per gas
+        // but not this unit count, so without a committed pVG ceiling a bundler
+        // inflates it and drains the account's deposit as profit. The ceiling
+        // makes validation reject it, and the leaf is not consumed.
+        bytes memory data = abi.encodeCall(Receiver.setX, (42));
+        account.commit(commitmentOf(address(receiver), 0, data));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = buildOp(address(receiver), 0, data);
+        ops[0].preVerificationGas = MAX_PVG_CEIL + 1; // just over the committed ceiling
+
+        vm.expectRevert(); // PreVerificationGasAboveCeiling inside validation
+        entryPoint.handleOps(ops, payable(address(0xB0B)));
+        assertFalse(account.usedLeaves(keccak256(abi.encode(TAG_LEAF, secret))), "leaf must not be burned");
+        assertEq(receiver.x(), 0, "action must not execute");
     }
 
     function test_rotateViaSelfActionCancelsOldTree() public {

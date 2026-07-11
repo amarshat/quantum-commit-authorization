@@ -39,6 +39,10 @@ contract GasBenchScript is Script {
     uint256 constant MIN_COMMIT_AGE = 1;
     uint256 constant COMMIT_TTL = 256;
     uint256 constant ACTION_VALUE = 1 ether;
+    // Committed execution-gas budget forwarded to the action. A limit, not a
+    // charge: the receipt reflects gas actually used, so this does not inflate
+    // the measured reveal cost.
+    uint256 constant CALL_GAS = 1_000_000;
 
     /// Distinct per depth: the first flow would otherwise fund the shared
     /// target, and later flows would not pay the 25K new-account cost a
@@ -71,8 +75,8 @@ contract GasBenchScript is Script {
         CommitRevealAccount account =
             new CommitRevealAccount{value: 10 ether}(root, depth, MIN_COMMIT_AGE, COMMIT_TTL);
 
-        account.commit(commitment(account, actionTarget(depth), ACTION_VALUE, "", idxAction, secretAction));
-        account.commit(commitment(account, address(account), 0, "", idxNoop, secretNoop));
+        account.commit(commitment(account, actionTarget(depth), ACTION_VALUE, "", idxAction, secretAction, CALL_GAS));
+        account.commit(commitment(account, address(account), 0, "", idxNoop, secretNoop, CALL_GAS));
         // Burn is age-gated now, so the defensive nullify is itself a two-tx
         // flow: commit-to-burn, then burn. The burn commitment sits in the
         // action slot as TAG_BURN, domain-separated from action commitments.
@@ -86,8 +90,8 @@ contract GasBenchScript is Script {
         // --slow mines each transaction in its own block anyway.
         vm.roll(block.number + MIN_COMMIT_AGE);
 
-        account.reveal(actionTarget(depth), ACTION_VALUE, "", idxAction, secretAction, proofAction);
-        account.reveal(address(account), 0, "", idxNoop, secretNoop, proofNoop);
+        account.reveal(actionTarget(depth), ACTION_VALUE, "", idxAction, secretAction, CALL_GAS, proofAction);
+        account.reveal(address(account), 0, "", idxNoop, secretNoop, CALL_GAS, proofNoop);
         account.burn(idxBurn, secretBurn, proofBurn);
     }
 
@@ -108,10 +112,12 @@ contract GasBenchScript is Script {
         uint256 value,
         bytes memory data,
         uint256 index,
-        bytes32 secret
+        bytes32 secret,
+        uint256 callGasLimit
     ) internal view returns (bytes32) {
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
-        return keccak256(abi.encode(TAG_COMMIT, block.chainid, address(account), actionHash, index, secret));
+        return
+            keccak256(abi.encode(TAG_COMMIT, block.chainid, address(account), actionHash, index, secret, callGasLimit));
     }
 
     function burnCommitment(CommitRevealAccount account, uint256 index, bytes32 secret)
