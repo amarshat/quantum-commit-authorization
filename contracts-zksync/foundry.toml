@@ -12,3 +12,9 @@ remappings = [
 
 [profile.default.zksync]
 zksolc = "1.5.15"
+# Required so SystemContractsCaller (the NonceHolder system call in
+# validateTransaction) compiles to a real EraVM system call. Without it the
+# trampoline call is emitted as a plain call to an empty address and validation
+# halts with "no function selector available". The forge test VM never runs the
+# validation/NonceHolder path, so this only shows up on anvil-zksync / Era.
+enable_eravm_extensions = true

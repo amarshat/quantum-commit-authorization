@@ -100,21 +100,46 @@ design can still let whoever builds the including block do the withhold-and-age
 move. Eliminating it looks to need encrypted mempools or threshold ordering.
 That is a clean open problem, and it is the paper's forward-looking contribution.
 
-## 4. Status and measurement plan
+## 4. Status and measurement
 
 The account compiles for EraVM (zksolc 1.5.15) and its authorization logic
 passes forge tests on the zkSync VM (the execute path, the aging-in-execute leaf
-preservation, and the two gas-envelope bindings). The full validation path (with
-the `NonceHolder` system call) runs on anvil-zksync / Era Sepolia, not in the
-forge test VM.
+preservation, and the two gas-envelope bindings). Those tests do not run the
+bootloader, so the full validation path (nonce increment via the `NonceHolder`
+system contract) is exercised separately, end to end on anvil-zksync, by
+`contracts-zksync/bench/measure_zksync.sh`. That harness deploys the account via
+`createAccount`, funds it, posts a commit, advances chain time past
+`minCommitAge`, and sends the reveal as a real type-`0x71` transaction whose
+`customSignature` carries the reveal material. Every reveal returns status 1, so
+the zero-ECDSA path validates and executes on a real node, not just in a unit
+test. Receipts are committed in `bench/results/qca-zksync-receipts.json`.
+
+One build requirement fell out of this and is worth recording, because the unit
+tests hide it: the `NonceHolder` call in validation goes through
+`SystemContractsCaller`, which only compiles to a real EraVM system call when the
+project is built with eravm extensions on (`enable_eravm_extensions = true` in
+`foundry.toml`). Without it the trampoline is emitted as a plain call to an empty
+address and validation halts with "no function selector available." The forge
+`--zksync` VM never runs that path, so the flag is invisible until a live node
+executes validation.
 
 Gas is not comparable to the L1 numbers and must not be presented as if it were:
-zkSync meters execution gas plus pubdata (state-diff, not calldata), with a
-floating pubdata-to-gas rate. The measurement, still to run, reports three
-separated quantities, execution gas, pubdata bytes, and end-to-end ETH cost at a
-stated `gasPerPubdata` and L1 gas price, against a `DefaultAccount` (ECDSA)
-baseline for the same operation. That gives the paper's exact claim: on zkSync,
-authorization with zero ECDSA costs X, versus a default ECDSA account at Y.
+zkSync meters an ergs-derived charge that folds in the pubdata cost of the
+transaction's state diff, at a floating pubdata-to-gas rate. So the receipt
+`gasUsed` here (depth-16 authorization-only reveal ~157.9K, +1 ETH action
+~174.6K, commit ~130.4K, growing ~833 per tree level) is reported for scaling and
+as the existence proof, not as a like-for-like cost against L1.
+
+The one meaningful in-platform comparison is against the ECDSA account it
+replaces. A zkSync EOA is the `DefaultAccount` system contract, which verifies
+secp256k1 in its own validation, so a plain signed transfer is the cost of an
+ECDSA account authorizing the same action: 118.7K (0-value) and 126.8K (1 ETH) in
+these runs. The zero-ECDSA reveal is 1.3x and 1.4x those, respectively. So the
+paper's claim is bounded and honest: authorization with no ECDSA anywhere on the
+path costs a small constant multiple of an ordinary signed transaction on a live
+native-AA platform, not less. Still separable for a later pass: splitting that
+charge into execution gas versus pubdata bytes and an end-to-end ETH cost at a
+stated `gasPerPubdata`. See `bench/results/RESULTS.md`.
 
 One platform caveat to date-stamp: native EraVM account abstraction is on a
 deprecation path (ZKsync OS, the go-forward VM, is EVM-based and uses ERC-4337).

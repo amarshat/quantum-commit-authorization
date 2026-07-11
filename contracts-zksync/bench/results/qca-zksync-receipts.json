@@ -1,0 +1,88 @@
+{
+  "chainId": "260",
+  "rpc": "http://127.0.0.1:8011",
+  "ecdsaBaseline": {
+    "authOnly": {
+      "label": "authOnly",
+      "target": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "value": "0",
+      "gasUsed": "118704",
+      "txHash": "0xf449e59dd86eaf0b8b16beccda278fea6c5d0f0d84b74ffb0cb01a69b4ef7fb1"
+    },
+    "action": {
+      "label": "action",
+      "target": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "value": "1000000000000000000",
+      "gasUsed": "126763",
+      "txHash": "0xe40a8a954110d4a2ca9eb87fb6169741e4b3fab60bc8395c75f60e6461693e61"
+    }
+  },
+  "depths": {
+    "8": {
+      "authOnly": {
+        "label": "authOnly",
+        "depth": 8,
+        "account": "0x588758d8a0Ad1162A6294f3C274753137E664aE0",
+        "commitGasUsed": "130351",
+        "revealGasUsed": "151259",
+        "revealGasLimit": "80000000",
+        "revealStatus": 1,
+        "revealTxHash": "0x898a88d53cf2d789a78904ca0f9ab2cb7551c5aac278ab5d9a42d38783499f52"
+      },
+      "action": {
+        "label": "action",
+        "depth": 8,
+        "account": "0x6B828bcb33305478cd7d27eB323F5C5B7b4aFdbe",
+        "commitGasUsed": "130351",
+        "revealGasUsed": "167919",
+        "revealGasLimit": "80000000",
+        "revealStatus": 1,
+        "revealTxHash": "0xd2f9fea4a974aed6601df68b3f8b3ac35f48970978a8a510d5b46f0c1f7bd7bd"
+      }
+    },
+    "16": {
+      "authOnly": {
+        "label": "authOnly",
+        "depth": 16,
+        "account": "0xC7B060B7D883DBd86AEc6C2AA71e02Ec6Aaf82CE",
+        "commitGasUsed": "130351",
+        "revealGasUsed": "157923",
+        "revealGasLimit": "80000000",
+        "revealStatus": 1,
+        "revealTxHash": "0x77b3ffde0dbeee283d957a89abfea66603bf673174848120f510b423a7fe293e"
+      },
+      "action": {
+        "label": "action",
+        "depth": 16,
+        "account": "0x22D151A1313d9B517Fa437F1F5B3744E636D8790",
+        "commitGasUsed": "130351",
+        "revealGasUsed": "174583",
+        "revealGasLimit": "80000000",
+        "revealStatus": 1,
+        "revealTxHash": "0x48ce8619e846ae263298465cd03637fb44c9f96f8f523f78f7cad22fa9cf6921"
+      }
+    },
+    "20": {
+      "authOnly": {
+        "label": "authOnly",
+        "depth": 20,
+        "account": "0x82778c3185fD0666d3f34F8930B4287405D9fBe4",
+        "commitGasUsed": "130351",
+        "revealGasUsed": "161255",
+        "revealGasLimit": "80000000",
+        "revealStatus": 1,
+        "revealTxHash": "0xebe00261b06084bab57f5362f10764aaeb3cd67df21d6df4e4c4efd1f9081de9"
+      },
+      "action": {
+        "label": "action",
+        "depth": 20,
+        "account": "0xd7385ba726A7b72933E63FCb0Dfee8Bcae63478c",
+        "commitGasUsed": "130351",
+        "revealGasUsed": "177915",
+        "revealGasLimit": "80000000",
+        "revealStatus": 1,
+        "revealTxHash": "0xd3ffb6edca9cdcadda68e991986b1ef2965771f8b11cf9b769fab74f56a1f408"
+      }
+    }
+  }
+}
