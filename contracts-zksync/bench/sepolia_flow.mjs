@@ -65,7 +65,7 @@ const FIXED_GAS = BigInt(process.env.FIXED_GAS || "30000000");
 const ACTION_VALUE = ethers.parseEther(process.env.ACTION_VALUE || "0.0001");
 // Per-account funding: covers the fee preflight (FIXED_GAS * gasPrice) plus the
 // action value, with margin. Refunded gas returns here, so this is a float.
-const FUND = ethers.parseEther(process.env.FUND || "0.02");
+const FUND = ethers.parseEther(process.env.FUND || "0.01");
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifact = JSON.parse(
@@ -211,8 +211,11 @@ async function main() {
   const bal = await provider.getBalance(deployer.address);
   console.error(`deployer ${deployer.address} balance ${ethers.formatEther(bal)} ETH on chain ${chainId}`);
 
-  const recipient = "0x000000000000000000000000000000000000bEEF"; // inert sink for the action value
-  const sink = "0x000000000000000000000000000000000000dEaD";
+  // Normal (non-reserved) addresses. zkSync reserves everything below 0x10000
+  // for system contracts, so 0xdead / 0xbeef style low addresses revert on a
+  // real transfer. These are ordinary empty accounts, fine to receive value.
+  const recipient = "0x00000000000000000000000000000000DeaDBeef";
+  const sink = "0x1111111111111111111111111111111111111111";
 
   // ECDSA baseline from the deployer EOA for the two actions.
   const baseline = {

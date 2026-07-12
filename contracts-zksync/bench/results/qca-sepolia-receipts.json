@@ -1,0 +1,93 @@
+{
+  "network": "zksync-era-sepolia",
+  "chainId": "300",
+  "rpc": "https://sepolia.era.zksync.dev",
+  "ecdsaBaseline": {
+    "authOnly": {
+      "label": "authOnly",
+      "value": "0",
+      "gasUsed": "89895",
+      "tx": "https://sepolia.explorer.zksync.io/tx/0x80ad46b1de4474b8dc5d406b372704fa3d89189f60db0f3cc4d41f087095f211"
+    },
+    "action": {
+      "label": "action",
+      "value": "100000000000000",
+      "gasUsed": "77629",
+      "tx": "https://sepolia.explorer.zksync.io/tx/0x3c5a1336dd05dc09b1800be20d1e124aeb79bb23e984f6abbec1972f09d75c55"
+    }
+  },
+  "depths": {
+    "8": {
+      "authOnly": {
+        "label": "authOnly",
+        "depth": 8,
+        "account": "0x279c038BD8B4A576CCF3CA9B18380a32475a0E71",
+        "commitGasUsed": "84061",
+        "revealGasUsed": "101084",
+        "revealEffectiveGasPrice": "25000000",
+        "revealStatus": 1,
+        "commitTx": "https://sepolia.explorer.zksync.io/tx/0x3d54749fdbfebf52311dcb481b81bbe0dc477b9bba9e4c74de95a44ec87c3301",
+        "revealTx": "https://sepolia.explorer.zksync.io/tx/0x5090c0be45d9703985a10d2404322e0468a2fc911394978873201a468a1060fa"
+      },
+      "action": {
+        "label": "action",
+        "depth": 8,
+        "account": "0x0CdD7846A4cF1d8B7aa538D61379607BC92e963F",
+        "commitGasUsed": "84061",
+        "revealGasUsed": "104935",
+        "revealEffectiveGasPrice": "25000000",
+        "revealStatus": 1,
+        "commitTx": "https://sepolia.explorer.zksync.io/tx/0x88bfebbd1a453486a4e8f9ddeeda103a4261612d22f354376e1025849f91ab20",
+        "revealTx": "https://sepolia.explorer.zksync.io/tx/0x8045b0e2d9614de46b83c5d7bd550dbf13a691f73b92ebb8362c7717af65695e"
+      }
+    },
+    "16": {
+      "authOnly": {
+        "label": "authOnly",
+        "depth": 16,
+        "account": "0xE19eAb1c05a18eeCCa0ba6E376395F3879fda012",
+        "commitGasUsed": "84061",
+        "revealGasUsed": "107748",
+        "revealEffectiveGasPrice": "25000000",
+        "revealStatus": 1,
+        "commitTx": "https://sepolia.explorer.zksync.io/tx/0x68e91d406ef0d8f85fb363302601c0bbe70b00b1987eced61d699c75b050488e",
+        "revealTx": "https://sepolia.explorer.zksync.io/tx/0xb281b0fd064e188ef69efbf6929e17d0978fec20a2b77c85092a0c08a1a276f3"
+      },
+      "action": {
+        "label": "action",
+        "depth": 16,
+        "account": "0xce084115256EfBa9eEC4284cC037A30AA165cBF4",
+        "commitGasUsed": "84061",
+        "revealGasUsed": "111526",
+        "revealEffectiveGasPrice": "25000000",
+        "revealStatus": 1,
+        "commitTx": "https://sepolia.explorer.zksync.io/tx/0x2dc75846ad678516b86b99e0fa7994955e6633dde4caa3f0d9a17a58e2bcea2f",
+        "revealTx": "https://sepolia.explorer.zksync.io/tx/0x7c499b1a76d0ecc2a8ec793ac45fba44043c1ee4a53d1502892becb8dc48b67e"
+      }
+    },
+    "20": {
+      "authOnly": {
+        "label": "authOnly",
+        "depth": 20,
+        "account": "0x90456911c279d4696f93F74FDc56Ae7022B5F936",
+        "commitGasUsed": "84061",
+        "revealGasUsed": "111176",
+        "revealEffectiveGasPrice": "25000000",
+        "revealStatus": 1,
+        "commitTx": "https://sepolia.explorer.zksync.io/tx/0x8292be17ada5a3cd803e54b30ef9f156c30f7122b49d53b9f942b955d26714fc",
+        "revealTx": "https://sepolia.explorer.zksync.io/tx/0x8c6ba1d4002605511cf96a7fe8c6f4b97ffc833b2388b8887a5998e5ba76f6db"
+      },
+      "action": {
+        "label": "action",
+        "depth": 20,
+        "account": "0x8B7DeA6ecD8325cb0e88c67C2Bef0e8d10799741",
+        "commitGasUsed": "84061",
+        "revealGasUsed": "114954",
+        "revealEffectiveGasPrice": "25000000",
+        "revealStatus": 1,
+        "commitTx": "https://sepolia.explorer.zksync.io/tx/0x7f1244fca1a735d964af5712148b5f1f26a675d4465913a3116489e5eed74366",
+        "revealTx": "https://sepolia.explorer.zksync.io/tx/0x8c213d4314b1b78732d12b5c6c900bad031cf4b2eda75f1fedf793d5da8249c3"
+      }
+    }
+  }
+}
