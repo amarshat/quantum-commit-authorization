@@ -66,8 +66,12 @@ A 4337 UserOp is not a transaction; it must be wrapped by an
 3), and paymaster sponsorship, gasless relays, meta-transactions, and a
 contract acting as bundler all still bottom out at an ECDSA `tx.origin`. The
 only escape is a transaction type whose validity is not gated by a secp256k1
-signature, i.e. native AA (path 4), which does not exist on L1. Hence every L1
-inclusion path contains a secp256k1 signature. ∎
+signature, i.e. native AA (path 4), which does not exist on L1. The enumeration is
+over transaction types because state on L1 changes only through included
+transactions: block production itself is BLS-signed by the proposer and is not a
+general state-transition primitive an account can use to authorize an action, so
+it is not a fifth path. Hence every L1 inclusion path contains a secp256k1
+signature. ∎
 
 The L1 scope is essential: on an L2 with native AA (zkSync Era) the same
 construction has no ECDSA anywhere, which is exactly why native AA is the

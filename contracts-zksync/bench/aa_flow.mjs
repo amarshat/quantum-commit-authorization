@@ -27,8 +27,13 @@ const DEPTHS = (process.env.DEPTHS || "8,16,20").split(",").map((s) => parseInt(
 
 const MIN_AGE = 5n; // seconds
 const TTL = 1000n; // seconds
-const MAX_FEE_CAP = ethers.parseEther("1"); // huge cap, binding never the limit here
-const CALL_GAS_FLOOR = 0n;
+// All four envelope caps are set generous so the binding is never the measured
+// limit; the negative (rejection) paths are covered by the forge tests. The
+// caps must sit above the actual tx fields the harness sends below.
+const MAX_FEE_CAP = ethers.parseEther("1"); // huge fee-price cap
+const MAX_GAS_CEIL = 10n ** 12n; // >> FIXED_GAS
+const MAX_PUBDATA_CEIL = 10n ** 9n; // >> gasPerPubdata field
+const CALL_GAS_LIMIT = 2_000_000n; // inner-call budget forwarded to the action
 
 const here = dirname(fileURLToPath(import.meta.url));
 const artifact = JSON.parse(
@@ -42,6 +47,7 @@ const TAG_LEAF = tag("QCA/v1/leaf");
 const TAG_NODE = tag("QCA/v1/node");
 const TAG_ACTION = tag("QCA/v1/action");
 const TAG_COMMIT = tag("QCA/v1/commit");
+const TAG_ENV_ZKSYNC = tag("QCA/v1/env/zksync");
 
 function leafHashOf(secret) {
   return kc(abi.encode(["bytes32", "bytes32"], [TAG_LEAF, secret]));
@@ -72,11 +78,17 @@ function actionHashOf(target, value, data) {
   );
 }
 
-function commitmentOf(chainId, account, actionHash, leafIndex, secret, maxFeeCap, callGasFloor) {
+function commitmentOf(chainId, account, actionHash, leafIndex, secret) {
   return kc(
     abi.encode(
-      ["bytes32", "uint256", "address", "bytes32", "uint256", "bytes32", "uint256", "uint256"],
-      [TAG_COMMIT, chainId, account, actionHash, leafIndex, secret, maxFeeCap, callGasFloor],
+      [
+        "bytes32", "bytes32", "uint256", "address", "bytes32", "uint256", "bytes32",
+        "uint256", "uint256", "uint256", "uint256",
+      ],
+      [
+        TAG_COMMIT, TAG_ENV_ZKSYNC, chainId, account, actionHash, leafIndex, secret,
+        MAX_FEE_CAP, MAX_GAS_CEIL, MAX_PUBDATA_CEIL, CALL_GAS_LIMIT,
+      ],
     ),
   );
 }
@@ -112,7 +124,7 @@ async function runFlow(provider, richWallet, chainId, depth, label, target, valu
 
   const data = "0x";
   const actionHash = actionHashOf(target, value, data);
-  const c = commitmentOf(chainId, accountAddr, actionHash, leafIndex, secret, MAX_FEE_CAP, CALL_GAS_FLOOR);
+  const c = commitmentOf(chainId, accountAddr, actionHash, leafIndex, secret);
 
   // Commit (permissionless plain tx). Anyone may post; use the account itself
   // via a rich-wallet call to account.commit(c).
@@ -127,8 +139,8 @@ async function runFlow(provider, richWallet, chainId, depth, label, target, valu
   // Build the reveal as a type-0x71 tx from the account. The reveal payload
   // rides in customSignature; validateTransaction decodes it.
   const sig = abi.encode(
-    ["uint256", "bytes32", "bytes32[]", "uint256", "uint256"],
-    [leafIndex, secret, proof, MAX_FEE_CAP, CALL_GAS_FLOOR],
+    ["uint256", "bytes32", "bytes32[]", "uint256", "uint256", "uint256", "uint256"],
+    [leafIndex, secret, proof, MAX_FEE_CAP, MAX_GAS_CEIL, MAX_PUBDATA_CEIL, CALL_GAS_LIMIT],
   );
 
   const gasPrice = await provider.getGasPrice();

@@ -57,6 +57,13 @@ contract QCAAccountZkSync is IAccount {
     bytes32 internal constant TAG_ACTION = keccak256("QCA/v1/action");
     bytes32 internal constant TAG_COMMIT = keccak256("QCA/v1/commit");
     bytes32 internal constant TAG_BURN = keccak256("QCA/v1/burn");
+    // Environment domain tag. Bound into every commitment so a zkSync-account
+    // commitment is separated by design from the L1 base and 4337 formats, not
+    // merely by field arity. This does NOT make one tree safe to share across
+    // accounts: nullifier sets are per-contract, so a leaf can still be spent
+    // once on each account that holds its root. The normative rule (docs/SPEC.md,
+    // docs/AA-ZKSYNC.md) is one tree per account; the tag is defense in depth.
+    bytes32 internal constant TAG_ENV_ZKSYNC = keccak256("QCA/v1/env/zksync");
 
     bytes32 public root;
     uint256 public depth;
@@ -87,7 +94,11 @@ contract QCAAccountZkSync is IAccount {
     error InvalidDepth();
     error InvalidWindow();
     error FeeCapExceeded();
-    error CallGasBelowFloor();
+    error GasLimitAboveCeiling();
+    error PubdataAboveCeiling();
+    error PaymasterNotAllowed();
+    error FactoryDepsNotAllowed();
+    error InsufficientGas();
     error InsufficientBalance();
 
     modifier onlyBootloader() {
@@ -141,22 +152,48 @@ contract QCAAccountZkSync is IAccount {
         return ACCOUNT_VALIDATION_SUCCESS_MAGIC;
     }
 
-    /// @dev The signature-free authorization: membership, the gas-envelope
-    ///      binding, and a matching commitment. No system call, no time read
-    ///      (aging is in executeTransaction). Reverts on any failure.
+    /// @dev The signature-free authorization: membership, the full native-AA
+    ///      envelope binding, and a matching commitment. No system call, no time
+    ///      read (aging is in executeTransaction). Reverts on any failure.
+    ///
+    ///      A type-0x71 transaction carries no ECDSA over its fields, so the
+    ///      sequencer has full write discretion over every field the account
+    ///      does not itself authenticate. An ECDSA account gets binding-
+    ///      completeness for free (the signature covers the whole tx hash);
+    ///      commit-reveal must enumerate every consequential field explicitly,
+    ///      and native AA exposes strictly more of them than L1 4337:
+    ///        - paymaster/paymasterInput: prepareForPaymaster runs
+    ///          processPaymasterInput unconditionally, which on the approvalBased
+    ///          flow makes the account grant an attacker-chosen ERC20 allowance.
+    ///          This account is never sponsored, so any paymaster is rejected.
+    ///        - gasLimit has no protocol ceiling and gasPerPubdataByteLimit sets
+    ///          the pubdata-gas rate; capping only maxFeePerGas bounds price per
+    ///          gas, not the number of gas units, so both are bound as ceilings
+    ///          (the EraVM analog of the 4337 preVerificationGas drain).
+    ///        - factoryDeps publishes bytecode the account would pay pubdata for;
+    ///          this account never deploys, so it is rejected.
+    ///        - callGasLimit is the exact inner-call budget (see _execute).
     function _authorize(Transaction calldata transaction) internal view {
-        (uint256 leafIndex, bytes32 secret, bytes32[] memory proof, uint256 maxFeeCap, uint256 callGasFloor) =
-            abi.decode(transaction.signature, (uint256, bytes32, bytes32[], uint256, uint256));
+        (
+            uint256 leafIndex,
+            bytes32 secret,
+            bytes32[] memory proof,
+            uint256 maxFeeCap,
+            uint256 maxGasCeil,
+            uint256 maxPubdataCeil,
+            uint256 callGasLimit
+        ) = abi.decode(transaction.signature, (uint256, bytes32, bytes32[], uint256, uint256, uint256, uint256));
 
-        // Bind the gas envelope: a sequencer must not inflate the fee (which
-        // the account pays to the bootloader) or starve the call gas.
+        if (transaction.paymaster != 0) revert PaymasterNotAllowed();
+        if (transaction.factoryDeps.length != 0) revert FactoryDepsNotAllowed();
         if (transaction.maxFeePerGas > maxFeeCap) revert FeeCapExceeded();
-        if (transaction.gasLimit < callGasFloor) revert CallGasBelowFloor();
+        if (transaction.gasLimit > maxGasCeil) revert GasLimitAboveCeiling();
+        if (transaction.gasPerPubdataByteLimit > maxPubdataCeil) revert PubdataAboveCeiling();
 
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
 
-        bytes32 c = _commitmentOf(transaction, leafIndex, secret, maxFeeCap, callGasFloor);
+        bytes32 c = _commitmentOf(transaction, leafIndex, secret, maxFeeCap, maxGasCeil, maxPubdataCeil, callGasLimit);
         if (commitments[c] == 0) revert UnknownCommitment();
 
         if (address(this).balance < transaction.totalRequiredBalance()) revert InsufficientBalance();
@@ -171,10 +208,17 @@ contract QCAAccountZkSync is IAccount {
     }
 
     function _execute(Transaction calldata transaction) internal {
-        (uint256 leafIndex, bytes32 secret,, uint256 maxFeeCap, uint256 callGasFloor) =
-            abi.decode(transaction.signature, (uint256, bytes32, bytes32[], uint256, uint256));
+        (
+            uint256 leafIndex,
+            bytes32 secret,
+            ,
+            uint256 maxFeeCap,
+            uint256 maxGasCeil,
+            uint256 maxPubdataCeil,
+            uint256 callGasLimit
+        ) = abi.decode(transaction.signature, (uint256, bytes32, bytes32[], uint256, uint256, uint256, uint256));
 
-        bytes32 c = _commitmentOf(transaction, leafIndex, secret, maxFeeCap, callGasFloor);
+        bytes32 c = _commitmentOf(transaction, leafIndex, secret, maxFeeCap, maxGasCeil, maxPubdataCeil, callGasLimit);
         uint256 committedAt = commitments[c];
         if (committedAt == 0) revert UnknownCommitment();
 
@@ -182,17 +226,27 @@ contract QCAAccountZkSync is IAccount {
         if (block.timestamp < committedAt + minCommitAge) revert CommitmentTooYoung();
         if (block.timestamp > committedAt + commitTTL) revert CommitmentExpired();
 
-        // Effects strictly after the aging check and before the call: a
-        // too-young reveal reverts without consuming the leaf; an aged reveal
-        // consumes it even if the action reverts.
         bytes32 leafHash = keccak256(abi.encode(TAG_LEAF, secret));
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
+
+        // Guarantee the committed inner-call budget is actually available BEFORE
+        // consuming the leaf, then forward exactly that budget. Reverting here
+        // (not after nullifying) is the fix: a copy the sequencer starved of
+        // outer gas reverts and leaves the leaf live, so it cannot force a leaf
+        // burn with no action (the base-scheme F-2026-02 fix, ported to EraVM).
+        // callGasLimit*64/63 covers the 63/64 call-gas reservation; the extra
+        // 40k covers the two SSTOREs, the event and returndata slack.
+        if (gasleft() < callGasLimit + callGasLimit / 63 + 40_000) revert InsufficientGas();
+
+        // Effects strictly after the aging and gas checks and before the call: a
+        // too-young or starved reveal reverts without consuming the leaf; an
+        // aged, funded reveal consumes it even if the action itself reverts.
         usedLeaves[leafHash] = true;
         delete commitments[c];
         emit LeafConsumed(leafHash, leafIndex);
 
         address target = address(uint160(transaction.to));
-        (bool success,) = target.call{value: transaction.value}(transaction.data);
+        (bool success,) = target.call{gas: callGasLimit, value: transaction.value}(transaction.data);
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, transaction.value, keccak256(transaction.data)));
         emit Executed(actionHash, success);
     }
@@ -223,7 +277,8 @@ contract QCAAccountZkSync is IAccount {
     function burn(uint256 leafIndex, bytes32 secret, bytes32[] calldata proof) external {
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
-        bytes32 c = keccak256(abi.encode(TAG_COMMIT, block.chainid, address(this), TAG_BURN, leafIndex, secret));
+        bytes32 c =
+            keccak256(abi.encode(TAG_COMMIT, TAG_ENV_ZKSYNC, block.chainid, address(this), TAG_BURN, leafIndex, secret));
         uint256 committedAt = commitments[c];
         if (committedAt == 0) revert UnknownCommitment();
         if (block.timestamp < committedAt + minCommitAge) revert CommitmentTooYoung();
@@ -256,13 +311,25 @@ contract QCAAccountZkSync is IAccount {
         uint256 leafIndex,
         bytes32 secret,
         uint256 maxFeeCap,
-        uint256 callGasFloor
+        uint256 maxGasCeil,
+        uint256 maxPubdataCeil,
+        uint256 callGasLimit
     ) internal view returns (bytes32) {
         address target = address(uint160(transaction.to));
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, transaction.value, keccak256(transaction.data)));
         return keccak256(
             abi.encode(
-                TAG_COMMIT, block.chainid, address(this), actionHash, leafIndex, secret, maxFeeCap, callGasFloor
+                TAG_COMMIT,
+                TAG_ENV_ZKSYNC,
+                block.chainid,
+                address(this),
+                actionHash,
+                leafIndex,
+                secret,
+                maxFeeCap,
+                maxGasCeil,
+                maxPubdataCeil,
+                callGasLimit
             )
         );
     }

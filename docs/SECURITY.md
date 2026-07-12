@@ -9,6 +9,95 @@ The pattern here is deliberate: a finding is not considered real until a test
 demonstrates it against the actual contract, and not considered closed until the
 same test (flipped) passes against the fix.
 
+F-2026-03 through F-2026-06 are one red-team pass on the zkSync Era native-AA
+account (`contracts-zksync/src/QCAAccountZkSync.sol`). They share a root cause: a
+type-`0x71` transaction has no signature over its fields, so binding-completeness
+([AA.md](AA.md) Lemma 3) is on the account, and native AA exposes strictly more
+sequencer-malleable value-moving fields than the L1 4337 UserOp the first cut was
+ported from. See [AA-ZKSYNC.md](AA-ZKSYNC.md) Section 3.
+
+## F-2026-03 zkSync account: unbound paymaster ERC20 seizure (theft, critical)
+
+**Where.** `contracts-zksync/src/QCAAccountZkSync.sol`, `_authorize` /
+`prepareForPaymaster`.
+
+**What.** The commitment bound the action and a partial gas envelope but nothing
+about `paymaster` / `paymasterInput`, and `prepareForPaymaster` (called by the
+bootloader) ran `transaction.processPaymasterInput()` unconditionally. On the
+`approvalBased` flow that library call executes `IERC20(token).approve(paymaster,
+minAllowance)` in the account's own context, with `token`, `minAllowance`, and
+`paymaster` all taken from unauthenticated transaction fields. An attacker copies
+any of the account's public reveals, keeps every committed field byte-identical so
+validation still passes, and appends `paymaster = self` +
+`approvalBased(anyToken, max)`; the account grants an unlimited allowance and every
+ERC20 it holds is drained. The victim's own action still runs and the leaf is
+consumed once, so it looks like an ordinary reveal. It does not even need the
+reveal aged: `prepareForPaymaster` runs before the execution-phase aging check.
+
+**Fix.** This account is never sponsored, so `_authorize` rejects any nonzero
+`transaction.paymaster` (and any `factoryDeps`). Validation runs before
+`prepareForPaymaster`, so the transaction is rejected before the approval can fire.
+
+**Test.** `contracts-zksync/test/QCAAccountZkSync.t.sol`: `test_paymasterRejected`.
+
+## F-2026-04 zkSync account: unbound gas quantity full-balance drain (theft, high)
+
+**Where.** `contracts-zksync/src/QCAAccountZkSync.sol`, `_authorize`.
+
+**What.** The account capped `maxFeePerGas` (price per gas) but not the *quantity*
+of gas: `gasLimit` had no ceiling and `gasPerPubdataByteLimit` (the pubdata-gas
+rate) was unbound. A sequencer re-crafts any reveal with `gasLimit = balance /
+maxFeeCap` and `gasPerPubdataByteLimit` at the ceiling, prices pubdata at that
+rate, refunds nothing, and takes the account's entire ETH balance to the operator.
+Unlike the withhold-and-age theft this is unconditional and one-shot: no aging, no
+competing commitment. This is the EraVM analog of F-2026-01 (`preVerificationGas`).
+
+**Fix.** Bind `maxGasCeil` and `maxPubdataCeil` into the commitment and reject a
+transaction whose `gasLimit` or `gasPerPubdataByteLimit` exceeds them; reject
+nonempty `factoryDeps` (pubdata for published bytecode). Fee price, gas quantity,
+and pubdata rate are now all bounded.
+
+**Tests.** `test_gasLimitCeilingRejectsInflation`,
+`test_pubdataCeilingRejectsInflation`, `test_factoryDepsRejected`.
+
+## F-2026-05 zkSync account: F-2026-02 gas-starvation not ported (griefing, medium)
+
+**Where.** `contracts-zksync/src/QCAAccountZkSync.sol`, `_execute`.
+
+**What.** The base account's F-2026-02 fix was never carried to EraVM. `_execute`
+nullified the leaf and then forwarded *all* remaining gas to the action with no
+committed budget and no pre-check, so a copy starved of outer gas consumed the
+leaf while the action OOG'd and returned false. `callGasFloor` bound the whole-tx
+`gasLimit`, not the gas delivered to the inner call, so it guarded the wrong
+quantity.
+
+**Fix.** Bind an exact `callGasLimit`; in `_execute`, require
+`gasleft() >= callGasLimit + callGasLimit/63 + 40_000` *before* the nullifier
+write, then forward `{gas: callGasLimit}`. A starved copy reverts before mutating
+state, so the leaf survives.
+
+**Test.** `test_starvedCallDoesNotBurnLeaf`.
+
+## F-2026-06 zkSync account: cross-environment leaf replay (theft, high)
+
+**Where.** All three accounts (base, 4337, zkSync); a deployment invariant, not a
+single-contract bug.
+
+**What.** `H(TAG_LEAF, secret)` is byte-identical across the base, 4337, and
+zkSync accounts, and each account keeps its own `usedLeaves` set. So one seed
+feeding one Merkle tree deployed to more than one account (the natural "wallet
+everywhere" setup) is unsafe: a secret revealed on one account opens that same
+leaf on every other account holding the same root, once per account. You cannot
+share a nullifier set across contracts, so this is not fixable inside one
+contract.
+
+**Fix.** The normative rule is **one Merkle tree per account** ([SPEC.md](SPEC.md),
+Deployment invariant): never build more than one account from the same
+`(seed, tree)`; give each a distinct `index_offset` range so their leaf sets are
+disjoint. As defense in depth the zkSync commitment binds an environment domain
+tag (`TAG_ENV_ZKSYNC`) so its commitment format is separated from the base and
+4337 formats by design, not merely by field arity.
+
 ## F-2026-02 Base account: gas-starvation leaf burn (griefing, high)
 
 **Where.** `contracts/src/CommitRevealAccount.sol`, `reveal`.

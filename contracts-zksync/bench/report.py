@@ -78,17 +78,28 @@ def main():
             "to our reveal is what the zero-ECDSA machinery (membership proof, nullifier SSTORE, "
             "aging, and the account's own validation) adds on top.\n"
         )
-        out.append("| action | ECDSA DefaultAccount | QCA reveal (depth 16) | overhead |")
-        out.append("|---|---|---|---|")
-        out.append(f"| authorization only (0-value) | {fmt(ba)} | {fmt(ra)} | {ra / ba:.1f}x |")
-        out.append(f"| 1 ETH transfer | {fmt(bx)} | {fmt(rx)} | {rx / bx:.1f}x |")
+        cg = int(d16["authOnly"]["commitGasUsed"])
+        out.append("| action | ECDSA DefaultAccount | QCA reveal (depth 16) | reveal / ECDSA | commit + reveal / ECDSA |")
+        out.append("|---|---|---|---|---|")
+        out.append(f"| authorization only (0-value) | {fmt(ba)} | {fmt(ra)} | {ra / ba:.2f}x | {(cg + ra) / ba:.2f}x |")
+        out.append(f"| 1 ETH transfer | {fmt(bx)} | {fmt(rx)} | {rx / bx:.2f}x | {(cg + rx) / bx:.2f}x |")
         out.append("")
         out.append(
-            "The honest read is not that zero-ECDSA is cheaper. It is the same order of magnitude "
-            "as a signed transfer, so the authorization can be made post-quantum without an "
-            "ECDSA fallback at a bounded, small-multiple cost, on a live native-AA platform. The "
-            "commit is a separate prior transaction (see the table above); this row compares the "
-            "reveal against the single ECDSA transaction it replaces.\n"
+            "Two numbers, and the paper must quote both. The single-transaction reveal is about "
+            f"{ra / ba:.1f}x an ECDSA transfer. But authorizing one action with commit-reveal is "
+            f"fundamentally *two* transactions, a commit ({fmt(cg)} gas) and a reveal, so the true "
+            f"per-authorization cost against ECDSA's one transaction is about {(cg + rx) / bx:.1f}x. "
+            "Leading with the reveal-only ratio and burying the commit would overstate the result.\n"
+        )
+        out.append(
+            "Both ratios are also a *floor*, not a mainnet figure. anvil-zksync prices pubdata at a "
+            "fixed low `gasPerPubdata` (168 in this run), and the reveal publishes an extra nullifier "
+            "state diff that a plain transfer does not. On mainnet `gasPerPubdata` floats with the L1 "
+            "basefee and is routinely far higher, which charges the reveal's extra state diff more and "
+            "the baseline's less, so the multiple rises above these values as pubdata gets expensive. "
+            "The honest read: zero-ECDSA authorization is the same order of magnitude as a signed "
+            "transfer, at a bounded small multiple, on a live native-AA platform, and the exact "
+            "multiple is a function of L1 pubdata price.\n"
         )
 
     # Per-level slope from the two widest depths, for the scaling claim.
@@ -110,9 +121,12 @@ def main():
         "Per depth and flow: deploy the account via `createAccount` (so it is registered as "
         "an AA account), fund it, post a commit, advance chain time past `minCommitAge`, then "
         "send the reveal as a type-0x71 transaction whose `customSignature` carries "
-        "`(leafIndex, secret, proof, maxFeeCap, callGasFloor)`. Every reveal returned status 1. "
-        "Transaction hashes are in `qca-zksync-receipts.json`; the run is deterministic "
-        "(fixed secrets), so re-running reproduces the same hashes and gas.\n"
+        "`(leafIndex, secret, proof, maxFeeCap, maxGasCeil, maxPubdataCeil, callGasLimit)`, the full "
+        "native-AA envelope binding. Every reveal returned status 1. Transaction hashes are in "
+        "`qca-zksync-receipts.json`; the run is deterministic (fixed secrets), so re-running "
+        "reproduces the same hashes and gas. Note that the exact reproduction is a property of "
+        "anvil-zksync's fixed fee model; on Era Sepolia / mainnet the gas moves with the floating "
+        "pubdata price, so the digits here are emulator constants, not chain constants.\n"
     )
 
     (RESULTS / "RESULTS.md").write_text("\n".join(out))

@@ -28,12 +28,15 @@ contract QCAAccountZkSyncTest is Test {
     bytes32 constant TAG_NODE = keccak256("QCA/v1/node");
     bytes32 constant TAG_ACTION = keccak256("QCA/v1/action");
     bytes32 constant TAG_COMMIT = keccak256("QCA/v1/commit");
+    bytes32 constant TAG_ENV_ZKSYNC = keccak256("QCA/v1/env/zksync");
 
     uint256 constant DEPTH = 2;
     uint256 constant MIN_AGE = 60;
     uint256 constant TTL = 3600;
     uint256 constant MAX_FEE_CAP = 100 gwei;
-    uint256 constant CALL_GAS_FLOOR = 200_000;
+    uint256 constant MAX_GAS_CEIL = 2_000_000;
+    uint256 constant MAX_PUBDATA_CEIL = 50_000;
+    uint256 constant CALL_GAS_LIMIT = 200_000;
     bytes32 constant SEED = keccak256("zksync test seed");
 
     QCAAccountZkSync account;
@@ -78,7 +81,17 @@ contract QCAAccountZkSyncTest is Test {
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
         return keccak256(
             abi.encode(
-                TAG_COMMIT, block.chainid, address(account), actionHash, index, secretAt(index), MAX_FEE_CAP, CALL_GAS_FLOOR
+                TAG_COMMIT,
+                TAG_ENV_ZKSYNC,
+                block.chainid,
+                address(account),
+                actionHash,
+                index,
+                secretAt(index),
+                MAX_FEE_CAP,
+                MAX_GAS_CEIL,
+                MAX_PUBDATA_CEIL,
+                CALL_GAS_LIMIT
             )
         );
     }
@@ -98,7 +111,8 @@ contract QCAAccountZkSyncTest is Test {
         t.nonce = 0;
         t.value = value;
         t.data = data;
-        t.signature = abi.encode(index, secretAt(index), proofFor(index), MAX_FEE_CAP, CALL_GAS_FLOOR);
+        t.signature =
+            abi.encode(index, secretAt(index), proofFor(index), MAX_FEE_CAP, MAX_GAS_CEIL, MAX_PUBDATA_CEIL, CALL_GAS_LIMIT);
     }
 
     // The execute path has no system call, so it is fully exercisable in
@@ -147,17 +161,113 @@ contract QCAAccountZkSyncTest is Test {
         account.validateTransaction(keccak256("h"), keccak256("h"), t);
     }
 
-    function test_callGasFloorRejectsStarvation() public {
+    function test_gasLimitCeilingRejectsInflation() public {
+        // Bug 2 (over-charge): the sequencer inflates the whole-tx gasLimit to
+        // bill the account for gas it never needed. Bound above, not just below.
         bytes memory data = abi.encodeCall(Receiver.setX, (1));
         address target = address(receiver);
         account.commit(commitmentOf(target, 0, data, 1));
         vm.warp(block.timestamp + MIN_AGE + 1);
 
         Transaction memory t = buildTx(target, 0, data, 1);
-        t.gasLimit = CALL_GAS_FLOOR - 1; // sequencer starves the call gas
+        t.gasLimit = MAX_GAS_CEIL + 1; // sequencer inflates the gas quantity
         vm.prank(BOOTLOADER_FORMAL_ADDRESS);
-        vm.expectRevert(QCAAccountZkSync.CallGasBelowFloor.selector);
+        vm.expectRevert(QCAAccountZkSync.GasLimitAboveCeiling.selector);
         account.validateTransaction(keccak256("h"), keccak256("h"), t);
+    }
+
+    function test_pubdataCeilingRejectsInflation() public {
+        // Bug 2 (over-charge, pubdata axis): the sequencer inflates
+        // gasPerPubdataByteLimit so the account pays more per pubdata byte. The
+        // fee cap bounds price per gas, not this rate, so it needs its own cap.
+        bytes memory data = abi.encodeCall(Receiver.setX, (1));
+        address target = address(receiver);
+        account.commit(commitmentOf(target, 0, data, 1));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        Transaction memory t = buildTx(target, 0, data, 1);
+        t.gasPerPubdataByteLimit = MAX_PUBDATA_CEIL + 1;
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.PubdataAboveCeiling.selector);
+        account.validateTransaction(keccak256("h"), keccak256("h"), t);
+    }
+
+    function test_paymasterRejected() public {
+        // Bug 1 (ERC20 seizure): an unbound paymaster lets the bootloader's
+        // prepareForPaymaster -> processPaymasterInput grant an attacker-chosen
+        // ERC20 allowance from the account. This account is never sponsored, so
+        // validation rejects any nonzero paymaster before it can ever run.
+        bytes memory data = abi.encodeCall(Receiver.setX, (1));
+        address target = address(receiver);
+        account.commit(commitmentOf(target, 0, data, 1));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        Transaction memory t = buildTx(target, 0, data, 1);
+        t.paymaster = uint256(uint160(address(0xBEEF))); // attacker paymaster
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.PaymasterNotAllowed.selector);
+        account.validateTransaction(keccak256("h"), keccak256("h"), t);
+    }
+
+    function test_factoryDepsRejected() public {
+        // Bug 2 (pubdata via published bytecode): factoryDeps makes the account
+        // pay pubdata for bytecode it never asked to deploy. Rejected outright.
+        bytes memory data = abi.encodeCall(Receiver.setX, (1));
+        address target = address(receiver);
+        account.commit(commitmentOf(target, 0, data, 1));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        Transaction memory t = buildTx(target, 0, data, 1);
+        t.factoryDeps = new bytes32[](1);
+        t.factoryDeps[0] = keccak256("junk bytecode hash");
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.FactoryDepsNotAllowed.selector);
+        account.validateTransaction(keccak256("h"), keccak256("h"), t);
+    }
+
+    function test_starvedCallDoesNotBurnLeaf() public {
+        // Bug 3 (forced leaf burn): if the committed inner-call budget cannot be
+        // satisfied from the gas actually available in execute, the guard must
+        // revert BEFORE the nullifier write, leaving the leaf live. A sequencer
+        // that starves the outer gas therefore cannot burn the leaf with no
+        // action (the base-scheme F-2026-02 property, ported to EraVM).
+        //
+        // Exercised by committing a callGasLimit larger than any gasleft the VM
+        // can offer execute, so the guard `gasleft() < callGasLimit + ...` trips
+        // deterministically regardless of EraVM's erg magnitudes. (EraVM does
+        // not honor an EVM-style {gas:} cap on a cheatcode-driven call, so we
+        // drive the shortfall through the committed budget instead.)
+        uint256 hugeCGL = uint256(1) << 60;
+        bytes memory data = abi.encodeCall(Receiver.setX, (5));
+        address target = address(receiver);
+
+        bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, uint256(0), keccak256(data)));
+        bytes32 c = keccak256(
+            abi.encode(
+                TAG_COMMIT,
+                TAG_ENV_ZKSYNC,
+                block.chainid,
+                address(account),
+                actionHash,
+                uint256(1),
+                secretAt(1),
+                MAX_FEE_CAP,
+                MAX_GAS_CEIL,
+                MAX_PUBDATA_CEIL,
+                hugeCGL
+            )
+        );
+        account.commit(c);
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        Transaction memory t = buildTx(target, 0, data, 1);
+        t.signature = abi.encode(uint256(1), secretAt(1), proofFor(1), MAX_FEE_CAP, MAX_GAS_CEIL, MAX_PUBDATA_CEIL, hugeCGL);
+        vm.prank(BOOTLOADER_FORMAL_ADDRESS);
+        vm.expectRevert(QCAAccountZkSync.InsufficientGas.selector);
+        account.executeTransaction(keccak256("h"), keccak256("h"), t);
+
+        assertFalse(account.usedLeaves(leafAt(1)), "starved copy must not burn the leaf");
+        assertEq(receiver.x(), 0, "action must not have run");
     }
 
     function test_unknownActionRejectedInExecute() public {
