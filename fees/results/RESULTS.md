@@ -14,9 +14,9 @@ m* = (verify_total_gas - commit_gas) / reveal_gas:
 | flow | baseline | m* |
 |---|---|---|
 | action | ETHFALCON (Keccak PRNG, non-FIPS) | 15.2x |
-| action | ML-DSA-44 (NIST) | 79.3x |
-| auth_only | ETHFALCON (Keccak PRNG, non-FIPS) | 22.7x |
-| auth_only | ML-DSA-44 (NIST) | 118.6x |
+| action | ML-DSA-44 (NIST) | 79.1x |
+| auth_only | ETHFALCON (Keccak PRNG, non-FIPS) | 22.6x |
+| auth_only | ML-DSA-44 (NIST) | 118.1x |
 
 ## Distribution of the g-block base-fee ratio
 

@@ -3,18 +3,18 @@
   "window": "Ethereum mainnet, 2024-07 to 2026-07, 40 contiguous 4096-block runs",
   "gas": {
     "commit": 45308,
-    "reveal_action": 102644,
-    "reveal_auth": 68646
+    "reveal_action": 102948,
+    "reveal_auth": 68950
   },
   "baseline_total_tx_gas": {
     "ETHFALCON (Keccak PRNG, non-FIPS)": 1605156,
     "ML-DSA-44 (NIST)": 8189296
   },
   "breakeven_multiple": {
-    "action|ETHFALCON (Keccak PRNG, non-FIPS)": 15.2,
-    "action|ML-DSA-44 (NIST)": 79.34,
-    "auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 22.72,
-    "auth_only|ML-DSA-44 (NIST)": 118.64
+    "action|ETHFALCON (Keccak PRNG, non-FIPS)": 15.15,
+    "action|ML-DSA-44 (NIST)": 79.11,
+    "auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 22.62,
+    "auth_only|ML-DSA-44 (NIST)": 118.11
   },
   "ratio_percentiles_by_gap": {
     "1": {
@@ -123,9 +123,9 @@
     "g128|action|ML-DSA-44 (NIST)": 1.0,
     "g128|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9995274697580645,
     "g128|auth_only|ML-DSA-44 (NIST)": 1.0,
-    "g256|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9971223958333333,
+    "g256|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9971158854166666,
     "g256|action|ML-DSA-44 (NIST)": 0.9999869791666667,
-    "g256|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.99865234375,
+    "g256|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9986328125,
     "g256|auth_only|ML-DSA-44 (NIST)": 1.0
   }
 }
