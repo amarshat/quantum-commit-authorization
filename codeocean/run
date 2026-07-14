@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Code Ocean reproduction capsule: regenerate the paper's OFFLINE-deterministic
+# result vectors and verify they are byte-identical to the committed ones, then
+# print the headline numbers behind the figures and tables.
+#
+# Excluded (need external services, not sandbox-reproducible): the zkSync Era
+# Sepolia deploy, the anvil gas measurement, and the archive-node base-fee fetch.
+# Their committed outputs (on-chain receipts, gas receipts, base-fee dataset) are
+# the inputs reproduced from here.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+OUT="/results"; mkdir -p "$OUT" 2>/dev/null || { OUT="$ROOT/repro-out"; mkdir -p "$OUT"; }
+MANIFEST="tooling/Cargo.toml"
+PASS=0; TOTAL=0
+check() {
+  TOTAL=$((TOTAL+1))
+  if diff -rq "$1" "$2" >/dev/null 2>&1; then echo "  [MATCH]    $3"; PASS=$((PASS+1));
+  else echo "  [MISMATCH] $3"; fi
+}
+
+echo "### 1. Rust unit tests (qca-core, qca-cli, qca-sim)"
+cargo test --workspace --manifest-path "$MANIFEST" --quiet
+
+echo "### 2. Simulator vectors (deterministic ChaCha8) vs committed sim/results"
+cp -r sim/results /tmp/sim-committed
+bash sim/run.sh >/dev/null
+check sim/results /tmp/sim-committed "sim/results/*.json (authorization game)"
+
+echo "### 3. Cross-implementation golden vectors"
+cargo run -q -p qca-cli --manifest-path "$MANIFEST" -- vectors --depth 3 > /tmp/golden.json
+check /tmp/golden.json contracts/test/vectors/golden.json "golden.json"
+
+echo "### 4. Empirical fee analysis (from committed 2-year base-fee dataset)"
+cp -r fees/results /tmp/fees-committed
+python3 fees/analyze.py >/dev/null
+check fees/results /tmp/fees-committed "fees/results/* (break-even, entry points)"
+
+echo "### 5. Gas report from committed receipts"
+python3 bench/report.py > "$OUT/gas-report.md"
+echo "  wrote $OUT/gas-report.md"
+
+echo "### 6. Headline numbers (paper figures and tables)"
+python3 codeocean/summary.py | tee "$OUT/summary.txt"
+
+echo
+echo "Reproduced $PASS/$TOTAL committed result sets byte-identically."
+[ "$PASS" -eq "$TOTAL" ] || { echo "WARNING: some sets did not match (see above)."; exit 1; }
+echo "All offline-deterministic results reproduced."
