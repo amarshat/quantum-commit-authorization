@@ -1,0 +1,22 @@
+# Standalone reproduction image (self-contained; no Code Ocean, no network at run).
+# Bakes the repo in and defaults to the capsule run script, so a reviewer can:
+#   docker run --rm ghcr.io/amarshat/qca-repro
+# and get the same offline-deterministic result check as codeocean/run.
+#
+# The env-only sibling codeocean/Dockerfile stays for the Code Ocean flow (which
+# mounts the code separately). This one COPYs the tree for a portable image.
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl build-essential python3 ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+# Pinned Rust toolchain. 1.85 is the first stable with edition2024, which the
+# committed Cargo.lock transitively requires (clap_lex 1.1.0). The deterministic
+# vectors (seeded ChaCha8, hash outputs) do not depend on the compiler version.
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
+ENV PATH="/root/.cargo/bin:${PATH}"
+WORKDIR /code
+COPY . /code
+# Warm the Rust build so `docker run` is just the reproduction, not a cold compile.
+RUN cargo build --workspace --locked --manifest-path tooling/Cargo.toml --quiet
+CMD ["bash", "codeocean/run"]

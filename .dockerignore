@@ -1,0 +1,12 @@
+# Keep the reproduction image lean and free of anything the offline run does not
+# need. Critically, private/ (the paper submodule) must NEVER be baked into the
+# public ghcr image.
+.git
+private
+tooling/target
+**/target
+**/node_modules
+# Vendored submodules + live-chain trees: cited, not run by the offline capsule.
+contracts/lib
+bench/lib
+contracts-zksync
