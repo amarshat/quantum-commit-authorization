@@ -1,6 +1,6 @@
 # quantum-commit-authorization
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21277122.svg)](https://doi.org/10.5281/zenodo.21277122)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21363508.svg)](https://doi.org/10.5281/zenodo.21363508)
 
 Hash-based commit-reveal authorization for EVM accounts: spend with one-time hash secrets instead of attaching a post-quantum signature to every transaction.
 
