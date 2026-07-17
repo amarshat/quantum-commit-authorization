@@ -94,6 +94,13 @@
 
 <main class="wrap">
 
+<div class="card" style="margin-top:34px">
+  <h3 style="margin-top:0">How it works, in 60 seconds</h3>
+  <p style="margin-top:6px">A quantum computer breaks the elliptic-curve signatures blockchains use to approve transactions. Swapping in a post-quantum signature works but is 14 to 72 times more expensive to verify on-chain, on every transaction, forever.</p>
+  <p>So this work drops signatures instead. You commit to <code>hash(secret)</code> ahead of time, then later reveal the secret to authorize; the contract just checks the hash. Security now rests on hash preimage resistance, which quantum computers barely dent, not on elliptic curves, which they break.</p>
+  <p style="margin-bottom:0">The hard part is not the crypto, it is the systems fallout: the reveal is a public race an attacker can join, and once signatures are gone the account must re-authenticate every transaction field itself (<em>binding completeness</em>). The paper builds the account, breaks it, fixes it, and measures it, deploying a signature-free version on a live network at about 1.4x the cost of an ordinary account.</p>
+</div>
+
 <h2>The question</h2>
 <blockquote><p>If a powerful quantum computer arrived tomorrow, how could the blockchain accounts that already exist keep operating safely, without waiting years for the underlying protocol to upgrade?</p></blockquote>
 
