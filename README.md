@@ -4,6 +4,8 @@
 
 Hash-based commit-reveal authorization for EVM accounts: spend with one-time hash secrets instead of attaching a post-quantum signature to every transaction.
 
+**New to this? Read the [plain-language explainer](https://amarshat.github.io/quantum-commit-authorization/)** for what the problem is, why the obvious fix is too expensive, and the approach this work takes.
+
 ## Why this exists
 
 If a cryptographically relevant quantum computer arrives, Shor's algorithm breaks the elliptic-curve signatures (ECDSA, BLS) that every major chain uses to authorize transactions. The standardized post-quantum replacements fix the math but are heavy on-chain: an ML-DSA-44 signature is 2,420 bytes, SLH-DSA runs 8 to 17 KB. That cost is paid on every single transaction, forever, replicated across every node.

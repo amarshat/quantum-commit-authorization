@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post-Quantum Blockchain Accounts, Explained</title>
+<meta name="description" content="A plain-language explainer of commit-reveal post-quantum authorization for EVM accounts: how a blockchain account can stay safe against a quantum computer without waiting for the protocol to upgrade.">
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1a1a1a; --muted:#5c6470; --line:#e6e8ec;
+    --accent:#2f6feb; --accent-soft:#eaf1fe; --card:#f7f8fa; --code:#f2f3f5;
+    --warn-bg:#fff8e6; --warn-line:#f0d98a;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --line:#232733;
+      --accent:#6ea0ff; --accent-soft:#16233f; --card:#161922; --code:#12151c;
+      --warn-bg:#231d0e; --warn-line:#5a4a1e;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#ffffff; --fg:#1a1a1a; --muted:#5c6470; --line:#e6e8ec;
+    --accent:#2f6feb; --accent-soft:#eaf1fe; --card:#f7f8fa; --code:#f2f3f5;
+    --warn-bg:#fff8e6; --warn-line:#f0d98a;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --line:#232733;
+    --accent:#6ea0ff; --accent-soft:#16233f; --card:#161922; --code:#12151c;
+    --warn-bg:#231d0e; --warn-line:#5a4a1e;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 22px}
+  header{padding:64px 0 28px; border-bottom:1px solid var(--line)}
+  h1{font-size:2.05rem; line-height:1.2; margin:0 0 14px; letter-spacing:-0.02em}
+  .lede{font-size:1.18rem; color:var(--muted); margin:0}
+  .meta{margin-top:22px; display:flex; flex-wrap:wrap; gap:8px}
+  .pill{font-size:.82rem; padding:4px 11px; border:1px solid var(--line); border-radius:999px; color:var(--muted); text-decoration:none}
+  .pill:hover{border-color:var(--accent); color:var(--accent)}
+  h2{font-size:1.5rem; margin:52px 0 10px; letter-spacing:-0.01em}
+  h3{font-size:1.12rem; margin:30px 0 6px}
+  p{margin:14px 0}
+  a{color:var(--accent)}
+  strong{font-weight:650}
+  .muted{color:var(--muted)}
+  blockquote{
+    margin:20px 0; padding:14px 20px; border-left:3px solid var(--accent);
+    background:var(--accent-soft); border-radius:0 8px 8px 0; font-size:1.05rem;
+  }
+  blockquote p{margin:0}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin:22px 0}
+  .warn{background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:12px; padding:18px 22px; margin:22px 0}
+  .warn h3{margin-top:0}
+  pre{
+    background:var(--code); border:1px solid var(--line); border-radius:10px;
+    padding:16px 18px; overflow-x:auto; font-size:.86rem; line-height:1.5;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.9em; background:var(--code); padding:1px 5px; border-radius:5px}
+  pre code{background:none; padding:0}
+  .flow{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0}
+  @media (max-width:560px){ .flow{grid-template-columns:1fr} h1{font-size:1.7rem} }
+  .flow .col{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px}
+  .flow h4{margin:0 0 10px; font-size:.95rem}
+  .step{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.82rem; color:var(--muted); padding:5px 0}
+  .step b{color:var(--fg); font-weight:600}
+  .num{font-variant-numeric:tabular-nums}
+  ul{padding-left:22px} li{margin:6px 0}
+  hr{border:none; border-top:1px solid var(--line); margin:48px 0}
+  footer{border-top:1px solid var(--line); margin-top:56px; padding:30px 0 70px; color:var(--muted); font-size:.92rem}
+  footer a{text-decoration:none}
+  .kpi{display:flex; gap:18px; flex-wrap:wrap; margin:20px 0}
+  .kpi .box{flex:1; min-width:150px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px}
+  .kpi .big{font-size:1.7rem; font-weight:700; letter-spacing:-0.02em}
+  .kpi .cap{font-size:.85rem; color:var(--muted); margin-top:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Keeping blockchain accounts safe from a quantum computer, without waiting for the blockchain to change</h1>
+    <p class="lede">A plain-language explainer of a research project on post-quantum authorization for Ethereum-style accounts. What the problem is, why the obvious fix is too expensive, and the different approach this work builds, breaks, and measures.</p>
+    <div class="meta">
+      <a class="pill" href="https://github.com/amarshat/quantum-commit-authorization">Code on GitHub</a>
+      <a class="pill" href="https://doi.org/10.5281/zenodo.21363508">Paper (preprint)</a>
+      <span class="pill">Under review at IEEE TDSC</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<h2>The question</h2>
+<blockquote><p>If a powerful quantum computer arrived tomorrow, how could the blockchain accounts that already exist keep operating safely, without waiting years for the underlying protocol to upgrade?</p></blockquote>
+
+<p>Almost every blockchain today, Ethereum and Bitcoin included, authorizes transactions with elliptic-curve signatures (ECDSA and its relatives). That math is what proves "yes, the owner of this account approved this transaction." A large enough quantum computer running Shor's algorithm can recover the private key from the public key, which means it can forge that approval and move other people's money.</p>
+
+<p>The obvious response is: swap the elliptic-curve signature for a post-quantum one. The math for that already exists and is standardized (ML-DSA, SLH-DSA, and others).</p>
+
+<p>The problem is cost. Verifying a post-quantum signature on-chain is heavy, and that cost is paid on <em>every single transaction</em>, forever, replicated across every node in the network. Measured against a plain account today, on-chain post-quantum verification runs anywhere from <strong>14 to 72 times</strong> more gas depending on the algorithm.</p>
+
+<h2>The different idea</h2>
+<p>This research takes another route. Instead of replacing one signature with a more expensive signature, it asks whether authorization can drop signatures altogether.</p>
+
+<p>It can, using a decades-old trick called <strong>commit-reveal</strong>. You do not sign anything. Instead:</p>
+
+<div class="flow">
+  <div class="col">
+    <h4>Today: sign every transaction</h4>
+    <div class="step"><b>1.</b> Hold a private key</div>
+    <div class="step"><b>2.</b> Produce an ECDSA signature</div>
+    <div class="step"><b>3.</b> Contract verifies the signature</div>
+    <div class="step muted">Broken by a quantum computer</div>
+  </div>
+  <div class="col">
+    <h4>Commit-reveal: no signature</h4>
+    <div class="step"><b>1.</b> Pick a random secret</div>
+    <div class="step"><b>2.</b> Store <code>hash(secret)</code> on-chain (commit)</div>
+    <div class="step"><b>3.</b> Later, reveal the secret</div>
+    <div class="step"><b>4.</b> Contract checks the hash matches</div>
+  </div>
+</div>
+
+<p>The security assumption changes completely. It no longer rests on elliptic curves, which quantum computers break outright. It rests only on the fact that you cannot run a hash backwards to find its input. Quantum computers barely dent that: Grover's algorithm gives a square-root speedup, so a 256-bit hash still leaves roughly 128 bits of security even against a quantum attacker. That is comfortable.</p>
+
+<h2>So why has nobody shipped this?</h2>
+<p>The idea itself is old. Versions of hash-based authorization have been floated since at least 2014. The reason it does not exist as a real, deployed account type is not the cryptography. It is a set of practical engineering problems that turn out to be much harder than "just verify a signature." This project is really about finding, analyzing, and fixing those problems. Three of them stand out.</p>
+
+<h2>Problem 1: the reveal is a public race</h2>
+<p>The moment you broadcast your secret to reveal it, everyone watching the network can see it. An attacker copies it instantly and submits their own competing transaction. Now two transactions are racing to land in the next block:</p>
+
+<pre><code>your reveal        →  ?
+attacker's reveal  →  ?
+whoever lands first wins</code></pre>
+
+<p>This stops being a cryptography question and becomes a distributed-systems one. The research models this race formally and derives the <em>probability</em> of theft as a function of things like how much of the network an attacker controls, how blocks get built, network timing, and censorship. The payoff is that quantum key theft turns from an inevitability into a measurable, boundable risk. One sharp finding: when block production is concentrated in a few hands rather than spread out, the risk gets meaningfully worse, by a factor of roughly a hundred in the modeled cases.</p>
+
+<h2>Problem 2: account abstraction makes it harder, not easier</h2>
+<p>Ethereum is moving toward "account abstraction," where accounts are smart contracts with programmable rules. A common assumption is that this makes post-quantum migration easier. It does the opposite, and understanding why is one of the paper's main contributions.</p>
+
+<p>An ordinary signature quietly does more than prove identity. It also authenticates <em>every field of the transaction at once</em>: the destination, the amount, the gas, the fees, the data. Change any one of them and the signature no longer matches.</p>
+
+<pre><code>destination · amount · gas · fees · data · nonce
+        ↓
+one signature covers all of them</code></pre>
+
+<p>Take the signature away and that guarantee vanishes. Suddenly the various parties who help get your transaction on-chain (bundlers, sequencers, relayers) may be able to alter fields you never approved. So the account itself now has to explicitly re-authenticate every field that has financial consequences. The paper names and formalizes this requirement:</p>
+
+<div class="card">
+  <h3>Binding completeness</h3>
+  <p style="margin-bottom:0">Once protocol-level signatures are gone, the account must cryptographically commit to <em>every</em> field that can move value or cause harm. Miss even one, and an attacker may be able to steal tokens, inflate fees, drain the account's gas deposit, or force denial of service. During this work several such gaps were discovered as real, exploitable bugs, each demonstrated, fixed, and turned into a permanent regression test. That catalogue of failure modes became a core result.</p>
+</div>
+
+<h2>The honest catch: relocated, not eliminated</h2>
+<div class="warn">
+  <h3>Signatures do not fully disappear on today's Ethereum</h3>
+  <p>On Ethereum's main layer as it exists now, even a commit-reveal account still sits inside an outer transaction that a bundler wraps in an ordinary elliptic-curve signature. So the quantum-vulnerable envelope is <strong>moved onto a third party, not removed</strong>. The paper proves there is no signature-free path to inclusion on mainnet today.</p>
+  <p style="margin-bottom:0">Where signatures genuinely leave the authorization is on chains with <em>native</em> account abstraction. This work deploys and measures exactly that on zkSync Era, a live public test network, and shows the account authorizing with no elliptic-curve signature at all. The twist: the front-running race from Problem 1 then lands squarely on the single sequencer that orders that chain's transactions. The envelope keeps moving; it does not vanish. That "you can relocate it but not eliminate it" arc is the spine of the paper.</p>
+</div>
+
+<h2>It was actually built</h2>
+<p>This is not a thought experiment. The project ships a working implementation: EVM smart contracts, an ERC-4337 account-abstraction version, a native-AA version deployed to zkSync Era, Monte-Carlo simulations of the front-running game, adversarial red-team testing, replay against two years of real historical gas prices, and a full regression suite. The working rule throughout was strict:</p>
+<blockquote><p>Every attack we think of gets demonstrated against the real implementation first, then fixed, then locked in as a permanent regression test.</p></blockquote>
+<p>On the live zkSync test network, authorizing through this account cost about <strong>1.4 times</strong> a plain elliptic-curve account per action, same order of magnitude, while needing no signature verification. Anyone can reproduce the offline results with a single command against a public container image (linked at the bottom).</p>
+
+<h2>What the research contributes</h2>
+<p>Not one algorithm, but a set of results:</p>
+<ul>
+  <li><strong>A practical post-quantum account</strong> that authorizes with no post-quantum signature verification in the hot path.</li>
+  <li><strong>A formal analysis of the reveal race</strong>, turning "will the key get stolen" into a derived probability, and showing how validator concentration changes it.</li>
+  <li><strong>Binding completeness</strong>, a framework for reasoning about which transaction fields must be re-authenticated once protocol signatures are gone. It likely applies well beyond this one construction.</li>
+  <li><strong>A security taxonomy</strong> of previously undocumented attack classes, each found, exploited, fixed, and regression-tested during the build.</li>
+  <li><strong>Honest cost accounting</strong>: roughly 14 to 72 times cheaper on Ethereum layer 1 than on-chain post-quantum verification, while staying compatible with today's infrastructure.</li>
+</ul>
+
+<h2>What this is not</h2>
+<ul>
+  <li>It does not propose a new blockchain.</li>
+  <li>It does not invent a new post-quantum algorithm.</li>
+  <li>It does not compete with NIST standards like ML-DSA. If anything, it is a bridge for the years before those standards are cheap to run on-chain.</li>
+</ul>
+<p>It is a systems-engineering result, sitting where blockchain, cryptography, distributed systems, smart-contract security, and account abstraction meet.</p>
+
+<h2>Why it matters</h2>
+<p>Chains will eventually support post-quantum cryptography natively, through protocol upgrades or dedicated built-in operations. But protocol changes take years, and the threat does not wait for them. This work is about that in-between period: it shows there is a migration path that runs on the infrastructure we already have, cuts the on-chain cost dramatically, gives a measurable rather than hand-waved level of protection against a quantum attacker, and, in the process, surfaces a whole new class of security questions that account abstraction raises once you take signatures away.</p>
+
+<blockquote><p>How do you safely redesign blockchain account authorization for the post-quantum era, using the infrastructure that exists today?</p></blockquote>
+
+<p>Answering that meant combining cryptography, distributed systems, protocol design, smart-contract engineering, adversarial analysis, and real measurement into one end-to-end system.</p>
+
+<hr>
+
+<footer>
+  <p><strong>Read more</strong></p>
+  <p>
+    Code, contracts, and the full spec: <a href="https://github.com/amarshat/quantum-commit-authorization">github.com/amarshat/quantum-commit-authorization</a><br>
+    Preprint (archived, open access): <a href="https://doi.org/10.5281/zenodo.21363508">doi.org/10.5281/zenodo.21363508</a><br>
+    Reproduce the offline results: <code>docker run --rm ghcr.io/amarshat/qca-repro</code><br>
+    Status: manuscript under review at IEEE Transactions on Dependable and Secure Computing.
+  </p>
+  <p class="muted">The mechanism (hash-based commit-reveal authorization) is not new and this work does not claim to have invented it. The contribution is the first rigorous systems treatment: building it, breaking it, fixing it, and measuring it.</p>
+</footer>
+
+</main>
+</body>
+</html>
