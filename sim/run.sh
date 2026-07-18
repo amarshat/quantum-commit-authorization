@@ -47,4 +47,39 @@ done
 $RUN sweep --ages 4 --betas 0.1,0.2,0.3,0.4,0.5 --persistence 0.75 \
     --trials 2000000 --seed 6 > sim/results/theft-concentrated.json
 
+# --- Forcing adversary (docs/STATE_MODEL.md milestone M4) ---
+# The forcing sim's cross-checks live in its unit tests (run in the tooling job);
+# these vectors are the committed figures. Forcing games run a block horizon, so
+# they are heavier than the AUTH-RACE games and use fewer trials.
+
+# R2a safety figure: under full defenses, forgery and double-execution are 0
+# across the whole strand-rate x builder-share grid, even with intent changes,
+# MEV-sensitive actions, griefing, and a finite validUntil.
+$RUN forcing --p-reorgs 0.0,0.3,0.6,0.9 --betas 0.1,0.25,0.5 \
+    --p-intent-change 0.3 --mev-sensitive-frac 0.5 --adversary-griefs \
+    --valid-until 16 --trials 200000 --seed 21 > sim/results/forcing-safety.json
+
+# Residual figure (the go/no-go): full defenses, sweep the strand rate; the land
+# rate, delay percentiles, leaves consumed, and adversary-attributed MEV-coupling
+# loss/profit are the residual, none of which is a forgery.
+$RUN forcing --p-reorgs 0.0,0.2,0.5,0.8 --betas 0.25 \
+    --p-intent-change 0.2 --mev-sensitive-frac 0.5 --valid-until 16 \
+    --trials 200000 --seed 22 > sim/results/forcing-residual.json
+
+# FORS few-time value: with a restore accident, the forgery rate falls sharply
+# from the WOTS baseline (r_max=1) to FORS (r_max=2), and stays under the exact
+# binomial bound (q=0 so games run the full horizon, the hard regime).
+$RUN forcing --p-reorgs 0.3 --betas 0.25 --q 0.0 --restore-rate 0.01 \
+    --r-max 1 --trials 200000 --seed 23 > sim/results/forcing-fewtime-r1.json
+$RUN forcing --p-reorgs 0.3 --betas 0.25 --q 0.0 --restore-rate 0.01 \
+    --r-max 2 --trials 200000 --seed 23 > sim/results/forcing-fewtime-r2.json
+
+# PoC-per-defense: removing each safety defense opens exactly its attack.
+$RUN forcing --p-reorgs 0.3 --betas 0.25 --p-intent-change 0.3 --no-write-ahead \
+    --trials 200000 --seed 24 > sim/results/forcing-poc-no-write-ahead.json
+$RUN forcing --p-reorgs 0.3 --betas 0.25 --p-intent-change 0.4 --q 1.0 \
+    --no-same-key-nonce --trials 200000 --seed 25 > sim/results/forcing-poc-no-same-key.json
+$RUN forcing --p-reorgs 0.3 --betas 0.25 --q 0.0 --restore-rate 0.01 --r-max 2 \
+    --no-randomizer-r --trials 200000 --seed 26 > sim/results/forcing-poc-no-randomizer.json
+
 echo "wrote sim/results/*.json"

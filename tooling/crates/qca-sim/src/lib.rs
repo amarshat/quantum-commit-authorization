@@ -20,6 +20,9 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 use serde::{Deserialize, Serialize};
 
+pub mod forcing;
+pub use forcing::{run_forcing, Defenses, ForcingOutcome, ForcingParams, ForcingResult};
+
 /// Who gets ordering priority in the first block where both the victim's
 /// reveal and the adversary's theft reveal are eligible and included by an
 /// honest builder. Theorem 1 leaves this to the fee market; the two fixed

@@ -1,0 +1,44 @@
+[
+  {
+    "params": {
+      "p_reorg": 0.3,
+      "finality_depth": 4,
+      "q": 0.9,
+      "p_intent_change": 0.3,
+      "mev_sensitive_frac": 0.0,
+      "adversary_griefs": false,
+      "coupling_tie": "adversary_wins",
+      "valid_until": 4294967295,
+      "action_value": 1.0,
+      "restore_rate": 0.0,
+      "r_max": 1,
+      "leaf_budget": 1000000,
+      "horizon": 200
+    },
+    "defenses": {
+      "write_ahead": false,
+      "same_key_nonce": true,
+      "rebroadcast_dont_burn": true,
+      "retry_after_finality": true,
+      "randomizer_r": true
+    },
+    "trials": 200000,
+    "action_landed": 33253,
+    "forgery_window": 166747,
+    "double_execution": 0,
+    "mev_coupling_loss": 0,
+    "honest_stale_landed": 0,
+    "leaf_exhausted": 0,
+    "stuck": 0,
+    "land_rate": 0.166265,
+    "p_forgery": 0.833735,
+    "p_forgery_upper": 0.83536675709077,
+    "p_double_execution": 0.0,
+    "mean_leaves_consumed": 1.0,
+    "mean_land_delay": 5.561633536823745,
+    "p50_land_delay": 5,
+    "p95_land_delay": 8,
+    "mean_adversary_profit": 0.0,
+    "forgery_restore_bound": 0.0
+  }
+]

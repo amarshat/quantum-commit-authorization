@@ -380,11 +380,17 @@ it present); M4 measures the residual column.
 Proved in outline (M1): R1 as a dichotomy (ONCE-public unenforceable), R2a
 (unconditional forgery-impossibility), Lemma S1 with the per-key correction, the
 three-way ONCE split, the Q2 off-chain-finality determination, the Q3 parameter
-selection. Deferred: the computational forgery bound and R2a in full (M6 Tamarin
-with the restore edge + hand-proof); the r/delay/exhaustion distributions and the
-finality-latency cost (M4). Recovery is out of M1 scope (formal F9): guardian
-root-choice reintroduces the 2^85 axis and the recovery tree's own ONCE-public
-discipline is unspecified.
+selection. Measured (M4): the forcing-adversary simulator (`tooling/qca-sim`,
+subcommand `forcing`) empirically cross-checks R2a (0 forgeries and 0
+double-executions under full defenses, across a wide builder/strand/censor/MEV
+sweep, with a PoC firing for each removed defense), bounds the restore residual
+by the exact binomial tail `P(Binomial(horizon, restore_rate) >= r_max)`, and
+reports the reorg/censor residual as distributions (land rate, delay
+percentiles, leaves consumed, and the adversary-attributed MEV-coupling loss and
+profit proxy). Deferred: the computational forgery bound and R2a in full (M6
+Tamarin with the restore edge + hand-proof). Recovery is out of M1 scope (formal
+F9): guardian root-choice reintroduces the 2^85 axis and the recovery tree's own
+ONCE-public discipline is unspecified.
 
 ## 10. Honest limits, and what M4 must measure
 
@@ -402,11 +408,20 @@ discipline is unspecified.
   actions); the finality-discipline cost reduces to a wait of roughly one finality
   duration. Whether the residual is a materially interesting cost is an empirical
   question, not a theorem: it is what the M4 simulator must answer.
-- **M4 is not built yet.** The forcing-adversary sim needs a reorg edge, a per-key
-  nonce, and the restore edge (none of which the current single-leaf `qca-sim`
-  has), and must report the r distribution (0 forced forgeries expected), the
-  fresh-leaf-consumption / delay distribution under the rebroadcast-don't-burn rule,
-  and the MEV-coupling channel's cost on MEV-sensitive actions.
+- **M4 (built) confirms the split.** The forcing-adversary sim reproduces the
+  unconditional safety half (forgery and double-execution measure exactly 0 under
+  full defenses, positive per removed defense) and measures the residual: under
+  the rebroadcast-don't-burn rule reorg strands cost zero extra leaves and the
+  liveness cost concentrates near one finality duration, so the delay/leaf axes do
+  reduce to a finality wait. What does NOT reduce is the MEV-coupling channel: the
+  sim attributes it to the adversary (zero at `beta = 0`, rising with builder
+  share) and prices it with a value proxy, and it survives all four defenses
+  including retry-after-finality. So the honest go/no-go signal is that the
+  defensible residual is the MEV-coupling, not a priced reorg DoS. Two limits the
+  sim states rather than hides: it has no cost axis (it cannot itself prove reorgs
+  are near-free, only measure residual-given-strand-rate), and the omitted cheaper
+  channels (fee-spike, nonce-view equivocation, bundler withhold) would only make
+  the residual look safer, so the measured residual is a clean-model subset.
 - Recovery is out of scope (§9): a guardian-influenced root reintroduces the 2^85
   adversary-chosen-root axis, and the recovery tree's own ONCE-public discipline is
   unspecified here.
