@@ -416,8 +416,8 @@ ONCE-public discipline is unspecified.
   reduce to a finality wait. What does NOT reduce is the MEV-coupling channel: the
   sim attributes it to the adversary (zero at `beta = 0`, rising with builder
   share) and prices it with a value proxy, and it survives all four defenses
-  including retry-after-finality. So the honest go/no-go signal is that the
-  defensible residual is the MEV-coupling, not a priced reorg DoS. Two limits the
+  including retry-after-finality. So the residual that is
+  both adversary-driven and irreducible is the MEV-coupling, not a priced reorg DoS. Two limits the
   sim states rather than hides: it has no cost axis (it cannot itself prove reorgs
   are near-free, only measure residual-given-strand-rate), and the omitted cheaper
   channels (fee-spike, nonce-view equivocation, bundler withhold) would only make
