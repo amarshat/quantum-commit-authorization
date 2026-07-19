@@ -5,7 +5,10 @@
 //!           produces the committed result vectors and the paper's curves.
 
 use clap::{Parser, Subcommand};
-use qca_sim::{run_forcing, run_race, BuilderModel, Defenses, ForcingParams, RaceParams, TieRule};
+use qca_sim::{
+    run_cancel, run_forcing, run_race, BuilderModel, CancelParams, Defenses, ForcingParams,
+    RaceParams, TieRule,
+};
 
 #[derive(Parser)]
 #[command(about = "Adversarial mempool simulator for the QCA authorization game (docs/GAME.md)")]
@@ -107,6 +110,29 @@ enum Command {
         no_retry_after_finality: bool,
         #[arg(long)]
         no_randomizer_r: bool,
+        #[arg(long, default_value_t = 1_000_000)]
+        trials: u64,
+        #[arg(long, default_value_t = 42)]
+        seed: u64,
+    },
+    /// Cancellation game (paper 3): the time-lock-revoke residual, P(owner cancels)
+    /// = 1 - beta^delta, swept over veto window delta x builder share beta. JSON
+    /// array on stdout.
+    Cancel {
+        /// Comma-separated veto windows (blocks), e.g. 1,2,4,8,16.
+        #[arg(long, value_delimiter = ',')]
+        deltas: Vec<u32>,
+        /// Comma-separated adversary builder shares.
+        #[arg(long, value_delimiter = ',')]
+        betas: Vec<f64>,
+        #[arg(long)]
+        persistence: Option<f64>,
+        #[arg(long, default_value_t = 1.0)]
+        q: f64,
+        #[arg(long, default_value_t = 0)]
+        finality_depth: u32,
+        #[arg(long, default_value_t = 0.0)]
+        p_reorg: f64,
         #[arg(long, default_value_t = 1_000_000)]
         trials: u64,
         #[arg(long, default_value_t = 42)]
@@ -239,6 +265,32 @@ fn main() {
                         ^ p_reorg.to_bits().rotate_left(31)
                         ^ beta.to_bits().rotate_left(17);
                     out.push(run_forcing(&params, &defenses, &model(beta, persistence), trials, cell_seed));
+                }
+            }
+            println!("{}", serde_json::to_string_pretty(&out).unwrap());
+        }
+        Command::Cancel {
+            deltas,
+            betas,
+            persistence,
+            q,
+            finality_depth,
+            p_reorg,
+            trials,
+            seed,
+        } => {
+            let mut out = Vec::new();
+            for &delta in &deltas {
+                for &beta in &betas {
+                    let params = CancelParams {
+                        delta,
+                        q,
+                        finality_depth,
+                        p_reorg,
+                    };
+                    let cell_seed =
+                        seed ^ (u64::from(delta) << 32) ^ beta.to_bits().rotate_left(17);
+                    out.push(run_cancel(&params, &model(beta, persistence), trials, cell_seed));
                 }
             }
             println!("{}", serde_json::to_string_pretty(&out).unwrap());
