@@ -24,7 +24,7 @@ Requires [Foundry](https://getfoundry.sh) (`anvil`, `cast`, `forge`) and
 ```
 
 It boots a local `anvil` chain (on the Prague hardfork, which the EIP-7702 row
-needs), deploys a mock USDC, and runs seven attacks past three defense arms,
+needs), deploys a mock USDC, and runs eight attacks past three defense arms,
 printing the scorecard below and writing `out/scorecard.{json,md}`. If you point
 it at your own long-lived node instead, that node must be on Prague or newer.
 
@@ -52,7 +52,7 @@ so the benign-looking intents pass exactly as the heuristic predicts.
 - **An allowlist** of legitimate counterparties (a DEX router, a merchant) is
   what a real policy engine is configured with.
 
-Seven attacks, chosen to separate two axes: where the malice lives (on-chain
+Eight attacks, chosen to separate two axes: where the malice lives (on-chain
 calldata vs an off-chain signed message) and whether the value goes to a
 stranger or to an allowlisted address.
 
@@ -65,6 +65,7 @@ stranger or to an allowlisted address.
 | E | on-chain call to the **allowlisted** router, armed after the dry-run | on-chain, allowlisted |
 | F | off-chain signed **order** to the **allowlisted** exchange, bounded amount, recipient = attacker | off-chain, allowlisted |
 | G | off-chain **EIP-7702** authorization delegating the whole account to an **allowlisted** helper | off-chain, allowlisted |
+| H | on-chain max `approve` to the **allowlisted** Permit2 contract, then drained by signature | on-chain, allowlisted |
 
 Three defense arms, mirroring what is deployed in 2026:
 
@@ -92,6 +93,7 @@ D-permit-router-unlimited  miss    miss    blind    1.00 USDC NO
 E-honeypot-toctou          miss    miss    miss     1.00 USDC NO
 F-order-sign               miss    miss    blind    1.00 USDC NO
 G-delegate-7702            miss    miss    blind    1.00 USDC NO
+H-permit2-approval         miss    miss    miss     1.00 USDC NO
 ```
 
 How to read it, honestly:
@@ -135,17 +137,26 @@ How to read it, honestly:
   for an amount-aware policy to catch; and it is a signature, so there is nothing
   to simulate. Once delegated, the account runs the helper's code and is swept.
   The harm is not one token allowance but arbitrary control of the account.
+- **H is the most mundane, and the most real.** It is the ordinary one-time max
+  approval to Permit2, the universal approval contract you have to allowlist to
+  use most of DeFi. The reviewed action is exactly that approval: an on-chain
+  `approve(Permit2, MAX)`. Every arm passes it, because the target is the trusted
+  Permit2 and a simulation of the approval shows only a grant to it. But that one
+  approval subordinates the whole balance to off-chain Permit2 signatures, and
+  the drain runs through a later poisoned `permitTransferFrom` signature the
+  approval silently enabled. The gated action never looked wrong.
 
-Four rows are the false floor, reached by different routes. **D** is the
+Five rows are the false floor, reached by different routes. **D** is the
 off-chain side by amount: an unlimited permit that simulation can't see and an
 address allowlist waves through. **E** is the on-chain side: an allowlisted
 callee that simulates clean, then a time-of-check/time-of-use gap. **F** is a
 perfectly ordinary-looking signed order that beats every policy because the harm
 is in a field none of them check. **G** hands over the whole account with a
-single signature. All four land on a target that looks allowlisted, and that is
-where the deployed defenses stop composing. That three of seven rows are still
-caught is the point; an all-red table would mean the defenses were rigged to
-fail.
+single signature. **H** is the approval every policy is forced to allow, whose
+downstream security is signatures. All five land on a target that looks
+allowlisted, and that is where the deployed defenses stop composing. That three
+of eight rows are still caught is the point; an all-red table would mean the
+defenses were rigged to fail.
 
 ## Honest limitations
 
@@ -162,8 +173,8 @@ fail.
   in `decode_policy`) does catch D's unlimited approval, but not a bounded
   approval that is drained by a later compromise; the harness has the toggle so
   you can see both.
-- **Off-chain coverage is EIP-2612 permits, EIP-712 orders, and EIP-7702
-  delegation.** Permit2 generalizes the same surface and is not yet in the suite.
+- **The signature surface covered is EIP-2612 permits, EIP-712 orders, EIP-7702
+  delegation, and Permit2.** These are the main ones agents sign; others exist.
 - **Row E's TOCTOU is modeled explicitly.** The attacker arms the honeypot in a
   transaction between the simulation and the real call. In the wild this is a
   mempool race, an upgradeable-proxy swap, or state that flips on `block.number`;
@@ -205,6 +216,7 @@ src/MockUSDC.sol      self-contained ERC-20 with EIP-2612 permit
 src/Honeypot.sol      allowlisted router that arms after a benign dry-run
 src/Settlement.sol    allowlisted EIP-712 exchange (recipient set by the order)
 src/AAHelper.sol      allowlisted EIP-7702 delegate that sweeps the account
+src/Permit2.sol       minimal universal-approval contract (SignatureTransfer)
 demo/cast.py          stdlib wrappers over cast/forge (no web3 dep)
 demo/chain.py         accounts, token, permit signing
 demo/attacks.py       the four-attack suite

@@ -250,6 +250,44 @@ class Delegate7702(Attack):
         return before, chain.balance("agent")
 
 
+# --- H: the standing Permit2 approval, and a poisoned signature downstream ---
+
+class Permit2StandingApproval(Attack):
+    """Permit2 is the universal approval contract: the agent approves it once for
+    the maximum, and every policy allowlists it because you cannot use most of
+    DeFi otherwise. The reviewed action here is exactly that on-chain approval.
+    It passes every arm: the target is the allowlisted Permit2, so decode and the
+    policy wave it through, and a simulation of the approval shows a grant to a
+    trusted contract, nothing adverse. But that one approval subordinates the
+    whole balance to off-chain Permit2 signatures. The drain happens through a
+    later poisoned `permitTransferFrom` signature the approval silently enabled;
+    the gated action never looked wrong."""
+
+    def build(self, chain: Chain) -> Action:
+        permit2 = chain.deploy_permit2()
+        chain.extra_allowlist.add(permit2)     # the universal, must-allowlist approval target
+        return Action(
+            kind="onchain",
+            sig="approve(address,uint256)",
+            args=[permit2, MAX_DEC],
+            calldata=cast.calldata("approve(address,uint256)", permit2, MAX_DEC),
+            beneficiary_from="arg0",
+        )
+
+    def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
+        permit2 = action.args[0]
+        before = chain.balance("agent")
+        # the reviewed action: the standard one-time max approval to Permit2
+        cast.send(chain.rpc, chain.key("agent"), chain.usdc, action.calldata)
+        # downstream harm: a poisoned Permit2 signature (spender = attacker) drains
+        deadline = 99999999999
+        v, r, s = chain.sign_permit2(permit2, "agent", chain.addr("attacker"),
+                                     chain.usdc, str(before), 0, deadline)
+        chain.permit_transfer_from("attacker", permit2, chain.usdc, str(before), 0, deadline,
+                                   chain.addr("attacker"), "agent", v, r, s)
+        return before, chain.balance("agent")
+
+
 ATTACKS: list[Attack] = [
     ApproveMaxAttacker(
         id="A-approve-max",
@@ -306,5 +344,13 @@ ATTACKS: list[Attack] = [
         stated_intent="Sign to enable one-click batched actions from your wallet.",
         true_effect="Signs an EIP-7702 authorization delegating the agent's entire account to an allowlisted helper whose code then lets the attacker sweep it; no amount, no transaction to simulate.",
         kind="offchain_sig",
+    ),
+    Permit2StandingApproval(
+        id="H-permit2-approval",
+        title="On-chain max approval to the allowlisted Permit2 contract",
+        harm="the mandatory universal approval; the balance is then drained by signature",
+        stated_intent="Approve Permit2 so I can trade on the exchange.",
+        true_effect="Grants Permit2 (the universal, always-allowlisted approval contract) an unlimited allowance; the balance is then drained by a later poisoned Permit2 signature the approval enabled.",
+        kind="onchain",
     ),
 ]

@@ -93,13 +93,15 @@ def print_report(rows: list[dict]) -> None:
         cells = " ".join(f"{CELL[v['decision']]:<7}" for v in r["verdicts"])
         print(f"{r['id']:<26} {cells}  {_fmt_usdc(r['drained']):<9} {'yes' if r['stopped'] else 'NO'}")
     print("\nOnly VETO stops the drain. `blind` = the arm has no transaction to inspect")
-    print("(off-chain signature). The false floor, reached by four routes:")
+    print("(off-chain signature). The false floor, reached by five routes:")
     print("  D = off-chain permit (simulation blind) to an allowlisted target, unlimited")
     print("  E = on-chain call to an allowlisted contract, simulated benign then armed after the dry-run")
     print("  F = off-chain signed order to the allowlisted exchange; normal bounded amount,")
     print("      recipient routes to the attacker (defeats an amount-aware policy too)")
     print("  G = off-chain EIP-7702 authorization to an allowlisted helper: not one")
     print("      allowance but the whole account, and no amount for any policy to catch")
+    print("  H = on-chain max approval to the allowlisted Permit2 contract (the one")
+    print("      every policy must allowlist); the balance is then drained by signature")
     print("All reach an allowlisted-looking target, and nothing stops any of them.\n")
 
 
@@ -120,8 +122,10 @@ def write_files(rows: list[dict]) -> None:
               "off-chain-signature blindness (unlimited permit), E via on-chain "
               "simulation evasion (armed after the dry-run), F via an off-chain signed "
               "order whose bounded amount and allowlisted counterparty pass every policy "
-              "while the recipient field routes to the attacker, and G via an EIP-7702 "
-              "authorization that signs the whole account over to an allowlisted helper."]
+              "while the recipient field routes to the attacker, G via an EIP-7702 "
+              "authorization that signs the whole account over to an allowlisted helper, "
+              "and H via the on-chain max approval to the always-allowlisted Permit2 "
+              "contract, drained afterwards by signature."]
     with open(os.path.join(OUT_DIR, "scorecard.md"), "w") as f:
         f.write("\n".join(lines) + "\n")
 

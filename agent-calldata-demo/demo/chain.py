@@ -74,6 +74,36 @@ class Chain:
     def deploy_aahelper(self) -> str:
         return cast.deploy(self.rpc, self.key("agent"), "src/AAHelper.sol:AAHelper", self.cwd)
 
+    def deploy_permit2(self) -> str:
+        return cast.deploy(self.rpc, self.key("agent"), "src/Permit2.sol:Permit2", self.cwd)
+
+    # --- Permit2 SignatureTransfer: the universal-approval rail ---------------
+
+    def sign_permit2(self, permit2: str, owner: str, spender_addr: str, token: str,
+                     amount: str, nonce: int, deadline: int) -> tuple[int, str, str]:
+        """Owner signs a Permit2 permitTransferFrom message. As with any
+        signature, nothing is broadcast when the agent signs it, so there is no
+        transaction to simulate at signing time."""
+        tp_th = cast.call(self.rpc, permit2, "TOKEN_PERMISSIONS_TYPEHASH()(bytes32)")
+        pt_th = cast.call(self.rpc, permit2, "PERMIT_TRANSFER_TYPEHASH()(bytes32)")
+        ds = cast.call(self.rpc, permit2, "DOMAIN_SEPARATOR()(bytes32)")
+        token_perm = cast.keccak(cast.abi_encode(
+            "f(bytes32,address,uint256)", tp_th, token, amount))
+        struct_hash = cast.keccak(cast.abi_encode(
+            "f(bytes32,bytes32,address,uint256,uint256)",
+            pt_th, token_perm, spender_addr, str(nonce), str(deadline)))
+        digest = cast.keccak("0x1901" + ds[2:] + struct_hash[2:])
+        return cast.sign_hash(self.key(owner), digest)
+
+    def permit_transfer_from(self, filler: str, permit2: str, token: str, amount: str,
+                             nonce: int, deadline: int, to_addr: str, owner: str,
+                             v: int, r: str, s: str) -> cast.Receipt:
+        return cast.send_sig(
+            self.rpc, self.key(filler), permit2,
+            "permitTransferFrom(address,uint256,uint256,uint256,address,address,uint8,bytes32,bytes32)",
+            token, amount, str(nonce), str(deadline), to_addr, self.addr(owner), str(v), r, s,
+        )
+
     # --- EIP-7702 account delegation -----------------------------------------
 
     def sign_delegation(self, authority: str, delegate: str) -> str:
