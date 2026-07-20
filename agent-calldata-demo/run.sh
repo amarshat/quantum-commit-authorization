@@ -7,6 +7,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 RPC="http://127.0.0.1:8545"
 
+# load local secrets (GoPlus / LLM keys) if present; .env is gitignored, never committed
+for envf in ../.env .env; do
+  [ -f "$envf" ] && set -a && . "$envf" && set +a
+done
+
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing '$1' (install Foundry: https://getfoundry.sh)"; exit 1; }; }
 need anvil; need cast; need forge; need python3
 

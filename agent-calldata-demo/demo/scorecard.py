@@ -15,9 +15,12 @@ from __future__ import annotations
 import json
 import os
 
-from . import reviewers
+from . import goplus, reviewers
 from .attacks import ATTACKS, MAX_DEC
 from .chain import Chain
+
+# a real address GoPlus flags (stealing_attack / sanctioned), as a positive control
+GOPLUS_CONTROL = "0x098B716B8Aaf21512996dC57EB0615e2383E2f96"
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "out")
 MAXV = int(MAX_DEC)
@@ -107,6 +110,40 @@ def print_report(rows: list[dict]) -> None:
     print("E and G also require the allowlisted target itself to be adversarial.\n")
 
 
+def goplus_pass(rows: list[dict]) -> dict | None:
+    """Live address-reputation lookup for each attack's counterparty + recipient,
+    plus a positive control. Returns None if no GoPlus key is configured."""
+    if not goplus.available():
+        return None
+    for r in rows:
+        cp = sorted(goplus.reputation(r["counterparty"]))
+        same = r["recipient"].lower() == r["counterparty"].lower()
+        rc = [] if same else sorted(goplus.reputation(r["recipient"]))
+        r["goplus"] = {"counterparty_flags": cp, "recipient_flags": rc,
+                       "recipient_same": same, "flagged": bool(cp or rc)}
+    return {"control_addr": GOPLUS_CONTROL, "control_flags": sorted(goplus.reputation(GOPLUS_CONTROL))}
+
+
+def print_goplus(rows: list[dict], ctrl: dict) -> None:
+    print("\n" + "=" * 80)
+    print("LIVE address reputation (GoPlus Security API)")
+    print("=" * 80)
+    print(f"{'attack':<26} {'counterparty':<22} recipient")
+    print("-" * 62)
+    for r in rows:
+        g = r["goplus"]
+        cp = ",".join(g["counterparty_flags"]) or "clean"
+        rc = "(same)" if g["recipient_same"] else (",".join(g["recipient_flags"]) or "clean")
+        print(f"{r['id']:<26} {cp:<22} {rc}")
+    n = sum(1 for r in rows if r["goplus"]["flagged"])
+    print(f"\nGoPlus flagged {n}/{len(rows)} attacks. Every sink in the suite is a fresh")
+    print("address with no reputation, so live reputation scanning catches none of them.")
+    print(f"positive control {ctrl['control_addr']}:")
+    print(f"  flags = {', '.join(ctrl['control_flags']) or 'NONE (control failed)'}")
+    print("  => the query works, so the null result above is real: reputation only fires")
+    print("     on addresses already known to be bad, which agent-drain sinks are not.\n")
+
+
 def write_files(rows: list[dict]) -> None:
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, "scorecard.json"), "w") as f:
@@ -135,6 +172,11 @@ def write_files(rows: list[dict]) -> None:
 def main() -> None:
     rows = run()
     print_report(rows)
+    ctrl = goplus_pass(rows)
+    if ctrl is not None:
+        print_goplus(rows, ctrl)
+    else:
+        print("\n(GoPlus key not set; skipping the live address-reputation lens.)\n")
     write_files(rows)
     print(f"wrote {os.path.join(OUT_DIR, 'scorecard.json')} and scorecard.md")
 

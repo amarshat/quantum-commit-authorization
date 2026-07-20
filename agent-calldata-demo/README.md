@@ -135,17 +135,50 @@ dynamic re-simulation (E), and categorically-dangerous authorization types
 (EIP-7702, Permit2) that no field analysis flags (G, H). Both hard shapes also
 require the allowlisted target itself to be adversarial.
 
+## Live reputation (GoPlus), the one measured dimension
+
+The ladder above is capability models. One dimension is wired to a real deployed
+service: address reputation, via the [GoPlus Security](https://gopluslabs.io)
+API. Set `GO_PLUS_APP_KEY` and `GO_PLUS_APP_SECRET` in a `.env` (gitignored) and
+`./run.sh` adds a live pass that queries GoPlus for the reputation of each
+attack's counterparty and recipient.
+
+The measured result:
+
+```
+attack                     counterparty           recipient
+A-approve-max              clean                  (same)
+...  (all eight)           clean                  clean/(same)
+G-delegate-7702            clean                  (same)
+
+GoPlus flagged 0/8 attacks.
+positive control 0x098B716B8Aaf21512996dC57EB0615e2383E2f96:
+  flags = blacklist_doubt, sanctioned, stealing_attack
+```
+
+Reputation scanning catches none of the eight, because every sink is a fresh
+address with no history. The positive control (a real address GoPlus flags as
+`stealing_attack` / `sanctioned`) confirms the query works, so the zero is a
+real finding, not a broken call: reputation only fires on addresses already
+known to be bad, and a poisoned tool routes to a fresh one. Reputation is
+orthogonal to the clear-signing ladder and defeated by address rotation.
+
+GoPlus is a reputation service, not a simulator, so it cannot upgrade the
+simulation rungs (L5, L6); those stay models until wired to a real simulation
+API (Tenderly, or Blockaid/Blowfish's gated scan APIs).
+
 ## Concessions (what would flip, and what the demo assumes)
 
 These are load-bearing; do not quote the matrix without them.
 
-- **The matrix is a coverage map, not a measurement.** The `un-defended` drain
+- **The ladder is a coverage map, not a measurement.** The `un-defended` drain
   is a constant 1.00 USDC by construction. Rungs 1-4, 6 and 7 apply a policy to
   decoded/rendered fields (which is what clear-signing is); only rung 5 forks
   the chain. Rung 6 (signature simulation) is a *model* of net-transfer
-  reasoning, not a second EVM run. None of this queries a real Blowfish/Blockaid
-  API; those are named as the capability each rung models, not as systems this
-  measures.
+  reasoning, not a second EVM run. The ladder does not query Blowfish/Blockaid;
+  those are named as the capability each rung models. The one exception is the
+  live GoPlus reputation lens above, which does query a real deployed service
+  and is reported separately as measured.
 - **F, and half of H, are caught by capabilities real wallets already have.**
   If you stop at an address-only allowlist, F and H look like bypasses. They are
   not, against a recipient-rendering, signature-scanning stack. The demo scores
@@ -218,8 +251,14 @@ demo/chain.py         accounts, token, and the EIP-2612 / EIP-712 / 7702 / Permi
 demo/attacks.py       the eight-drain suite
 demo/reviewers.py     the capability ladder
 demo/llm.py           optional live plan-review (frontier LLM + injection guardrail)
+demo/goplus.py        optional live address-reputation lens (GoPlus Security API)
 demo/scorecard.py     run the suite, emit the coverage matrix
 ```
+
+Optional keys (put in a gitignored `.env`; `run.sh` sources it): `GO_PLUS_APP_KEY`
++ `GO_PLUS_APP_SECRET` enable the live reputation lens; `ANTHROPIC_API_KEY`
+(+ `pip install anthropic`) and/or `LAKERA_GUARD_API_KEY` make the L1 plan-review
+rung call a real model / guardrail.
 
 [ERC-7730]: https://eips.ethereum.org/EIPS/eip-7730
 ["T2T" attack, arXiv 2604.15367]: https://arxiv.org/abs/2604.15367
