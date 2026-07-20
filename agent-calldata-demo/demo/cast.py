@@ -97,13 +97,13 @@ def send_sig(rpc: str, key: str, to: str, sig: str, *args: str) -> Receipt:
     )
 
 
-def deploy(rpc: str, key: str, contract: str, cwd: str) -> str:
+def deploy(rpc: str, key: str, contract: str, cwd: str, *ctor_args: str) -> str:
     """forge create -> deployed address. `contract` is e.g. src/MockUSDC.sol:MockUSDC."""
-    out = _run(
-        ["forge", "create", contract, "--rpc-url", rpc,
-         "--private-key", key, "--broadcast", "--json"],
-        cwd=cwd,
-    )
+    args = ["forge", "create", contract, "--rpc-url", rpc,
+            "--private-key", key, "--broadcast", "--json"]
+    if ctor_args:
+        args += ["--constructor-args", *[str(a) for a in ctor_args]]
+    out = _run(args, cwd=cwd)
     return json.loads(out)["deployedTo"]
 
 

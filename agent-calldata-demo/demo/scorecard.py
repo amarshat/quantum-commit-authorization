@@ -34,6 +34,7 @@ def run() -> list[dict]:
 
     for atk in ATTACKS:
         # isolate each attack on a freshly deployed token with a funded agent
+        chain.extra_allowlist = set()
         chain.deploy_usdc()
         chain.mint("agent", 1_000_000)
 
@@ -87,9 +88,11 @@ def print_report(rows: list[dict]) -> None:
     for r in rows:
         cells = " ".join(f"{CELL[v['decision']]:<7}" for v in r["verdicts"])
         print(f"{r['id']:<26} {cells}  {_fmt_usdc(r['drained']):<9} {'yes' if r['stopped'] else 'NO'}")
-    print("\nOnly VETO stops the drain. `blind` = the arm structurally cannot inspect")
-    print("an off-chain signature. Simulation is blind to both off-chain rows (C, D);")
-    print("row D also slips the decode/allowlist policy, so nothing stops it.\n")
+    print("\nOnly VETO stops the drain. `blind` = the arm has no transaction to inspect")
+    print("(off-chain signature). Two rows are the false floor, by different routes:")
+    print("  D = off-chain signature (simulation blind) to an allowlisted target (policy passes)")
+    print("  E = on-chain call to an allowlisted contract, simulated benign then armed after the dry-run")
+    print("Both reach an allowlisted-looking target, and nothing stops either.\n")
 
 
 def write_files(rows: list[dict]) -> None:
@@ -104,7 +107,10 @@ def write_files(rows: list[dict]) -> None:
     for r in rows:
         cells = " | ".join(CELL[v["decision"]] for v in r["verdicts"])
         lines.append(f"| {r['id']} | {cells} | {_fmt_usdc(r['drained'])} | {'yes' if r['stopped'] else '**no**'} |")
-    lines += ["", "`blind` = the arm has no transaction to inspect (off-chain signature)."]
+    lines += ["", "`blind` = the arm has no transaction to inspect (off-chain signature).",
+              "Rows D and E both drain: D via off-chain-signature blindness, E via "
+              "on-chain simulation evasion (armed after the dry-run). Both hit an "
+              "allowlisted-looking target."]
     with open(os.path.join(OUT_DIR, "scorecard.md"), "w") as f:
         f.write("\n".join(lines) + "\n")
 

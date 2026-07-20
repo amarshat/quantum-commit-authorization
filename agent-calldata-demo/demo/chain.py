@@ -34,12 +34,18 @@ class Chain:
     rpc: str = "http://127.0.0.1:8545"
     cwd: str = field(default_factory=lambda: os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     usdc: str = ""
+    # extra addresses the policy treats as allowlisted (e.g. a deployed router
+    # contract the agent legitimately uses); reset between attacks.
+    extra_allowlist: set[str] = field(default_factory=set)
 
     def addr(self, role: str) -> str:
         return ACCOUNTS[role][0]
 
     def key(self, role: str) -> str:
         return ACCOUNTS[role][1]
+
+    def allowlist_addrs(self, roles: list[str]) -> set[str]:
+        return {self.addr(r).lower() for r in roles} | {a.lower() for a in self.extra_allowlist}
 
     # --- setup ---------------------------------------------------------------
 
@@ -56,6 +62,14 @@ class Chain:
     def mint(self, role: str, amount: int) -> None:
         cast.send_sig(self.rpc, self.key("agent"), self.usdc,
                       "mint(address,uint256)", self.addr(role), str(amount))
+
+    def deploy_honeypot(self, attacker_role: str) -> str:
+        return cast.deploy(self.rpc, self.key("agent"), "src/Honeypot.sol:Honeypot",
+                           self.cwd, self.usdc, self.addr(attacker_role))
+
+    def approve_contract(self, owner_role: str, spender_addr: str, amount: str) -> None:
+        cast.send_sig(self.rpc, self.key(owner_role), self.usdc,
+                      "approve(address,uint256)", spender_addr, amount)
 
     # --- reads ---------------------------------------------------------------
 

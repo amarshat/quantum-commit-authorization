@@ -31,6 +31,10 @@ class Action:
     sig: str                  # function signature the effect maps to
     args: list[str]           # concrete arguments
     calldata: str = ""        # on-chain: the bytes to sign; off-chain: "" (no tx)
+    to: str = ""              # on-chain: contract being called; "" means the token
+    beneficiary_from: str = "arg0"  # where the policy target comes from:
+                              # "arg0" (approve/transfer), "callee" (contract call),
+                              # "spender" (off-chain permit)
     spender_role: str = ""    # off-chain permit: who the signed approval empowers
     value: str = ""           # off-chain permit: the approved amount
 
@@ -146,6 +150,37 @@ class PermitOffchainRouterUnlimited(Attack):
         return before, chain.balance("agent")
 
 
+# --- E: on-chain call to an allowlisted contract that evades simulation ------
+
+class HoneypotToctou(Attack):
+    """The on-chain analogue of D: the call target is the agent's allowlisted
+    router, and a dry-run sees a benign no-op. Between the simulation and the
+    real transaction the attacker arms the contract, so the executed call drains
+    the standing allowance. The malicious destination is in contract code, not
+    in the calldata, so decoding shows nothing either."""
+
+    def build(self, chain: Chain) -> Action:
+        honeypot = chain.deploy_honeypot("attacker")
+        chain.extra_allowlist.add(honeypot)          # the agent's legitimate router
+        # standing allowance to the router: prior context, not the reviewed action
+        chain.approve_contract("agent", honeypot, ONE_USDC)
+        return Action(
+            kind="onchain",
+            sig="trade(address,uint256)",
+            args=[chain.addr("agent"), ONE_USDC],
+            calldata=cast.calldata("trade(address,uint256)", chain.addr("agent"), ONE_USDC),
+            to=honeypot,
+            beneficiary_from="callee",
+        )
+
+    def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
+        before = chain.balance("agent")
+        # attacker arms the honeypot after any simulation, before the real trade
+        cast.send_sig(chain.rpc, chain.key("attacker"), action.to, "arm()")
+        cast.send(chain.rpc, chain.key("agent"), action.to, action.calldata)
+        return before, chain.balance("agent")
+
+
 ATTACKS: list[Attack] = [
     ApproveMaxAttacker(
         id="A-approve-max",
@@ -178,5 +213,13 @@ ATTACKS: list[Attack] = [
         stated_intent="Sign the approval for the allowlisted router to enable gasless swaps.",
         true_effect="Signs an UNLIMITED off-chain approval to the allowlisted router, later drained to the attacker.",
         kind="offchain_sig",
+    ),
+    HoneypotToctou(
+        id="E-honeypot-toctou",
+        title="On-chain call to an allowlisted contract, armed after simulation",
+        harm="dry-run is benign; the real call drains after the attacker arms it",
+        stated_intent="Execute the swap through my usual router.",
+        true_effect="Calls the allowlisted router, which the attacker arms between the simulation and the real transaction so it drains the standing allowance.",
+        kind="onchain",
     ),
 ]

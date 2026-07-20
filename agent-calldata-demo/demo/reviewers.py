@@ -47,17 +47,18 @@ class Verdict:
 
 
 def _allowlist_addrs(chain: Chain) -> set[str]:
-    return {chain.addr(r).lower() for r in ALLOWLIST_ROLES}
+    return chain.allowlist_addrs(ALLOWLIST_ROLES)
 
 
 def _effect(action: Action, chain: Chain) -> tuple[str, int]:
     """(target_address, amount) as a clear-signing wallet would render it:
     by decoding the calldata for a transaction, or reading the typed message
-    for an off-chain signature."""
+    for an off-chain signature. `target` is the address the policy checks: the
+    beneficiary of an approve/transfer, or the contract being called."""
     if action.kind == "onchain":
         decoded = cast.decode_calldata(action.sig, action.calldata)
-        target = decoded[0]
         amount = int(decoded[-1].split()[0])
+        target = action.to if action.beneficiary_from == "callee" else decoded[0]
         return target, amount
     # off-chain permit: the wallet renders the signed EIP-712 fields
     return chain.addr(action.spender_role), int(action.value)
@@ -108,7 +109,7 @@ def simulate(attack: Attack, action: Action, chain: Chain) -> Verdict:
     pre = snap_state()
     snap = cast.snapshot(chain.rpc)
     try:
-        cast.send(chain.rpc, chain.key("agent"), chain.usdc, action.calldata)
+        cast.send(chain.rpc, chain.key("agent"), action.to or chain.usdc, action.calldata)
         post = snap_state()
     finally:
         cast.revert(chain.rpc, snap)
