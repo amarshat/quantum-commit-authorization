@@ -1,0 +1,8 @@
+[profile.default]
+src = "src"
+out = "forge-out"
+libs = []
+# Self-contained: no external libs, no submodules. Everything the demo needs is in src/.
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 200
