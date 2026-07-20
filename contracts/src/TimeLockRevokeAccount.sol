@@ -62,6 +62,12 @@ contract TimeLockRevokeAccount {
     /// @notice Nullifier set, keyed by leaf hash H(TAG_LEAF, secret). Shared by
     ///         enqueue leaves and revoke leaves: every leaf is one-time.
     mapping(bytes32 => bool) public usedLeaves;
+    /// @notice Revoke leaves designated by a live queue but not yet spent. A leaf
+    ///         is reserved at enqueue and released at execute or revoke, so no two
+    ///         live queues can share a revoke credential; without this a leaf used
+    ///         to cancel one queue would silently make every other queue that
+    ///         named it uncancellable (issue 1 of the external review).
+    mapping(bytes32 => bool) public reservedRevokeLeaves;
     /// @notice Enqueue commitment hash => block posted (0 = absent).
     mapping(bytes32 => uint256) public commitments;
 
@@ -127,7 +133,14 @@ contract TimeLockRevokeAccount {
     ///         execute it). The owner designates, at commit time, a distinct
     ///         unused leaf `revokeLeaf` as this queue's cancel credential.
     /// @param  revokeLeaf H(TAG_LEAF, secret_j) for a distinct unused leaf j; the
-    ///         only credential that can later revoke this queue.
+    ///         only credential that can later revoke this queue. Its membership in
+    ///         the current tree is PROVEN here (via revokeLeafIndex + revokeProof),
+    ///         so a queue can never advertise a cancel credential that is not a
+    ///         real leaf and would fail to verify at revoke time (issue 2 of the
+    ///         external review). Because membership is established here, revoke()
+    ///         re-checks only the revealed secret against this stored hash, so it
+    ///         does not depend on the current root and a later rotation cannot
+    ///         strand a live queue's cancellation (issue 3).
     /// @param  callGasLimit the execution budget bound into the queue and forwarded
     ///         to the action at execute time. Binding it (F1) closes a
     ///         gas-starvation grief: because execute is permissionless, a
@@ -141,15 +154,21 @@ contract TimeLockRevokeAccount {
         uint256 leafIndex,
         bytes32 secret,
         bytes32 revokeLeaf,
+        uint256 revokeLeafIndex,
         uint256 callGasLimit,
-        bytes32[] calldata proof
+        bytes32[] calldata proof,
+        bytes32[] calldata revokeProof
     ) external {
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
-        // The designated revoke leaf must be a distinct, still-unused leaf, or the
-        // queue would be silently uncancellable (F2). Only the owner can enqueue,
-        // so this is a footgun guard, not an adversary defense.
-        if (revokeLeaf == leafHash || usedLeaves[revokeLeaf]) revert BadRevokeLeaf();
+        // The designated revoke leaf must be a distinct leaf that is unused, not
+        // already reserved by another live queue, and a genuine member of the
+        // current tree. These close review issues 1 (reservation) and 2
+        // (membership). Only the owner can enqueue, so this is a footgun guard.
+        if (revokeLeaf == leafHash || usedLeaves[revokeLeaf] || reservedRevokeLeaves[revokeLeaf]) {
+            revert BadRevokeLeaf();
+        }
+        _foldToRoot(revokeLeaf, revokeLeafIndex, depth, root, revokeProof);
 
         bytes32 actionHash = keccak256(abi.encode(TAG_ACTION, target, value, keccak256(data)));
         bytes32 c = keccak256(
@@ -175,6 +194,7 @@ contract TimeLockRevokeAccount {
         if (queue[leafHash].live) revert QueueExists();
 
         usedLeaves[leafHash] = true;
+        reservedRevokeLeaves[revokeLeaf] = true;
         delete commitments[c];
 
         uint256 unlockAt = block.number + delta;
@@ -208,6 +228,9 @@ contract TimeLockRevokeAccount {
         if (gasleft() < q.callGasLimit + q.callGasLimit / 63 + 40_000) revert InsufficientGas();
 
         queue[queueId].live = false;
+        // The revoke leaf was never spent; release it so it can back a future
+        // queue (issue 1).
+        reservedRevokeLeaves[q.revokeLeaf] = false;
         (success, result) = target.call{gas: q.callGasLimit, value: value}(data);
         emit Executed(queueId, actionHash, success);
     }
@@ -216,26 +239,32 @@ contract TimeLockRevokeAccount {
     ///         leaf the enqueue designated as this queue's revoke credential.
     /// @dev    No aging: binding is by the pre-designated `revokeLeaf`, so an
     ///         adversary who copies this call from the mempool can only revoke the
-    ///         SAME queue (the reveal only matches this queue's `revokeLeaf`),
-    ///         which is exactly the owner's intent and therefore harmless. The
-    ///         adversary cannot forge a revoke for a queue whose revoke secret was
-    ///         never revealed (an unused leaf's secret is not public), and cannot
-    ///         redirect it to a different queue. Its only move is to censor this
-    ///         call for the whole veto window.
-    function revoke(bytes32 queueId, uint256 revokeLeafIndex, bytes32 revokeSecret, bytes32[] calldata proof)
-        external
-    {
+    ///         SAME queue (the revealed secret only matches this queue's
+    ///         `revokeLeaf`), which is exactly the owner's intent and therefore
+    ///         harmless. The adversary cannot forge a revoke for a queue whose
+    ///         revoke secret was never revealed (an unused leaf's secret is not
+    ///         public, and finding a preimage of the stored hash is a keccak
+    ///         preimage search), and cannot redirect it to a different queue. Its
+    ///         only move is to censor this call for the whole veto window.
+    ///
+    ///         Membership of the revoke leaf in the tree was PROVEN at enqueue, so
+    ///         revoke re-checks only that the revealed secret hashes to the stored
+    ///         `revokeLeaf`. It therefore does not read the current root, and a
+    ///         rotation between enqueue and revoke cannot strand this cancellation
+    ///         (issue 3).
+    function revoke(bytes32 queueId, bytes32 revokeSecret) external {
         Queued memory q = queue[queueId];
         if (!q.live) revert NoSuchQueue();
         if (block.number >= q.unlock) revert WindowClosed();
 
-        bytes32 leafHash = _verifyMembership(revokeLeafIndex, revokeSecret, proof);
+        bytes32 leafHash = keccak256(abi.encode(TAG_LEAF, revokeSecret));
         if (leafHash != q.revokeLeaf) revert WrongRevokeLeaf();
         if (usedLeaves[leafHash]) revert LeafAlreadyUsed();
 
-        // Spend the revoke leaf and cancel the queue. The queued action can never
-        // execute (executeQueued requires q.live).
+        // Spend the revoke leaf, release its reservation, and cancel the queue.
+        // The queued action can never execute (executeQueued requires q.live).
         usedLeaves[leafHash] = true;
+        reservedRevokeLeaves[leafHash] = false;
         queue[queueId].live = false;
         delete queue[queueId];
         emit Revoked(queueId, leafHash);
@@ -251,25 +280,36 @@ contract TimeLockRevokeAccount {
         emit RootRotated(newRoot, newDepth);
     }
 
+    /// @dev Spend-path membership against the current tree: derive the leaf hash
+    ///      from the secret and fold it to the current root.
     function _verifyMembership(uint256 leafIndex, bytes32 secret, bytes32[] calldata proof)
         internal
         view
         returns (bytes32 leafHash)
     {
-        uint256 d = depth;
-        if (proof.length != d) revert InvalidProofLength();
-        if (leafIndex >= (1 << d)) revert LeafIndexOutOfRange();
-
         leafHash = keccak256(abi.encode(TAG_LEAF, secret));
+        _foldToRoot(leafHash, leafIndex, depth, root, proof);
+    }
+
+    /// @dev Fold a leaf HASH (no secret needed) up its Merkle path and require it
+    ///      reaches `root_` under depth `d_`. Used to prove a designated revoke
+    ///      leaf is a real member of the tree at enqueue, without revealing its
+    ///      secret.
+    function _foldToRoot(bytes32 leafHash, uint256 leafIndex, uint256 d_, bytes32 root_, bytes32[] calldata proof)
+        internal
+        pure
+    {
+        if (proof.length != d_) revert InvalidProofLength();
+        if (leafIndex >= (1 << d_)) revert LeafIndexOutOfRange();
         bytes32 node = leafHash;
         uint256 idx = leafIndex;
-        for (uint256 i = 0; i < d; ++i) {
+        for (uint256 i = 0; i < d_; ++i) {
             node = idx & 1 == 0
                 ? keccak256(abi.encode(TAG_NODE, node, proof[i]))
                 : keccak256(abi.encode(TAG_NODE, proof[i], node));
             idx >>= 1;
         }
-        if (node != root) revert InvalidProof();
+        if (node != root_) revert InvalidProof();
     }
 
     function _checkDepth(uint256 d) internal pure {

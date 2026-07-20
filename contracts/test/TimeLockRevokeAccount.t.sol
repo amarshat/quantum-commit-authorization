@@ -61,14 +61,13 @@ contract TimeLockRevokeAccountTest is Test {
         account.commitEnqueue(enqCommit(aHash, revokeLeaf, i, secret, GAS));
         vm.roll(block.number + MIN_AGE);
         bytes32[] memory proof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), i);
-        account.enqueue(target, value, data, i, secret, revokeLeaf, GAS, proof);
+        bytes32[] memory revokeProof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), j);
+        account.enqueue(target, value, data, i, secret, revokeLeaf, j, GAS, proof, revokeProof);
         return TestTree.leafHashAt(SEED, i);
     }
 
     function doRevoke(bytes32 queueId, uint256 j) internal {
-        bytes32 secret = TestTree.secretAt(SEED, j);
-        bytes32[] memory proof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), j);
-        account.revoke(queueId, j, secret, proof);
+        account.revoke(queueId, TestTree.secretAt(SEED, j));
     }
 
     // (baseline) The happy path: enqueue, wait out the window, execute.
@@ -120,9 +119,8 @@ contract TimeLockRevokeAccountTest is Test {
         address adversary = address(0xBAD);
         vm.prank(adversary);
         bytes32 wrongSecret = TestTree.secretAt(SEED, 2);
-        bytes32[] memory wrongProof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 2);
         vm.expectRevert(TimeLockRevokeAccount.WrongRevokeLeaf.selector);
-        account.revoke(queueId, 2, wrongSecret, wrongProof);
+        account.revoke(queueId, wrongSecret);
 
         // And it cannot supply leaf 1's secret, which is not public. (We assert
         // the queue survives; the owner can still execute after the window.)
@@ -169,10 +167,8 @@ contract TimeLockRevokeAccountTest is Test {
         vm.roll(block.number + 2);
         // Adversary copies the owner's revoke calldata and front-runs it.
         address adversary = address(0xBAD);
-        bytes32 secret = TestTree.secretAt(SEED, 1);
-        bytes32[] memory proof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 1);
         vm.prank(adversary);
-        account.revoke(queueId, 1, secret, proof);
+        account.revoke(queueId, TestTree.secretAt(SEED, 1));
 
         // Same result the owner wanted: the action is cancelled.
         vm.roll(block.number + DELTA);
@@ -195,9 +191,10 @@ contract TimeLockRevokeAccountTest is Test {
         // Adversary tries to enqueue a DIFFERENT action with the same leaf/secret.
         bytes memory evil = abi.encodeCall(Receiver.setX, (999));
         bytes32[] memory proof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 0);
+        bytes32[] memory revokeProof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 1);
         vm.prank(address(0xBAD));
         vm.expectRevert(TimeLockRevokeAccount.UnknownCommitment.selector);
-        account.enqueue(address(receiver), 0, evil, 0, secret, revokeLeaf, GAS, proof);
+        account.enqueue(address(receiver), 0, evil, 0, secret, revokeLeaf, 1, GAS, proof, revokeProof);
     }
 
     // The window cannot be revoked after it closes (revoke is window-bound).
@@ -225,7 +222,8 @@ contract TimeLockRevokeAccountTest is Test {
         account.commitEnqueue(enqCommit(aHash, revokeLeaf, 0, secret, budget));
         vm.roll(block.number + MIN_AGE);
         bytes32[] memory proof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 0);
-        account.enqueue(address(hungry), 0, data, 0, secret, revokeLeaf, budget, proof);
+        bytes32[] memory revokeProof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 1);
+        account.enqueue(address(hungry), 0, data, 0, secret, revokeLeaf, 1, budget, proof, revokeProof);
         bytes32 queueId = TestTree.leafHashAt(SEED, 0);
         vm.roll(block.number + DELTA);
 
@@ -254,13 +252,89 @@ contract TimeLockRevokeAccountTest is Test {
         account.commitEnqueue(enqCommit(aHash, revokeLeaf, 0, secret, budget));
         vm.roll(block.number + MIN_AGE);
         bytes32[] memory proof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 0);
-        account.enqueue(address(hungry), 0, data, 0, secret, revokeLeaf, budget, proof);
+        bytes32[] memory revokeProof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 1);
+        account.enqueue(address(hungry), 0, data, 0, secret, revokeLeaf, 1, budget, proof, revokeProof);
         bytes32 queueId = TestTree.leafHashAt(SEED, 0);
         vm.roll(block.number + DELTA);
 
         vm.prank(address(0xCAFE));
         account.executeQueued{gas: 3_000_000}(queueId, address(hungry), 0, data);
         assertEq(hungry.done(), true, "third party executes with the owner's committed budget");
+    }
+
+    // Review issue 1: two live queues cannot share a revoke leaf. The second
+    // enqueue naming an already-reserved revoke leaf reverts, so cancelling one
+    // queue can never silently make another uncancellable.
+    function test_revokeLeafCannotBeSharedAcrossLiveQueues() public {
+        bytes memory dataA = abi.encodeCall(Receiver.setX, (1));
+        doEnqueue(address(receiver), 0, dataA, 0, 1); // queue A, revoke leaf 1
+
+        // Queue B on a different action leaf (2) but the SAME revoke leaf (1).
+        bytes memory dataB = abi.encodeCall(Receiver.setX, (2));
+        bytes32 aHash = TestTree.actionHash(address(receiver), 0, dataB);
+        bytes32 secretB = TestTree.secretAt(SEED, 2);
+        bytes32 sharedRevoke = TestTree.leafHashAt(SEED, 1);
+        account.commitEnqueue(enqCommit(aHash, sharedRevoke, 2, secretB, GAS));
+        vm.roll(block.number + MIN_AGE);
+        bytes32[] memory proofB = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 2);
+        bytes32[] memory revokeProof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 1);
+        vm.expectRevert(TimeLockRevokeAccount.BadRevokeLeaf.selector);
+        account.enqueue(address(receiver), 0, dataB, 2, secretB, sharedRevoke, 1, GAS, proofB, revokeProof);
+    }
+
+    // Review issue 1 (lifecycle): once a queue executes, its unspent revoke leaf
+    // is released and can back a new queue.
+    function test_executedQueueReleasesRevokeLeaf() public {
+        bytes memory dataA = abi.encodeCall(Receiver.setX, (1));
+        bytes32 qA = doEnqueue(address(receiver), 0, dataA, 0, 1);
+        vm.roll(block.number + DELTA);
+        account.executeQueued(qA, address(receiver), 0, dataA);
+        assertFalse(account.reservedRevokeLeaves(TestTree.leafHashAt(SEED, 1)), "revoke leaf released on execute");
+
+        // Reuse leaf 1 as the revoke credential for a fresh queue: must succeed.
+        bytes memory dataB = abi.encodeCall(Receiver.setX, (2));
+        bytes32 qB = doEnqueue(address(receiver), 0, dataB, 2, 1);
+        vm.roll(block.number + 2);
+        doRevoke(qB, 1);
+        vm.roll(block.number + DELTA);
+        vm.expectRevert(TimeLockRevokeAccount.NoSuchQueue.selector);
+        account.executeQueued(qB, address(receiver), 0, dataB);
+    }
+
+    // Review issue 2: enqueue rejects a revoke leaf that is not a genuine member
+    // of the tree, so a queue can never advertise an uncancellable credential.
+    function test_enqueueRejectsNonMemberRevokeLeaf() public {
+        bytes memory data = abi.encodeCall(Receiver.setX, (42));
+        bytes32 aHash = TestTree.actionHash(address(receiver), 0, data);
+        bytes32 secret = TestTree.secretAt(SEED, 0);
+        bytes32 fakeRevoke = keccak256("not a real leaf");
+        account.commitEnqueue(enqCommit(aHash, fakeRevoke, 0, secret, GAS));
+        vm.roll(block.number + MIN_AGE);
+        bytes32[] memory proof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 0);
+        bytes32[] memory bogusRevokeProof = TestTree.proofFor(TestTree.leaves(SEED, DEPTH), 1);
+        vm.expectRevert(TimeLockRevokeAccount.InvalidProof.selector);
+        account.enqueue(address(receiver), 0, data, 0, secret, fakeRevoke, 1, GAS, proof, bogusRevokeProof);
+    }
+
+    // Review issue 3: a root rotation between enqueue and revoke does not strand a
+    // live queue's cancellation, because revoke checks the revealed secret against
+    // the stored leaf hash and never reads the current root.
+    function test_rotationDoesNotStrandCancellation() public {
+        bytes memory data = abi.encodeCall(Receiver.setX, (42));
+        bytes32 queueId = doEnqueue(address(receiver), 0, data, 0, 1);
+
+        // Rotate to an entirely different tree (as a self-call).
+        bytes32 newRoot = TestTree.rootOf(TestTree.leaves(keccak256("rotated"), DEPTH));
+        vm.prank(address(account));
+        account.rotate(newRoot, DEPTH);
+
+        // The pre-existing queue is still cancellable with its original credential.
+        vm.roll(block.number + 2);
+        doRevoke(queueId, 1);
+        vm.roll(block.number + DELTA);
+        vm.expectRevert(TimeLockRevokeAccount.NoSuchQueue.selector);
+        account.executeQueued(queueId, address(receiver), 0, data);
+        assertEq(receiver.x(), 0, "rotation must not strand a live cancellation");
     }
 }
 
