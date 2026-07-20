@@ -23,9 +23,24 @@ Requires [Foundry](https://getfoundry.sh) (`anvil`, `cast`, `forge`) and
 ./run.sh
 ```
 
-It boots a local `anvil` chain, deploys a mock USDC, and runs four attacks past
+It boots a local `anvil` chain, deploys a mock USDC, and runs five attacks past
 three defense arms, printing the scorecard below and writing
 `out/scorecard.{json,md}`.
+
+### Optional: run the nl_plan arm against real reviewers
+
+The core demo needs no keys and no extra installs. To measure the
+natural-language arm against a deployed reviewer instead of the offline
+heuristic, set either or both of these and re-run (the live LLM path also needs
+`pip install anthropic`):
+
+```bash
+export ANTHROPIC_API_KEY=...      # frontier LLM plan-reviewer (claude-opus-4-8; override with NL_REVIEW_MODEL)
+export LAKERA_GUARD_API_KEY=...   # off-the-shelf prompt-injection guardrail
+```
+
+The arm then labels which reviewers ran. They still see only the English plan,
+so the benign-looking intents pass exactly as the heuristic predicts.
 
 ## The setup
 
@@ -52,6 +67,10 @@ Three defense arms, mirroring what is deployed in 2026:
 
 1. **nl_plan** reads the agent's plan in English (an LLM plan-reviewer, a human
    reading a confirmation, a prompt-injection guardrail). Never sees the bytes.
+   By default this is an offline heuristic; set the keys below and the same arm
+   calls a real frontier model and/or a real injection guardrail on the exact
+   same English plan. The result is identical, because the malice is not in the
+   text, and that is the honest point.
 2. **decode** does clear-signing plus an address allowlist: decode the calldata
    or typed message to its real target and amount, check the target. This is
    [ERC-7730](https://eips.ethereum.org/EIPS/eip-7730) intent rendering plus a
@@ -166,6 +185,7 @@ demo/cast.py          stdlib wrappers over cast/forge (no web3 dep)
 demo/chain.py         accounts, token, permit signing
 demo/attacks.py       the four-attack suite
 demo/reviewers.py     the three defense arms
+demo/llm.py           optional live reviewers (frontier LLM + injection guardrail)
 demo/scorecard.py     run the matrix, emit the table
 ```
 
