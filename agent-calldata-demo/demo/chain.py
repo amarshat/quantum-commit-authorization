@@ -71,6 +71,23 @@ class Chain:
         return cast.deploy(self.rpc, self.key("agent"), "src/Settlement.sol:Settlement",
                            self.cwd, self.usdc)
 
+    def deploy_aahelper(self) -> str:
+        return cast.deploy(self.rpc, self.key("agent"), "src/AAHelper.sol:AAHelper", self.cwd)
+
+    # --- EIP-7702 account delegation -----------------------------------------
+
+    def sign_delegation(self, authority: str, delegate: str) -> str:
+        """Authority signs an EIP-7702 authorization delegating its whole account
+        to `delegate`. The signature is the entire artifact; nothing is broadcast
+        when the agent signs, so there is no transaction to simulate."""
+        n = cast.nonce(self.rpc, self.addr(authority))
+        return cast.sign_auth(self.rpc, self.key(authority), delegate, n)
+
+    def submit_delegation(self, submitter: str, signed_auth: str) -> cast.Receipt:
+        # a neutral `to`; the authorization, not the call, sets the delegation
+        burn = "0x000000000000000000000000000000000000dEaD"
+        return cast.send_auth(self.rpc, self.key(submitter), burn, signed_auth)
+
     def approve_contract(self, owner_role: str, spender_addr: str, amount: str) -> None:
         cast.send_sig(self.rpc, self.key(owner_role), self.usdc,
                       "approve(address,uint256)", spender_addr, amount)

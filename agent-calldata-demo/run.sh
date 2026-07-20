@@ -15,7 +15,8 @@ forge build >/dev/null
 STARTED_ANVIL=0
 if ! cast block-number --rpc-url "$RPC" >/dev/null 2>&1; then
   echo "starting anvil..."
-  anvil --silent --port 8545 >out/anvil.log 2>&1 &
+  # --hardfork prague is required for the EIP-7702 attack (row G)
+  anvil --silent --hardfork prague --port 8545 >out/anvil.log 2>&1 &
   ANVIL_PID=$!
   STARTED_ANVIL=1
   trap '[ "$STARTED_ANVIL" = 1 ] && kill "$ANVIL_PID" 2>/dev/null || true' EXIT

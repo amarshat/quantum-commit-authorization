@@ -55,7 +55,10 @@ def run() -> list[dict]:
             "authorized": action.calldata if action.kind == "onchain"
                           else f"(off-chain signature over {action.sig}; no transaction to simulate)",
             "decoded_target": target,
-            "decoded_amount": "UNLIMITED" if amount >= 2**255 else str(amount),
+            "decoded_amount": (
+                "FULL ACCOUNT" if action.sig.startswith("EIP-7702")
+                else "UNLIMITED" if amount >= 2**255 else str(amount)
+            ),
             "drained": drained,
             "stopped": stopped,
             "verdicts": [{"arm": v.arm, "decision": v.decision, "reason": v.reason} for v in verdicts],
@@ -90,11 +93,13 @@ def print_report(rows: list[dict]) -> None:
         cells = " ".join(f"{CELL[v['decision']]:<7}" for v in r["verdicts"])
         print(f"{r['id']:<26} {cells}  {_fmt_usdc(r['drained']):<9} {'yes' if r['stopped'] else 'NO'}")
     print("\nOnly VETO stops the drain. `blind` = the arm has no transaction to inspect")
-    print("(off-chain signature). The false floor, reached by three routes:")
+    print("(off-chain signature). The false floor, reached by four routes:")
     print("  D = off-chain permit (simulation blind) to an allowlisted target, unlimited")
     print("  E = on-chain call to an allowlisted contract, simulated benign then armed after the dry-run")
     print("  F = off-chain signed order to the allowlisted exchange; normal bounded amount,")
     print("      recipient routes to the attacker (defeats an amount-aware policy too)")
+    print("  G = off-chain EIP-7702 authorization to an allowlisted helper: not one")
+    print("      allowance but the whole account, and no amount for any policy to catch")
     print("All reach an allowlisted-looking target, and nothing stops any of them.\n")
 
 
@@ -111,11 +116,12 @@ def write_files(rows: list[dict]) -> None:
         cells = " | ".join(CELL[v["decision"]] for v in r["verdicts"])
         lines.append(f"| {r['id']} | {cells} | {_fmt_usdc(r['drained'])} | {'yes' if r['stopped'] else '**no**'} |")
     lines += ["", "`blind` = the arm has no transaction to inspect (off-chain signature).",
-              "Rows D, E and F all drain to an allowlisted-looking target: D via "
+              "Rows D, E, F and G all drain to an allowlisted-looking target: D via "
               "off-chain-signature blindness (unlimited permit), E via on-chain "
               "simulation evasion (armed after the dry-run), F via an off-chain signed "
               "order whose bounded amount and allowlisted counterparty pass every policy "
-              "while the recipient field routes to the attacker."]
+              "while the recipient field routes to the attacker, and G via an EIP-7702 "
+              "authorization that signs the whole account over to an allowlisted helper."]
     with open(os.path.join(OUT_DIR, "scorecard.md"), "w") as f:
         f.write("\n".join(lines) + "\n")
 

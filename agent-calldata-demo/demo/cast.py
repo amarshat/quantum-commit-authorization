@@ -140,3 +140,32 @@ def snapshot(rpc_url: str) -> str:
 
 def revert(rpc_url: str, snap_id: str) -> None:
     rpc(rpc_url, "evm_revert", snap_id)
+
+
+# --- EIP-7702 account delegation (off-chain authorization) -------------------
+
+def nonce(rpc_url: str, addr: str) -> int:
+    return int(_run(["cast", "nonce", addr, "--rpc-url", rpc_url]))
+
+
+def sign_auth(rpc_url: str, key: str, delegate: str, auth_nonce: int) -> str:
+    """Sign an EIP-7702 authorization delegating the signer's account to
+    `delegate`. --rpc-url supplies chain_id; --nonce overrides cast's +1 default
+    (correct only when the authority itself sends the tx; here a sponsor does)."""
+    return _run([
+        "cast", "wallet", "sign-auth", delegate,
+        "--private-key", key, "--nonce", str(auth_nonce), "--rpc-url", rpc_url,
+    ])
+
+
+def send_auth(rpc_url: str, key: str, to: str, signed_auth: str) -> Receipt:
+    """Broadcast a type-4 transaction carrying a signed authorization, setting
+    the authority's delegation. `to` is a neutral address (the auth, not the
+    call, is what sets the delegation)."""
+    out = _run([
+        "cast", "send", to, "--auth", signed_auth,
+        "--rpc-url", rpc_url, "--private-key", key, "--json",
+    ])
+    d = json.loads(out)
+    return Receipt(status=int(d["status"], 16), block=int(d["blockNumber"], 16),
+                   tx_hash=d["transactionHash"])
