@@ -60,8 +60,9 @@ def _effect(action: Action, chain: Chain) -> tuple[str, int]:
         amount = int(decoded[-1].split()[0])
         target = action.to if action.beneficiary_from == "callee" else decoded[0]
         return target, amount
-    # off-chain permit: the wallet renders the signed EIP-712 fields
-    return chain.addr(action.spender_role), int(action.value)
+    # off-chain: the wallet renders the signed EIP-712 counterparty + amount
+    target = action.spender_addr or chain.addr(action.spender_role)
+    return target, int(action.value)
 
 
 # --- arm 1: natural-language plan reviewer -----------------------------------

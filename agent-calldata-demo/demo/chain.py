@@ -67,6 +67,10 @@ class Chain:
         return cast.deploy(self.rpc, self.key("agent"), "src/Honeypot.sol:Honeypot",
                            self.cwd, self.usdc, self.addr(attacker_role))
 
+    def deploy_settlement(self) -> str:
+        return cast.deploy(self.rpc, self.key("agent"), "src/Settlement.sol:Settlement",
+                           self.cwd, self.usdc)
+
     def approve_contract(self, owner_role: str, spender_addr: str, amount: str) -> None:
         cast.send_sig(self.rpc, self.key(owner_role), self.usdc,
                       "approve(address,uint256)", spender_addr, amount)
@@ -109,4 +113,29 @@ class Chain:
             self.rpc, self.key(submitter), self.usdc,
             "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
             self.addr(owner), self.addr(spender), value, str(deadline), str(v), r, s,
+        )
+
+    # --- EIP-712 order signing: the intent/order-signing surface --------------
+
+    def sign_order(self, settlement: str, maker: str, taker_addr: str, token: str,
+                   amount: str, deadline: int) -> tuple[int, str, str]:
+        """Maker signs an EIP-712 trade order. As with a permit, the artifact is
+        just a signature: nothing is broadcast, so there is no transaction to
+        simulate at signing time."""
+        typehash = cast.call(self.rpc, settlement, "ORDER_TYPEHASH()(bytes32)")
+        nonce = cast.call_uint(self.rpc, settlement, "nonces(address)(uint256)", self.addr(maker))
+        struct_hash = cast.keccak(cast.abi_encode(
+            "f(bytes32,address,address,address,uint256,uint256,uint256)",
+            typehash, self.addr(maker), taker_addr, token, amount, str(nonce), str(deadline),
+        ))
+        ds = cast.call(self.rpc, settlement, "DOMAIN_SEPARATOR()(bytes32)")
+        digest = cast.keccak("0x1901" + ds[2:] + struct_hash[2:])
+        return cast.sign_hash(self.key(maker), digest)
+
+    def fill_order(self, filler: str, settlement: str, maker: str, taker_addr: str,
+                   token: str, amount: str, deadline: int, v: int, r: str, s: str) -> cast.Receipt:
+        return cast.send_sig(
+            self.rpc, self.key(filler), settlement,
+            "fill(address,address,address,uint256,uint256,uint8,bytes32,bytes32)",
+            self.addr(maker), taker_addr, token, amount, str(deadline), str(v), r, s,
         )
