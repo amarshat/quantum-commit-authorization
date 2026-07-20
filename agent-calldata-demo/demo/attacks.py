@@ -38,6 +38,11 @@ class Action:
     spender_role: str = ""    # off-chain: the empowered party, as a named role
     spender_addr: str = ""    # off-chain: the empowered party, as a raw address (wins over role)
     value: str = ""           # off-chain: the authorized amount
+    # semantic type, for the amount / recipient / tx-type capabilities:
+    # approve | transfer | call | permit | order | delegation | permit2_approve
+    action_type: str = "call"
+    recipient_addr: str = ""  # the ULTIMATE fund recipient, when it is a signed field
+                              # distinct from the counterparty (e.g. an order's taker)
 
 
 @dataclass
@@ -68,6 +73,7 @@ class ApproveMaxAttacker(Attack):
             sig="approve(address,uint256)",
             args=[target, MAX_DEC],
             calldata=cast.calldata("approve(address,uint256)", target, MAX_DEC),
+            action_type="approve",
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
@@ -90,6 +96,7 @@ class TransferDisguisedAsPayment(Attack):
             sig="transfer(address,uint256)",
             args=[target, ONE_USDC],
             calldata=cast.calldata("transfer(address,uint256)", target, ONE_USDC),
+            action_type="transfer",
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
@@ -108,6 +115,7 @@ class PermitOffchainAttacker(Attack):
             args=[],
             spender_role="attacker",
             value=MAX_DEC,
+            action_type="permit",
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
@@ -137,6 +145,7 @@ class PermitOffchainRouterUnlimited(Attack):
             args=[],
             spender_role="router",
             value=MAX_DEC,
+            action_type="permit",
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
@@ -172,6 +181,7 @@ class HoneypotToctou(Attack):
             calldata=cast.calldata("trade(address,uint256)", chain.addr("agent"), ONE_USDC),
             to=honeypot,
             beneficiary_from="callee",
+            action_type="call",
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
@@ -204,6 +214,8 @@ class OrderSignOffchain(Attack):
             args=[],
             spender_addr=settlement,   # what a clear-signer shows as the counterparty
             value=ONE_USDC,            # a normal, bounded amount
+            action_type="order",
+            recipient_addr=chain.addr("attacker"),   # the signed taker field
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
@@ -238,6 +250,7 @@ class Delegate7702(Attack):
             args=[],
             spender_addr=helper,
             value="0",                            # authorizations carry no amount
+            action_type="delegation",
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
@@ -272,6 +285,7 @@ class Permit2StandingApproval(Attack):
             args=[permit2, MAX_DEC],
             calldata=cast.calldata("approve(address,uint256)", permit2, MAX_DEC),
             beneficiary_from="arg0",
+            action_type="permit2_approve",
         )
 
     def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
