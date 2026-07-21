@@ -21,7 +21,7 @@ models, not the branded products. See "What this is and is not" before quoting
 any of it.
 
 **Paper:** *An Address Allowlist Gates the Counterparty, Not the Grant* —
-[10.5281/zenodo.21470175](https://doi.org/10.5281/zenodo.21470175) (CC-BY-4.0).
+[10.5281/zenodo.21470174](https://doi.org/10.5281/zenodo.21470174) (CC-BY-4.0).
 **Explainer:** <https://amarshat.github.io/quantum-commit-authorization/agent-drains.html>
 
 ## Run it
