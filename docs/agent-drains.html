@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which Wallet Capability Stops an Agent's Poisoned Signature</title>
+<meta name="description" content="A capability map of agent-signature wallet drains: which wallet defense stops which poisoned-tool drain, and the one that survives. Runnable artifact + short note.">
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1a1a1a; --muted:#5c6470; --line:#e6e8ec;
+    --accent:#2f6feb; --accent-soft:#eaf1fe; --card:#f7f8fa; --code:#f2f3f5;
+    --warn-bg:#fff8e6; --warn-line:#f0d98a; --ok:#1a7f4b; --bad:#c0392b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --line:#232733;
+      --accent:#6ea0ff; --accent-soft:#16233f; --card:#161922; --code:#12151c;
+      --warn-bg:#231d0e; --warn-line:#5a4a1e; --ok:#5ac088; --bad:#e57373;
+    }
+  }
+  :root[data-theme="light"]{ --bg:#ffffff; --fg:#1a1a1a; --muted:#5c6470; --line:#e6e8ec; --accent:#2f6feb; --accent-soft:#eaf1fe; --card:#f7f8fa; --code:#f2f3f5; --warn-bg:#fff8e6; --warn-line:#f0d98a; --ok:#1a7f4b; --bad:#c0392b; }
+  :root[data-theme="dark"]{ --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --line:#232733; --accent:#6ea0ff; --accent-soft:#16233f; --card:#161922; --code:#12151c; --warn-bg:#231d0e; --warn-line:#5a4a1e; --ok:#5ac088; --bad:#e57373; }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--fg); font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:820px; margin:0 auto; padding:0 22px}
+  header{padding:60px 0 26px; border-bottom:1px solid var(--line)}
+  h1{font-size:2.0rem; line-height:1.2; margin:0 0 14px; letter-spacing:-0.02em}
+  .lede{font-size:1.16rem; color:var(--muted); margin:0}
+  .meta{margin-top:22px; display:flex; flex-wrap:wrap; gap:8px}
+  .pill{font-size:.82rem; padding:4px 11px; border:1px solid var(--line); border-radius:999px; color:var(--muted); text-decoration:none}
+  .pill:hover{border-color:var(--accent); color:var(--accent)}
+  h2{font-size:1.42rem; margin:50px 0 10px; letter-spacing:-0.01em}
+  h3{font-size:1.1rem; margin:28px 0 6px}
+  p{margin:14px 0}
+  a{color:var(--accent)}
+  strong{font-weight:650}
+  .muted{color:var(--muted)}
+  blockquote{margin:20px 0; padding:14px 20px; border-left:3px solid var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; font-size:1.05rem;}
+  blockquote p{margin:0}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin:22px 0}
+  .warn{background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:12px; padding:18px 22px; margin:22px 0}
+  .warn h3{margin-top:0}
+  pre{background:var(--code); border:1px solid var(--line); border-radius:10px; padding:16px 18px; overflow-x:auto; font-size:.86rem; line-height:1.5;}
+  code{background:var(--code); padding:1px 5px; border-radius:5px; font-size:.9em}
+  pre code{background:none; padding:0}
+  ol,ul{padding-left:1.3em}
+  li{margin:5px 0}
+  .tblwrap{overflow-x:auto; margin:20px 0}
+  table{border-collapse:collapse; width:100%; font-size:.9rem}
+  th,td{text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); white-space:nowrap}
+  th{color:var(--muted); font-weight:600}
+  td.c,th.c{text-align:center}
+  .stop{color:var(--bad); font-weight:700}
+  .pass{color:var(--muted)}
+  .res{color:var(--bad); font-weight:700}
+  footer{margin:56px 0 40px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:.92rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Which wallet capability stops an agent's poisoned signature?</h1>
+  <p class="lede">An AI agent that holds a wallet decides in English but signs bytes. A poisoned tool can pair a benign sentence with a malicious signature. This maps which wallet defense stops which drain, and the one that survives all of them.</p>
+  <div class="meta">
+    <a class="pill" href="https://doi.org/10.5281/zenodo.21470175">Paper (Zenodo DOI)</a>
+    <a class="pill" href="https://github.com/amarshat/quantum-commit-authorization/tree/main/agent-calldata-demo">Runnable artifact</a>
+    <a class="pill" href="https://github.com/amarshat/quantum-commit-authorization">Source</a>
+  </div>
+</header>
+
+<h2>The gap</h2>
+<p>Wallet safety used to be a human deciding to sign. An autonomous agent removes the human from that step: it forms an intent in natural language, then signs calldata or a typed message, at machine speed, across many actions. If a tool it uses is poisoned so the English plan is benign but the action sends value to an attacker, every defense that reads the plan is blind by construction. The burden falls on whatever inspects the bytes or the signed message.</p>
+<blockquote><p>An address allowlist gates the <em>counterparty</em>, not the <em>grant</em>. A signature can hand over power that outlives that check, or route value past it.</p></blockquote>
+<p class="muted">Nothing here is a new attack. The mechanisms (blind-signing, Permit2 phishing, EIP-7702 drains, tool poisoning) are all documented. The contribution is the object those write-ups do not build: a <strong>minimum-capability stop-map</strong>, assigning each drain to the cheapest wallet capability that stops it, made runnable, with its residue named.</p>
+
+<h2>The capability ladder</h2>
+<p>Real wallet defenses are a stack of capabilities, not one thing. Weakest first:</p>
+<ol>
+  <li><strong>Plan review (English only)</strong> — reads the stated plan, never the bytes.</li>
+  <li><strong>Address allowlist</strong> — decode the action, veto an un-allowlisted counterparty.</li>
+  <li><strong>Amount-aware clear-signing</strong> — also veto unlimited amounts.</li>
+  <li><strong>Recipient rendering</strong> — also render the ultimate recipient (an order's <code>taker</code>), as ERC-7730 does.</li>
+  <li><strong>Transaction simulation</strong> — fork-run the tx, veto on adverse state diff.</li>
+  <li><strong>Signature simulation</strong> — reason about the net transfer a signature enables.</li>
+  <li><strong>Transaction-type policy</strong> — categorical warnings on dangerous action types.</li>
+</ol>
+<p>Each drain is scored by the <em>lowest</em> rung that would stop it.</p>
+
+<h2>The coverage map</h2>
+<p>Eight drains, on-chain and off-chain, to a stranger or to an allowlisted target. A dot marks a capability that stops the drain on its own; the last column is the lowest one that does.</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>drain</th><th class="c">L1 plan</th><th class="c">L2 allow</th><th class="c">L3 amt</th><th class="c">L4 recip</th><th class="c">L5 txsim</th><th class="c">L6 sigsim</th><th class="c">L7 type</th><th>stopped at</th></tr></thead>
+<tbody>
+<tr><td>A&nbsp;&mdash; unlimited <code>approve</code> to a stranger</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td class="c stop">•</td><td>L2 allowlist</td></tr>
+<tr><td>B&nbsp;&mdash; <code>transfer</code> to a stranger as payment</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td class="c pass">·</td><td>L2 allowlist</td></tr>
+<tr><td>C&nbsp;&mdash; EIP-2612 <code>permit</code> to a stranger</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td class="c stop">•</td><td>L2 allowlist</td></tr>
+<tr><td>D&nbsp;&mdash; unlimited permit to the <em>allowed</em> router</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td>L3 amount-aware</td></tr>
+<tr><td>E&nbsp;&mdash; call to the <em>allowed</em> router, armed after the check</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="res">RESIDUAL</td></tr>
+<tr><td>F&nbsp;&mdash; EIP-712 order to the <em>allowed</em> exchange, recipient = attacker</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td class="c stop">•</td><td class="c pass">·</td><td>L4 recipient</td></tr>
+<tr><td>G&nbsp;&mdash; EIP-7702 delegation to the <em>allowed</em> helper</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td>L7 type&dagger;</td></tr>
+<tr><td>H&nbsp;&mdash; max <code>approve</code> to the <em>allowed</em> Permit2</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c pass">·</td><td class="c stop">•</td><td>L7 type&dagger;</td></tr>
+</tbody>
+</table>
+</div>
+<p class="muted">&dagger; L7 is a blunt categorical warning, not a targeted stop; for a Permit2 approval it is impractical (it fires on every legitimate setup) and for a delegation it is a click-through prompt.</p>
+<p>What it says, honestly:</p>
+<ul>
+  <li>Value to a <strong>stranger</strong> (A, B, C) is caught the moment the counterparty is decoded. The familiar "the agent drained its wallet" is the easy case.</li>
+  <li>Rendering the <strong>amount</strong> (D) and the <strong>recipient</strong> (F) closes two more. F is not special; a field-complete decoder sees the attacker in the order's <code>taker</code>.</li>
+  <li><strong>Simulation adds nothing</strong> here, and misses all three cases field rendering leaves open (E, G, H).</li>
+  <li>G and H fall only to the blunt L7 rung. H's approval is itself benign; the money moves via a later Permit2 signature the address allowlist catches like C.</li>
+  <li><strong>E survives the whole ladder.</strong> The callee is the allowed router, the dry-run is a benign no-op, and the attacker arms the contract only after the check, so the malicious state does not exist when the wallet looks.</li>
+</ul>
+<p>A field-complete clear-signing stack closes five of eight. The genuinely hard residue is one on-chain time-of-check/time-of-use race (E) and two categorically dangerous authorization types, and the survivors also require the allowlisted target itself to be adversarial.</p>
+
+<h2>Quantifying the one that survives</h2>
+<p>E's survival is conditional on the attacker winning an ordering race. That condition is where the <em>agent</em> stops being motivation and becomes the variable. Under the defense E demands (re-simulation at inclusion), the attacker must land its arming transaction immediately before the victim's, which it wins with per-attempt probability <code>β</code>. An agent signs many actions <code>K</code>, and each can be targeted, so the probability of at least one drain compounds:</p>
+<pre><code>P_drain(β, K) = 1 − (1 − β)^K       (Monte-Carlo confirmed)</code></pre>
+<div class="tblwrap">
+<table>
+<thead><tr><th>β (per attempt)</th><th class="c">K = 10</th><th class="c">K = 50</th><th class="c">K = 100</th></tr></thead>
+<tbody>
+<tr><td>0.05 &nbsp;<span class="muted">weak public-mempool</span></td><td class="c">0.40</td><td class="c">0.92</td><td class="c">0.99</td></tr>
+<tr><td>0.20 &nbsp;<span class="muted">modest searcher</span></td><td class="c">0.89</td><td class="c">1.00</td><td class="c">1.00</td></tr>
+</tbody>
+</table>
+</div>
+<p>Re-simulation at inclusion, the only capability that closes E for a human who signs once, does <em>not</em> close it for an agent that signs at volume: even a weak attacker drains an active agent with near-certainty. The surviving drain's success rate is a function of how much the agent signs.</p>
+
+<h2>One measured dimension</h2>
+<p>The ladder is a set of capability models. One dimension is wired to a real deployed service: address reputation, via the GoPlus Security API. Across all eight drains it flags <strong>nothing</strong>, because every sink is a fresh address with no history. A positive control (a real address GoPlus flags <code>stealing_attack</code> / <code>sanctioned</code>) confirms the query works, so the zero is a finding, not a broken call. It confirms, live and in the agent setting, the documented fact that drainers rotate to fresh addresses. Reputation is orthogonal to the clear-signing ladder, and defeated by address rotation.</p>
+
+<div class="warn">
+<h3>What this is, and is not</h3>
+<p>It <strong>is</strong> a runnable coverage map: eight drain shapes, the minimum capability that stops each, the residue that a field-complete simulating stack does not close, and one live-measured dimension. It is <strong>not</strong> a benchmark of any product, not a claim that off-chain signatures defeat clear-signing in general, and not a new attack. The un-defended drain is the same for every row by construction and is not data. The contracts are minimal models on a local fork; on-chain finality is real, economic loss is not. It is a mechanism demonstration.</p>
+</div>
+
+<h2>Run it</h2>
+<p>Requires <a href="https://getfoundry.sh">Foundry</a> and <code>python3</code>. No <code>pip</code>/<code>npm</code> to run the core.</p>
+<pre><code>git clone https://github.com/amarshat/quantum-commit-authorization
+cd quantum-commit-authorization/agent-calldata-demo
+./run.sh</code></pre>
+<p>It boots a local chain, deploys a mock token, runs the eight drains past the seven-capability ladder, and prints the coverage matrix. Optional keys enable the live plan-review and GoPlus lenses.</p>
+
+<footer>
+<p>Paper: <a href="https://doi.org/10.5281/zenodo.21470175">An Address Allowlist Gates the Counterparty, Not the Grant</a> (Zenodo, CC-BY-4.0). Artifact and source: <a href="https://github.com/amarshat/quantum-commit-authorization/tree/main/agent-calldata-demo">github.com/amarshat/quantum-commit-authorization</a>. Author: Amar Akshat (ORCID 0009-0000-4446-020X).</p>
+</footer>
+</div>
+</body>
+</html>

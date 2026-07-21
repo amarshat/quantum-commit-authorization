@@ -20,6 +20,10 @@ This is a coverage map, not a measurement, and the arms below are capability
 models, not the branded products. See "What this is and is not" before quoting
 any of it.
 
+**Paper:** *An Address Allowlist Gates the Counterparty, Not the Grant* —
+[10.5281/zenodo.21470175](https://doi.org/10.5281/zenodo.21470175) (CC-BY-4.0).
+**Explainer:** <https://amarshat.github.io/quantum-commit-authorization/agent-drains.html>
+
 ## Run it
 
 Requires [Foundry](https://getfoundry.sh) (`anvil`, `cast`, `forge`) and
@@ -252,6 +256,7 @@ demo/attacks.py       the eight-drain suite
 demo/reviewers.py     the capability ladder
 demo/llm.py           optional live plan-review (frontier LLM + injection guardrail)
 demo/goplus.py        optional live address-reputation lens (GoPlus Security API)
+demo/race.py          quantifies the E residual: P(drain) = 1 - (1-beta)^K
 demo/scorecard.py     run the suite, emit the coverage matrix
 ```
 
