@@ -70,3 +70,26 @@ def reputation(address: str, chain_id: int = 1) -> set[str]:
     except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError):
         return set()
     return {f for f in _MALICIOUS if str(res.get(f)) == "1"}
+
+
+def approval_risk(address: str, chain_id: int = 1) -> dict:
+    """GoPlus approval_security for a spender/contract: whether it is trusted,
+    doubted, or exhibits malicious approval behaviour. Returns {} on error."""
+    try:
+        req = urllib.request.Request(
+            f"{BASE}/approval_security/{chain_id}?contract_addresses={address}")
+        req.add_header("Authorization", _token())
+        with urllib.request.urlopen(req, timeout=25) as r:
+            res = json.loads(r.read()).get("result", {}) or {}
+    except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError):
+        return {}
+    if not isinstance(res, dict):
+        return {}
+    mb = res.get("malicious_behavior") or []
+    return {
+        "is_contract": str(res.get("is_contract")) == "1",
+        "trust_list": str(res.get("trust_list")) == "1",
+        "doubt_list": str(res.get("doubt_list")) == "1",
+        "malicious_behavior": list(mb) if isinstance(mb, list) else [],
+        "tag": res.get("tag") or "",
+    }
