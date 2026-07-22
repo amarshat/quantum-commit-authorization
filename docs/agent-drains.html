@@ -29,6 +29,13 @@
   .meta{margin-top:22px; display:flex; flex-wrap:wrap; gap:8px}
   .pill{font-size:.82rem; padding:4px 11px; border:1px solid var(--line); border-radius:999px; color:var(--muted); text-decoration:none}
   .pill:hover{border-color:var(--accent); color:var(--accent)}
+  .nav{border-bottom:1px solid var(--line); background:var(--bg); position:sticky; top:0; z-index:20}
+  .navwrap{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:11px; padding-bottom:11px}
+  .brand{font-weight:800; font-size:.92rem; text-decoration:none; color:var(--fg); letter-spacing:-0.01em; white-space:nowrap}
+  .navlinks{display:flex; flex-wrap:wrap; gap:2px}
+  .navlinks a{font-size:.85rem; text-decoration:none; color:var(--muted); padding:5px 9px; border-radius:8px; white-space:nowrap}
+  .navlinks a:hover{color:var(--accent); background:var(--accent-soft)}
+  .navlinks a[aria-current="page"]{color:var(--accent); background:var(--accent-soft); font-weight:650}
   h2{font-size:1.42rem; margin:50px 0 10px; letter-spacing:-0.01em}
   h3{font-size:1.1rem; margin:28px 0 6px}
   p{margin:14px 0}
@@ -57,11 +64,21 @@
 </style>
 </head>
 <body>
+<nav class="nav"><div class="wrap navwrap">
+  <a class="brand" href="index.html">Quantum-Commit Auth</a>
+  <div class="navlinks">
+    <a href="index.html">Overview</a>
+    <a href="agent-drains.html" aria-current="page">Agent drains</a>
+    <a href="agent-drains-demo.html">Play it</a>
+    <a href="https://github.com/amarshat/quantum-commit-authorization">GitHub</a>
+  </div>
+</div></nav>
 <div class="wrap">
 <header>
   <h1>Which wallet capability stops an agent's poisoned signature?</h1>
   <p class="lede">An AI agent that holds a wallet decides in English but signs bytes. A poisoned tool can pair a benign sentence with a malicious signature. This maps which wallet defense stops which drain, and the one that survives all of them.</p>
   <div class="meta">
+    <a class="pill" href="agent-drains-demo.html">Play it (interactive)</a>
     <a class="pill" href="https://doi.org/10.5281/zenodo.21470174">Paper (Zenodo DOI)</a>
     <a class="pill" href="https://github.com/amarshat/quantum-commit-authorization/tree/main/agent-calldata-demo">Runnable artifact</a>
     <a class="pill" href="https://github.com/amarshat/quantum-commit-authorization">Source</a>

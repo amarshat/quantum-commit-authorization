@@ -64,6 +64,29 @@ contracts-zksync/  zkSync Era native-AA build (zero-ECDSA account, foundry-zksyn
 - [ ] Recovery paths for lost leaf state
 - [ ] Paper draft
 
+## Also in this repo: an agent wallet-drain coverage map
+
+[`agent-calldata-demo/`](agent-calldata-demo/) is a separate piece of work that
+shares this repository. It is not part of the post-quantum protocol above: no
+shared code, no shared threat model. It asks a different question with a
+different adversary. When an AI agent holds a wallet and a poisoned tool hands it
+a benign-looking instruction backed by malicious calldata, which wallet defense
+actually stops the drain? The harness runs eight poisoned-tool drains against a
+seven-rung ladder of defenses and prints the coverage matrix: English plan-review
+catches none of them (the malice is in the bytes, not the words), decoding the
+counterparty catches the easy ones, and one drain survives a capability-complete
+wallet.
+
+The one honest thread linking it to the protocol above: both are about the gap
+between an intended authorization and what actually gets authorized on-chain. The
+protocol defends the authorization layer against a quantum adversary; the demo
+maps what a poisoned-tool adversary can push through the same layer. Different
+work, adjacent question.
+
+Runnable harness, coverage matrix, and the short note (DOI
+[10.5281/zenodo.21470174](https://doi.org/10.5281/zenodo.21470174)) in
+[agent-calldata-demo/README.md](agent-calldata-demo/README.md).
+
 ## License
 
 MIT

@@ -23,6 +23,13 @@ any of it.
 **Paper:** *An Address Allowlist Gates the Counterparty, Not the Grant* —
 [10.5281/zenodo.21470174](https://doi.org/10.5281/zenodo.21470174) (CC-BY-4.0).
 **Explainer:** <https://amarshat.github.io/quantum-commit-authorization/agent-drains.html>
+**Interactive:** <https://amarshat.github.io/quantum-commit-authorization/agent-drains-demo.html> (pick a drain, toggle defenses, generated from `out/scorecard.json` by `demo/build_pages.py`)
+
+This lives in the [quantum-commit-authorization](../README.md) repo but is a
+separate piece of work from the post-quantum protocol there. Shared repo, no
+shared code or threat model; see [Also in this
+repo](../README.md#also-in-this-repo-an-agent-wallet-drain-coverage-map) for the
+one honest thread that links them.
 
 ## Run it
 

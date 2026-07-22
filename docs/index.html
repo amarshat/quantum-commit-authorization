@@ -41,6 +41,13 @@
   .meta{margin-top:22px; display:flex; flex-wrap:wrap; gap:8px}
   .pill{font-size:.82rem; padding:4px 11px; border:1px solid var(--line); border-radius:999px; color:var(--muted); text-decoration:none}
   .pill:hover{border-color:var(--accent); color:var(--accent)}
+  .nav{border-bottom:1px solid var(--line); background:var(--bg); position:sticky; top:0; z-index:20}
+  .navwrap{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:11px; padding-bottom:11px}
+  .brand{font-weight:800; font-size:.92rem; text-decoration:none; color:var(--fg); letter-spacing:-0.01em; white-space:nowrap}
+  .navlinks{display:flex; flex-wrap:wrap; gap:2px}
+  .navlinks a{font-size:.85rem; text-decoration:none; color:var(--muted); padding:5px 9px; border-radius:8px; white-space:nowrap}
+  .navlinks a:hover{color:var(--accent); background:var(--accent-soft)}
+  .navlinks a[aria-current="page"]{color:var(--accent); background:var(--accent-soft); font-weight:650}
   h2{font-size:1.5rem; margin:52px 0 10px; letter-spacing:-0.01em}
   h3{font-size:1.12rem; margin:30px 0 6px}
   p{margin:14px 0}
@@ -80,6 +87,15 @@
 </style>
 </head>
 <body>
+<nav class="nav"><div class="wrap navwrap">
+  <a class="brand" href="index.html">Quantum-Commit Auth</a>
+  <div class="navlinks">
+    <a href="index.html" aria-current="page">Overview</a>
+    <a href="agent-drains.html">Agent drains</a>
+    <a href="agent-drains-demo.html">Play it</a>
+    <a href="https://github.com/amarshat/quantum-commit-authorization">GitHub</a>
+  </div>
+</div></nav>
 <header>
   <div class="wrap">
     <h1>Keeping blockchain accounts safe from a quantum computer, without waiting for the blockchain to change</h1>
