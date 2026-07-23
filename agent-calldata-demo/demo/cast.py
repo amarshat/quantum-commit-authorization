@@ -63,6 +63,15 @@ def call_uint(rpc: str, to: str, sig: str, *args: str) -> int:
     return int(call(rpc, to, sig, *args).split()[0])
 
 
+def code(rpc: str, addr: str) -> str:
+    return _run(["cast", "code", addr, "--rpc-url", rpc])
+
+
+def has_code(rpc: str, addr: str) -> bool:
+    """True if `addr` is a contract (has bytecode), False if an EOA."""
+    return code(rpc, addr).strip() not in ("", "0x")
+
+
 # --- write-side --------------------------------------------------------------
 
 @dataclass
