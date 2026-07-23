@@ -35,18 +35,46 @@ from .attacks import MAX_DEC
 MAXV = int(MAX_DEC)
 DEFAULT_RPC = os.environ.get("MAINNET_RPC", "https://eth.llamarpc.com")
 
-# selector -> (full signature, action_type, index of counterparty, index of amount)
-SELECTORS = {
-    "0x095ea7b3": ("approve(address,uint256)", "approve", 0, 1),
-    "0xa9059cbb": ("transfer(address,uint256)", "transfer", 0, 1),
-    "0x23b872dd": ("transferFrom(address,address,uint256)", "transfer", 1, 2),
-    "0xd505accf": ("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)", "permit", 1, 2),
-}
-
-
 def _first(token: str) -> str:
     # cast decode-calldata may annotate values ("123 [1.2e2]"); take the first token.
     return token.split()[0]
+
+
+# Each handler takes the decoded args and returns (action_type, counterparty, amount).
+def _h_approve(a):        return "approve", _first(a[0]), _first(a[1])
+def _h_transfer(a):       return "transfer", _first(a[0]), _first(a[1])
+def _h_transferfrom(a):   return "transfer", _first(a[1]), _first(a[2])          # to, value
+def _h_permit(a):         return "permit", _first(a[1]), _first(a[2])            # spender, value
+def _h_increase(a):       return "approve", _first(a[0]), _first(a[1])
+def _h_setapproveall(a):  return "approve", _first(a[0]), ("UNLIMITED" if _first(a[1]).lower() in ("true", "1") else "0")
+def _h_safetransfer(a):   return "transfer", _first(a[1]), "1"                   # NFT to, one token
+
+# selector -> (full signature, handler)
+SELECTORS = {
+    "0x095ea7b3": ("approve(address,uint256)", _h_approve),
+    "0xa9059cbb": ("transfer(address,uint256)", _h_transfer),
+    "0x23b872dd": ("transferFrom(address,address,uint256)", _h_transferfrom),
+    "0xd505accf": ("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)", _h_permit),
+    "0x39509351": ("increaseAllowance(address,uint256)", _h_increase),
+    "0xa22cb465": ("setApprovalForAll(address,bool)", _h_setapproveall),
+    "0x42842e0e": ("safeTransferFrom(address,address,uint256)", _h_safetransfer),
+    "0xb88d4fde": ("safeTransferFrom(address,address,uint256,bytes)", _h_safetransfer),
+}
+
+# Seaport / order selectors: recognized so the case is labeled "order", but the
+# offerer/recipient lives in nested structs we do not decode yet, so the
+# counterparty is left empty (na for the rule/reputation tiers; a simulator, which
+# runs the raw calldata, would still see the transfer).
+SEAPORT = {
+    "0xfb0f3ee1",  # fulfillBasicOrder
+    "0x00000000",  # fulfillBasicOrder_efficient_6GL6yc (Seaport 1.5)
+    "0xb3a34c4c",  # fulfillOrder
+    "0xe7acab24",  # fulfillAdvancedOrder
+    "0x87201b41",  # fulfillAvailableAdvancedOrders
+    "0xed98a574",  # fulfillAvailableOrders
+    "0xf2d12b12",  # matchOrders
+    "0x55944a42",  # matchAdvancedOrders
+}
 
 
 def hydrate_one(seed: dict, rpc: str) -> Case:
@@ -62,12 +90,17 @@ def hydrate_one(seed: dict, rpc: str) -> Case:
     amount = "0"
     action_type = seed.get("action_type", "call")
     if sel in SELECTORS:
-        sig, action_type, cp_i, amt_i = SELECTORS[sel]
-        args = cast.decode_calldata(sig, inp)
-        counterparty = recipient = _first(args[cp_i])
-        amount = _first(args[amt_i])
-        if amount.isdigit() and int(amount) >= MAXV:
-            amount = "UNLIMITED"
+        sig, handler = SELECTORS[sel]
+        try:
+            action_type, counterparty, amount = handler(cast.decode_calldata(sig, inp))
+            recipient = counterparty
+            if amount.isdigit() and int(amount) >= MAXV:
+                amount = "UNLIMITED"
+        except Exception:  # a mis-guessed selector should not drop the case
+            counterparty = recipient = ""
+            amount = "0"
+    elif sel in SEAPORT:
+        action_type = "order"
 
     cp_contract = cast.has_code(rpc, counterparty) if counterparty else False
     return Case(
