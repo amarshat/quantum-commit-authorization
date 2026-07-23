@@ -67,6 +67,11 @@ def code(rpc: str, addr: str) -> str:
     return _run(["cast", "code", addr, "--rpc-url", rpc])
 
 
+def tx(rpc: str, tx_hash: str) -> dict:
+    """Fetch a transaction by hash as a dict (from, to, input, value, ...)."""
+    return json.loads(_run(["cast", "tx", tx_hash, "--json", "--rpc-url", rpc]))
+
+
 def has_code(rpc: str, addr: str) -> bool:
     """True if `addr` is a contract (has bytecode), False if an EOA."""
     return code(rpc, addr).strip() not in ("", "0x")
