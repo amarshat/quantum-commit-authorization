@@ -77,8 +77,9 @@ def build_cases(chain: Chain) -> list[corpus.Case]:
         cases += corpus.synthetic_cases(chain)
     else:
         print("(no anvil node; skipping the synthetic suite. Start one with run.sh "
-              "to include it. Continuing with the real corpus only.)")
-    cases += corpus.real_cases()
+              "to include it. Continuing with the constructed + real corpus only.)")
+    cases += corpus.constructed_sim_cases()   # simulator-tier substrate (real calldata)
+    cases += corpus.real_cases()              # rule/reputation-tier substrate (historical)
     return cases
 
 
@@ -162,6 +163,10 @@ def main() -> None:
     write_files(rows)
     print(f"\nwrote {os.path.join(OUT_DIR, 'measured.json')} "
           f"({len(rows)} cases x {len(DEFENSES)} defenses)")
+    s = alchemy.STATS
+    capped = f", {s['capped']} capped" if s["capped"] else ""
+    print(f"Alchemy (PAYG) usage this run: {s['live']} live call(s), {s['cache']} cache hit(s)"
+          f"{capped}  [cap {alchemy._MAX_CALLS}, cached responses reused free].")
 
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@ verdict(case) -> (state, reason), state in {"catch","miss","blind","na"}.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
@@ -41,6 +42,37 @@ NETWORKS = {
     1: "eth-mainnet", 8453: "base-mainnet", 42161: "arb-mainnet",
     10: "opt-mainnet", 137: "polygon-mainnet",
 }
+
+# Cost control (Alchemy is PAYG). Every response is cached to disk so a re-run
+# costs nothing, live calls are counted and hard-capped, and the runner prints
+# live-vs-cache each run. Cache dir is gitignored.
+_CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "cache")
+_CACHE_FILE = os.path.join(_CACHE_DIR, "alchemy_sim.json")
+_MAX_CALLS = int(os.environ.get("ALCHEMY_MAX_CALLS", "50"))
+STATS = {"live": 0, "cache": 0, "capped": 0}
+_cache: dict | None = None
+
+
+def _load_cache() -> dict:
+    global _cache
+    if _cache is None:
+        try:
+            with open(_CACHE_FILE) as f:
+                _cache = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            _cache = {}
+    return _cache
+
+
+def _save_cache() -> None:
+    os.makedirs(_CACHE_DIR, exist_ok=True)
+    with open(_CACHE_FILE, "w") as f:
+        json.dump(_cache, f)
+
+
+def _cache_key(case) -> str:
+    raw = f"{case.chain_id}|{case.frm}|{case.to}|{case.input}".lower()
+    return hashlib.sha1(raw.encode()).hexdigest()
 
 
 def available() -> bool:
@@ -60,13 +92,35 @@ def _url(chain_id: int) -> str:
     return f"https://{net}.g.alchemy.com/v2/{key}"
 
 
+def _transient(err) -> bool:
+    s = str(err).lower()
+    return any(m in s for m in ("429", "rate limited", "http 5", "timed out", "urlopen", "urlerror"))
+
+
 def simulate(case) -> dict:
-    """Call alchemy_simulateAssetChanges for `case`. Returns the parsed `result`
-    dict, or {"error": ...} on any failure. Best-effort; never raises."""
-    # simulateAssetChanges runs at latest state (the real pre-sign scenario for a
-    # pending drain). It does not take a historical block, so an already-executed
-    # dataset drain whose allowance is spent will revert at latest; that is a
-    # corpus/replay limitation, handled by the caller as na, not a false miss.
+    """Cached simulateAssetChanges. A cache hit costs nothing; a miss makes one
+    live call (counted, hard-capped by ALCHEMY_MAX_CALLS) and stores a
+    deterministic result. Transient errors (429 / network) are not cached."""
+    cache = _load_cache()
+    key = _cache_key(case)
+    if key in cache:
+        STATS["cache"] += 1
+        return cache[key]
+    if STATS["live"] >= _MAX_CALLS:
+        STATS["capped"] += 1
+        return {"error": f"local call cap {_MAX_CALLS} reached (raise ALCHEMY_MAX_CALLS)"}
+    result = _simulate_network(case)
+    STATS["live"] += 1
+    if not (result.get("error") and _transient(result["error"])):
+        cache[key] = result
+        _save_cache()
+    return result
+
+
+def _simulate_network(case) -> dict:
+    """One live simulateAssetChanges call (latest state). Never raises.
+    Latest-only: an already-executed historical drain reverts here, which is why
+    the simulator tier is measured on the constructed pending suite, not replay."""
     tx = {"from": case.frm, "to": case.to, "value": "0x0", "data": case.input or "0x"}
     body = json.dumps({
         "jsonrpc": "2.0", "id": 1,
@@ -98,8 +152,8 @@ def _adverse(result: dict, owner: str, allowlisted: set[str]) -> tuple[bool, str
         frm = str(ch.get("from", "")).lower()
         to = str(ch.get("to", "")).lower()
         sym = ch.get("symbol") or ch.get("assetType") or "asset"
-        if ctype == "TRANSFER" and frm == owner and to and to != owner:
-            return True, f"simulation shows {ch.get('amount', '?')} {sym} transferred from the owner to {to}"
+        if ctype == "TRANSFER" and frm == owner and to and to != owner and to not in allowlisted:
+            return True, f"simulation shows {ch.get('amount', '?')} {sym} transferred from the owner to non-allowlisted {to}"
         if ctype == "APPROVE" and frm == owner and to and to not in allowlisted:
             return True, f"simulation shows an approval from the owner to non-allowlisted {to}"
     return False, ""
@@ -111,8 +165,11 @@ def verdict(case, allowlisted: set[str] | None = None) -> tuple[str, str]:
         allow.add(case.counterparty.lower())
     if case.kind == "offchain_sig":
         return "blind", "off-chain signature: there is no transaction to simulate at signing time"
-    if case.source != "real":
-        return "na", "synthetic local-chain case; a hosted simulator only runs against real networks"
+    if case.source != "constructed":
+        # The simulator tier is measured on the constructed pending suite. A
+        # latest-state simulator cannot replay executed history (it reverts) and
+        # cannot reach the local synthetic chain, so those cost no call here.
+        return "na", f"simulator measured on the constructed pending suite; {case.source} case not simulated"
     if not case.input:
         return "na", "no calldata to simulate"
 

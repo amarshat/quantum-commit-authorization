@@ -123,6 +123,48 @@ def synthetic_cases(chain: Chain) -> list[Case]:
     return cases
 
 
+# --- constructed pending simulator suite -----------------------------------
+# Real calldata to real mainnet contracts, simulated live at latest state. This
+# is the substrate the pre-sign simulator tier is measured on: a latest-state
+# simulator cannot replay executed history, so drains are posed as pending
+# transactions (what an agent is about to sign), which is what the simulator is
+# built to inspect. Same taxonomy as the synthetic suite, real addresses.
+USDC_MAINNET = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+PERMIT2 = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+UNIVERSAL_ROUTER = "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"
+WHALE = "0x28C6c06298d514Db089934071355E5743bf21d60"          # a large USDC holder (funds the transfer sim)
+STRANGER = "0x90F79bf6EB2c4f870365E785982E1f101E93b906"        # a fresh EOA standing in for the attacker
+KNOWN_MERCHANT = "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"  # an allowlisted payee
+
+
+def _constructed(cid, atype, calldata, cp, amount, cp_contract, cp_known, malicious) -> Case:
+    return Case(
+        id=cid, source="constructed", label=atype, malicious=malicious, kind="onchain",
+        action_type=atype, chain_id=1, frm=WHALE, to=USDC_MAINNET, input=calldata,
+        counterparty=cp, recipient=cp, amount=amount,
+        counterparty_is_contract=cp_contract, recipient_is_contract=cp_contract,
+        counterparty_known=cp_known, recipient_known=cp_known,
+        note="constructed pending drain: real calldata to real mainnet contracts",
+    )
+
+
+def constructed_sim_cases() -> list[Case]:
+    """A small, fixed suite (real calldata, encoded offline). Kept tiny on purpose:
+    the simulator is PAYG, and demo/alchemy.py caches every response, so this
+    costs a handful of live calls once and nothing thereafter."""
+    m = MAX_DEC
+    ap = lambda spender, amt: cast.calldata("approve(address,uint256)", spender, amt)
+    tr = lambda to, amt: cast.calldata("transfer(address,uint256)", to, amt)
+    return [
+        _constructed("c-approve-unlimited-stranger", "approve", ap(STRANGER, m), STRANGER, "UNLIMITED", False, False, True),
+        _constructed("c-transfer-stranger", "transfer", tr(STRANGER, "1000000"), STRANGER, "1000000", False, False, True),
+        _constructed("c-approve-unlimited-router", "approve", ap(UNIVERSAL_ROUTER, m), UNIVERSAL_ROUTER, "UNLIMITED", True, True, True),
+        _constructed("c-permit2-approve", "permit2_approve", ap(PERMIT2, m), PERMIT2, "UNLIMITED", True, True, True),
+        _constructed("c-benign-approve-router", "approve", ap(UNIVERSAL_ROUTER, "1000000"), UNIVERSAL_ROUTER, "1000000", True, True, False),
+        _constructed("c-benign-transfer-known", "transfer", tr(KNOWN_MERCHANT, "1000000"), KNOWN_MERCHANT, "1000000", False, True, False),
+    ]
+
+
 def real_cases() -> list[Case]:
     """Load labeled real transactions from corpus/real/*.json. Each file is a JSON
     list of objects matching the Case fields (extra keys are ignored). Missing =
