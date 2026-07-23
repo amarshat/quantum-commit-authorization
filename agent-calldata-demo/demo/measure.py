@@ -27,7 +27,7 @@ from __future__ import annotations
 import json
 import os
 
-from . import cast, corpus, goplus, rabby, tenderly
+from . import alchemy, cast, corpus, goplus, rabby, tenderly
 from .chain import Chain
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "out")
@@ -59,6 +59,9 @@ def _goplus_verdict(case) -> tuple[str, str]:
 
 
 DEFENSES = [
+    Defense(alchemy.NAME, alchemy.TIER, alchemy.available, alchemy.verdict),
+    # Tenderly's simulation API is now paid / sales-gated (free tier is browser
+    # only). Kept here so its skipped column records the obtainability gap.
     Defense(tenderly.NAME, tenderly.TIER, tenderly.available, tenderly.verdict),
     Defense(rabby.NAME, rabby.TIER, rabby.available, rabby.verdict),
     Defense("GoPlus reputation", "hosted", goplus.available, _goplus_verdict),

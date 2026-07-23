@@ -4,8 +4,9 @@
 # print the measured matrix. Companion to run.sh, which runs the modeled ladder.
 #
 # Real defenses are gated on keys (in ../.env or .env, gitignored):
-#   TENDERLY_ACCESS_KEY / TENDERLY_ACCOUNT / TENDERLY_PROJECT  (hosted simulator)
-#   GO_PLUS_APP_KEY / GO_PLUS_APP_SECRET                        (hosted reputation)
+#   ALCHEMY_API_KEY                                            (hosted simulator, free/self-serve)
+#   GO_PLUS_APP_KEY / GO_PLUS_APP_SECRET                       (hosted reputation)
+#   TENDERLY_ACCESS_KEY / TENDERLY_ACCOUNT / TENDERLY_PROJECT  (hosted simulator; API now paid/gated)
 # Rabby is a pure open-rules port and needs no key. Unconfigured defenses are
 # skipped, not faked.
 set -euo pipefail
