@@ -43,6 +43,12 @@ def available() -> bool:
 def verdict(case) -> tuple[str, str]:
     at = case.action_type
 
+    # A rule engine needs decoded fields. If the artifact's selector was not
+    # decoded (no counterparty and no recipient), Rabby's rules have nothing to
+    # evaluate. A hosted simulator, by contrast, still runs the raw calldata.
+    if at != "delegation" and not case.counterparty and not case.recipient:
+        return "na", "action could not be decoded (unsupported selector); a rule engine has no fields to evaluate"
+
     # --- approvals: approve / EIP-2612 permit / Permit2 approve --------------
     if at in APPROVAL_TYPES:
         # Rabby recognizes Permit2 as an approval router: a max approve TO Permit2

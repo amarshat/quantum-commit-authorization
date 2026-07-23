@@ -50,6 +50,9 @@ class Defense:
 
 
 def _goplus_verdict(case) -> tuple[str, str]:
+    # Reputation needs an address; an undecoded artifact has none to look up.
+    if not case.counterparty and not case.recipient:
+        return "na", "action could not be decoded; no counterparty address to look up"
     flags = set(goplus.reputation(case.counterparty, case.chain_id))
     if case.recipient and case.recipient.lower() != case.counterparty.lower():
         flags |= set(goplus.reputation(case.recipient, case.chain_id))
