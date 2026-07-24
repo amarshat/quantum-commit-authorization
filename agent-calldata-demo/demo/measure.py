@@ -67,7 +67,8 @@ DEFENSES = [
     # only). Kept here so its skipped column records the obtainability gap.
     Defense(tenderly.NAME, tenderly.TIER, tenderly.available, tenderly.verdict),
     Defense(rabby.NAME, rabby.TIER, rabby.available, rabby.verdict),
-    Defense("GoPlus reputation", "hosted", goplus.available, _goplus_verdict),
+    Defense("GoPlus reputation", "hosted",
+            lambda: goplus.available() and goplus.preflight(), _goplus_verdict),
 ]
 
 
@@ -153,6 +154,11 @@ def write_files(rows: list[dict]) -> None:
 
 
 def main() -> None:
+    if goplus.available() and not goplus.preflight():
+        print("WARNING: GoPlus keys are set but its API is unreachable (corporate "
+              "TLS proxy / network / rate limit). GoPlus is SKIPPED, not measured; "
+              "its column below is blank, not a wall of misses. Do NOT freeze the "
+              "reputation numbers from this run: rerun off the proxy.")
     chain = Chain()
     cases = build_cases(chain)
     if not cases:

@@ -59,17 +59,59 @@ def _token() -> str:
     return res["access_token"]
 
 
+_preflight: dict[str, bool] = {}
+
+
+def preflight() -> bool:
+    """True only if we can actually obtain a GoPlus token. Distinguishes
+    'keys set but the endpoint is unreachable' (corporate TLS proxy, network,
+    rate limit) from 'genuinely reachable'. Without this, a blocked run silently
+    turns every lookup into an empty set, which reads as a wall of false 'no
+    reputation' misses and can be frozen by mistake. Memoized per process."""
+    if "ok" not in _preflight:
+        try:
+            _token()
+            _preflight["ok"] = True
+        except Exception:
+            _preflight["ok"] = False
+    return _preflight["ok"]
+
+
+_rep_cache: dict[tuple[str, int], set[str]] = {}
+
+
 def reputation(address: str, chain_id: int = 1) -> set[str]:
     """Return the set of malicious flags GoPlus reports for `address`
-    (empty set = no known-bad reputation). Best-effort; network errors -> empty."""
-    try:
-        req = urllib.request.Request(f"{BASE}/address_security/{address}?chain_id={chain_id}")
-        req.add_header("Authorization", _token())
-        with urllib.request.urlopen(req, timeout=25) as r:
-            res = json.loads(r.read()).get("result", {}) or {}
-    except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError):
-        return set()
-    return {f for f in _MALICIOUS if str(res.get(f)) == "1"}
+    (empty set = no known-bad reputation). Best-effort; network errors -> empty.
+    Memoized per (address, chain) so a corpus that reuses a sink address (drainers
+    recur) costs one live call, not one per case, and can't be miscounted by a
+    rate-limit partway through."""
+    key = (address.lower(), chain_id)
+    if key in _rep_cache:
+        return _rep_cache[key]
+    # A corpus of ~100 sinks fires enough lookups to trip GoPlus's rate limit
+    # partway through. Without a retry the throttled calls would error to empty
+    # and be miscounted as "no reputation" (false misses). Retry with backoff and
+    # only trust a response GoPlus marks successful (code == 1).
+    delay = 1.0
+    for _ in range(5):
+        time.sleep(0.15)  # gentle base spacing to avoid tripping the limit at all
+        try:
+            req = urllib.request.Request(f"{BASE}/address_security/{address}?chain_id={chain_id}")
+            req.add_header("Authorization", _token())
+            with urllib.request.urlopen(req, timeout=25) as r:
+                payload = json.loads(r.read())
+            if payload.get("code") == 1:
+                res = payload.get("result", {}) or {}
+                flags = {f for f in _MALICIOUS if str(res.get(f)) == "1"}
+                _rep_cache[key] = flags
+                return flags
+            # non-success code (typically rate limit / throttle): back off and retry
+        except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError):
+            pass  # transient network/parse error: back off and retry
+        time.sleep(delay)
+        delay *= 2
+    return set()  # exhausted retries; do not memoize, a later case may still succeed
 
 
 def approval_risk(address: str, chain_id: int = 1) -> dict:
