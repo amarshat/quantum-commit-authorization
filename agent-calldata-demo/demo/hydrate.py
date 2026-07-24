@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 
 from . import cast
@@ -61,10 +62,49 @@ SELECTORS = {
     "0xb88d4fde": ("safeTransferFrom(address,address,uint256,bytes)", _h_safetransfer),
 }
 
-# Seaport / order selectors: recognized so the case is labeled "order", but the
-# offerer/recipient lives in nested structs we do not decode yet, so the
-# counterparty is left empty (na for the rule/reputation tiers; a simulator, which
-# runs the raw calldata, would still see the transfer).
+# Order / batch-wrapper selectors whose sink lives in a nested struct. We decode
+# each with its full signature and pull one counterparty address out, so the case
+# stops being opaque to the rule/reputation tiers. The extractor is anchored on
+# each selector's verified tuple shape (see the per-handler comment); a mis-parse
+# falls back to an empty counterparty rather than a wrong one.
+_ADDR = re.compile(r"0x[0-9a-fA-F]{40}")
+
+
+def _x_bulktransfer(s):
+    # bulkTransfer(((type,token,id,amount)[], recipient, bool)[], bytes32): the
+    # NFT sink is the outer-tuple address, anchored just before its trailing bool.
+    m = re.search(r"\],\s*(0x[0-9a-fA-F]{40}),\s*(?:true|false)\)", s)
+    return "transfer", (m.group(1) if m else ""), "0"
+
+
+def _x_permit2_batch(s):
+    # transferFrom((from,to,amount,token)[]): victim is `from` (1st address), the
+    # sink is `to` (2nd address of the first tuple).
+    a = _ADDR.findall(s)
+    return "transfer", (a[1] if len(a) >= 2 else ""), "0"
+
+
+def _x_order_maker(s):
+    # Seaport matchOrders / Blur execute|bulkExecute: the order maker (Seaport
+    # offerer / Blur trader) is the first address in the decoded struct. It is the
+    # party bound by the signed order; we surface it and label the case "order".
+    a = _ADDR.findall(s)
+    return "order", (a[0] if a else ""), "0"
+
+
+# selector -> (full signature, extractor). Signatures verified against real
+# mainnet calldata in the PTXPHISH sample.
+WRAPPERS = {
+    "0x32389b71": ("bulkTransfer(((uint8,address,uint256,uint256)[],address,bool)[],bytes32)", _x_bulktransfer),
+    "0x0d58b1db": ("transferFrom((address,address,uint160,address)[])", _x_permit2_batch),
+    "0xa8174404": ("matchOrders(((address,address,(uint8,address,uint256,uint256,uint256)[],(uint8,address,uint256,uint256,uint256,address)[],uint8,uint256,uint256,bytes32,uint256,bytes32,uint256),bytes)[],((uint256,uint256)[],(uint256,uint256)[])[])", _x_order_maker),
+    "0x9a1fc3a7": ("execute(((address,uint8,address,address,uint256,uint256,address,uint256,uint256,uint256,(uint16,address)[],uint256,bytes),uint8,bytes32,bytes32,bytes,uint8,uint256),((address,uint8,address,address,uint256,uint256,address,uint256,uint256,uint256,(uint16,address)[],uint256,bytes),uint8,bytes32,bytes32,bytes,uint8,uint256))", _x_order_maker),
+    "0xb3be57f8": ("bulkExecute((((address,uint8,address,address,uint256,uint256,address,uint256,uint256,uint256,(uint16,address)[],uint256,bytes),uint8,bytes32,bytes32,bytes,uint8,uint256),((address,uint8,address,address,uint256,uint256,address,uint256,uint256,uint256,(uint16,address)[],uint256,bytes),uint8,bytes32,bytes32,bytes,uint8,uint256))[])", _x_order_maker),
+}
+
+# Seaport variants we recognize as orders but do not yet field-decode (their tuple
+# layouts differ from matchOrders); left opaque to the field tiers, still visible
+# to a selector-agnostic simulator.
 SEAPORT = {
     "0xfb0f3ee1",  # fulfillBasicOrder
     "0x00000000",  # fulfillBasicOrder_efficient_6GL6yc (Seaport 1.5)
@@ -72,7 +112,6 @@ SEAPORT = {
     "0xe7acab24",  # fulfillAdvancedOrder
     "0x87201b41",  # fulfillAvailableAdvancedOrders
     "0xed98a574",  # fulfillAvailableOrders
-    "0xf2d12b12",  # matchOrders
     "0x55944a42",  # matchAdvancedOrders
 }
 
@@ -97,6 +136,15 @@ def hydrate_one(seed: dict, rpc: str) -> Case:
             if amount.isdigit() and int(amount) >= MAXV:
                 amount = "UNLIMITED"
         except Exception:  # a mis-guessed selector should not drop the case
+            counterparty = recipient = ""
+            amount = "0"
+    elif sel in WRAPPERS:
+        full_sig, extract = WRAPPERS[sel]
+        try:
+            decoded = " ".join(cast.decode_calldata(full_sig, inp))
+            action_type, counterparty, amount = extract(decoded)
+            recipient = counterparty
+        except Exception:  # nested decode failed; keep the case, leave it opaque
             counterparty = recipient = ""
             amount = "0"
     elif sel in SEAPORT:

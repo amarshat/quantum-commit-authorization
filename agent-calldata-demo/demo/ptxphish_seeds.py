@@ -34,7 +34,10 @@ COLUMNS = {
     "C":  ("ice-permit", True, "permit"),
     "E":  ("ice-setapprovalforall", True, "approve"),
     "H":  ("nft-bulk-transfer", True, "transfer"),
+    "J":  ("proxy-upgrade", True, "call"),
     "L":  ("nft-free-buy-order", True, "order"),
+    "V":  ("payable-airdrop", True, "call"),
+    "X":  ("payable-wallet", True, "call"),
     "AA": ("benign-kol", False, "call"),
     "AB": ("benign-developer", False, "call"),
 }
