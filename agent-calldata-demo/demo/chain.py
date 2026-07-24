@@ -74,6 +74,10 @@ class Chain:
     def deploy_aahelper(self) -> str:
         return cast.deploy(self.rpc, self.key("agent"), "src/AAHelper.sol:AAHelper", self.cwd)
 
+    def deploy_reroute_helper(self, attacker_role: str) -> str:
+        return cast.deploy(self.rpc, self.key("agent"), "src/RerouteHelper.sol:RerouteHelper",
+                           self.cwd, self.addr(attacker_role), self.usdc)
+
     def deploy_permit2(self) -> str:
         return cast.deploy(self.rpc, self.key("agent"), "src/Permit2.sol:Permit2", self.cwd)
 

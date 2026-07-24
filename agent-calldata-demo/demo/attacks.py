@@ -302,6 +302,41 @@ class Permit2StandingApproval(Attack):
         return before, chain.balance("agent")
 
 
+# --- I: EIP-7702 delegation to an allowlisted helper that reroutes internally --
+
+class Delegate7702Reroute(Attack):
+    """The sharper 7702 case (a ninth drain, surfaced in review). The agent signs
+    an authorization delegating its account to what looks like an ordinary
+    batching helper on its allowlist. The delegate's normal `execute` entrypoint
+    reroutes the account to the attacker; the malice is internal to the code, not
+    in any signed field. As with G it is an off-chain signature (nothing to
+    simulate) with no amount, and the delegate is allowlisted, so field rendering
+    sees only a trusted helper. Distinct from G: the drain rides a benign-named
+    method rather than an explicit sweep, so 'render the delegate address' is
+    visibly insufficient (a signing-time renderer resolves the top-level delegate,
+    not the reroute below it)."""
+
+    def build(self, chain: Chain) -> Action:
+        helper = chain.deploy_reroute_helper("attacker")
+        chain.extra_allowlist.add(helper)
+        return Action(
+            kind="offchain_sig",
+            sig="EIP-7702 authorization (delegate to batching helper)",
+            args=[],
+            spender_addr=helper,
+            value="0",
+            action_type="delegation",
+        )
+
+    def execute(self, chain: Chain, action: Action) -> tuple[int, int]:
+        before = chain.balance("agent")
+        auth = chain.sign_delegation("agent", action.spender_addr)
+        chain.submit_delegation("attacker", auth)
+        # the benign-looking batched action; the reroute is inside the helper's code
+        cast.send_sig(chain.rpc, chain.key("attacker"), chain.addr("agent"), "execute()")
+        return before, chain.balance("agent")
+
+
 ATTACKS: list[Attack] = [
     ApproveMaxAttacker(
         id="A-approve-max",
@@ -366,5 +401,13 @@ ATTACKS: list[Attack] = [
         stated_intent="Approve Permit2 so I can trade on the exchange.",
         true_effect="Grants Permit2 (the universal, always-allowlisted approval contract) an unlimited allowance; the balance is then drained by a later poisoned Permit2 signature the approval enabled.",
         kind="onchain",
+    ),
+    Delegate7702Reroute(
+        id="I-delegate-reroute",
+        title="EIP-7702 delegation to an allowlisted helper that reroutes internally",
+        harm="a benign-looking batching delegate whose normal method drains the account",
+        stated_intent="Sign to enable batched actions through my usual helper.",
+        true_effect="Delegates the account to an allowlisted-looking helper; invoking its normal batch entrypoint reroutes the whole balance to the attacker. No signed field distinguishes it from a benign delegation.",
+        kind="offchain_sig",
     ),
 ]
