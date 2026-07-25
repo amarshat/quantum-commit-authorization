@@ -150,16 +150,32 @@ def _simulate_network(case) -> dict:
 
 
 def _adverse(result: dict, owner: str, allowlisted: set[str]) -> tuple[bool, str]:
+    """Adverse = a net one-way outflow: an asset leaves the owner to a
+    non-allowlisted party AND nothing comes back in the same transaction. The
+    asset-diff already contains both legs, so a value-conserving round-trip
+    (wrapping ETH to WETH: ETH out, WETH in) is correctly NOT flagged, which a
+    direction-only field rule cannot distinguish. An approval to a non-allowlisted
+    party is adverse on its own. (Limitation: an attacker who returns a worthless
+    token could defeat the return-leg check; stated in the paper.)"""
     owner = owner.lower()
+    out_leg = None
+    got_back = False
     for ch in result.get("changes") or []:
         ctype = str(ch.get("changeType", "")).upper()
         frm = str(ch.get("from", "")).lower()
         to = str(ch.get("to", "")).lower()
         sym = ch.get("symbol") or ch.get("assetType") or "asset"
-        if ctype == "TRANSFER" and frm == owner and to and to != owner and to not in allowlisted:
-            return True, f"simulation shows {ch.get('amount', '?')} {sym} transferred from the owner to non-allowlisted {to}"
         if ctype == "APPROVE" and frm == owner and to and to not in allowlisted:
             return True, f"simulation shows an approval from the owner to non-allowlisted {to}"
+        if ctype == "TRANSFER" and frm == owner and to and to != owner and to not in allowlisted:
+            out_leg = out_leg or (to, ch.get("amount", "?"), sym)
+        if ctype == "TRANSFER" and to == owner and frm != owner:
+            got_back = True
+    if out_leg and not got_back:
+        to, amt, sym = out_leg
+        return True, f"simulation shows {amt} {sym} leaving the owner one-way to non-allowlisted {to} (no return leg)"
+    if out_leg and got_back:
+        return False, "owner both sends and receives in one transaction (value-conserving round-trip, e.g. a wrap or swap); not a one-way drain"
     return False, ""
 
 

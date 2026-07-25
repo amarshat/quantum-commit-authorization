@@ -157,6 +157,28 @@ PAYABLE_WALLET_DRAINER = "0x2b82e507084b2d2dd877af237ad4720e028acfd0"    # sel 0
 PAYABLE_AIRDROP_DRAINER = "0xa3ea2372bdc3663082cce0f84e185125cca814f6"   # sel 0x3158952e
 
 
+# A real proxy-upgrade drain (PTXPHISH proxy-upgrade column): the owner signs
+# upgradeTo(fresh malicious implementation). Simulated from the real owner so the
+# call does not revert. The upgrade moves no funds, so a latest-state simulator
+# sees no adverse change; the drain is a later call into the new implementation.
+PROXY_OWNER = "0x5444c883aa97d419ac20dcdbd7767f632b1a7669"
+PROXY_ADDR = "0xdfda474da220e477ed6111e3e55f7fe1c8ad64ef"
+PROXY_INPUT = "0x3659cfe6000000000000000000000000fc48255bff44906c8ab25ccfdb15e2fed953084a"
+PROXY_IMPL = "0xfc48255bfF44906c8Ab25CCFdB15e2FED953084A"
+
+
+def _proxy_upgrade_case() -> Case:
+    return Case(
+        id="c-proxy-upgrade", source="constructed", label="proxy-upgrade", malicious=True,
+        kind="onchain", action_type="call", chain_id=1, frm=PROXY_OWNER, to=PROXY_ADDR,
+        input=PROXY_INPUT, value="0", counterparty=PROXY_IMPL, recipient=PROXY_IMPL,
+        amount="account", counterparty_is_contract=True, recipient_is_contract=True,
+        counterparty_known=False, recipient_known=False,
+        note="constructed pending proxy upgrade to a fresh implementation: no asset change at "
+             "signing (simulator blind to the deferred drain), fresh impl (reputation blind).",
+    )
+
+
 def _offchain_sig(cid, atype, cp, amount, cp_contract, malicious) -> Case:
     """A signed message, no transaction at signing time. The simulator is blind
     (nothing to simulate), while a field rule / reputation lookup reads the decoded
@@ -214,6 +236,8 @@ def constructed_sim_cases() -> list[Case]:
         # off-chain signature classes: simulator blind, field tiers read the fields.
         _offchain_sig("c-permit-stranger", "permit", STRANGER, "UNLIMITED", False, True),
         _offchain_sig("c-order-stranger", "order", STRANGER, "0", False, True),
+        # deferred-harm proxy upgrade: no asset change at signing, fresh impl.
+        _proxy_upgrade_case(),
     ]
 
 
