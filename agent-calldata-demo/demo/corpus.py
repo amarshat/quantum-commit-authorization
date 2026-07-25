@@ -148,6 +148,26 @@ def _constructed(cid, atype, calldata, cp, amount, cp_contract, cp_known, malici
     )
 
 
+# Real opaque payable-drainer contracts (PTXPHISH payable-wallet / payable-airdrop
+# columns): a selector-only call whose payload a field rule cannot decode, but
+# whose ETH outflow a simulator sees. Posed here as a pending call from a funded
+# account (the whale), which is the pre-sign scenario the simulator is built for.
+PAYABLE_WALLET_DRAINER = "0x2b82e507084b2d2dd877af237ad4720e028acfd0"    # sel 0x5fba79f5
+PAYABLE_AIRDROP_DRAINER = "0xa3ea2372bdc3663082cce0f84e185125cca814f6"   # sel 0x3158952e
+
+
+def _opaque_payable(cid, to, selector, value_wei, malicious) -> Case:
+    return Case(
+        id=cid, source="constructed", label="payable-call", malicious=malicious, kind="onchain",
+        action_type="call", chain_id=1, frm=WHALE, to=to, input=selector, value=str(value_wei),
+        counterparty="", recipient="", amount="0",
+        counterparty_is_contract=True, recipient_is_contract=True,
+        counterparty_known=False, recipient_known=False,
+        note="constructed pending opaque payable drain: a selector-only call that moves the "
+             "signer's ETH. Field rules see no decodable counterparty; a simulator sees the outflow.",
+    )
+
+
 def constructed_sim_cases() -> list[Case]:
     """A small, fixed suite (real calldata, encoded offline). Kept tiny on purpose:
     the simulator is PAYG, and demo/alchemy.py caches every response, so this
@@ -155,6 +175,7 @@ def constructed_sim_cases() -> list[Case]:
     m = MAX_DEC
     ap = lambda spender, amt: cast.calldata("approve(address,uint256)", spender, amt)
     tr = lambda to, amt: cast.calldata("transfer(address,uint256)", to, amt)
+    one_eth = 10 ** 18
     return [
         _constructed("c-approve-unlimited-stranger", "approve", ap(STRANGER, m), STRANGER, "UNLIMITED", False, False, True),
         _constructed("c-transfer-stranger", "transfer", tr(STRANGER, "1000000"), STRANGER, "1000000", False, False, True),
@@ -162,6 +183,10 @@ def constructed_sim_cases() -> list[Case]:
         _constructed("c-permit2-approve", "permit2_approve", ap(PERMIT2, m), PERMIT2, "UNLIMITED", True, True, True),
         _constructed("c-benign-approve-router", "approve", ap(UNIVERSAL_ROUTER, "1000000"), UNIVERSAL_ROUTER, "1000000", True, True, False),
         _constructed("c-benign-transfer-known", "transfer", tr(KNOWN_MERCHANT, "1000000"), KNOWN_MERCHANT, "1000000", False, True, False),
+        # the decisive opaque-payable cases: rules/reputation are blind (no decodable
+        # counterparty), the simulator should see the ETH leave the signer.
+        _opaque_payable("c-opaque-payable-wallet", PAYABLE_WALLET_DRAINER, "0x5fba79f5", one_eth, True),
+        _opaque_payable("c-opaque-payable-airdrop", PAYABLE_AIRDROP_DRAINER, "0x3158952e", one_eth, True),
     ]
 
 

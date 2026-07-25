@@ -121,7 +121,11 @@ def _simulate_network(case) -> dict:
     """One live simulateAssetChanges call (latest state). Never raises.
     Latest-only: an already-executed historical drain reverts here, which is why
     the simulator tier is measured on the constructed pending suite, not replay."""
-    tx = {"from": case.frm, "to": case.to, "value": "0x0", "data": case.input or "0x"}
+    # Pass the real value: a payable drain (the victim sends ETH to an opaque
+    # contract) has no calldata a rule can read, but the ETH outflow is exactly
+    # what a simulator sees. Hardcoding value to 0 would hide that whole class.
+    val = int(case.value) if str(case.value).isdigit() else 0
+    tx = {"from": case.frm, "to": case.to, "value": hex(val), "data": case.input or "0x"}
     body = json.dumps({
         "jsonrpc": "2.0", "id": 1,
         "method": "alchemy_simulateAssetChanges", "params": [tx],
