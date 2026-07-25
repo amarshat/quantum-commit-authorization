@@ -156,6 +156,21 @@ PAYABLE_WALLET_DRAINER = "0x2b82e507084b2d2dd877af237ad4720e028acfd0"    # sel 0
 PAYABLE_AIRDROP_DRAINER = "0xa3ea2372bdc3663082cce0f84e185125cca814f6"   # sel 0x3158952e
 
 
+def _offchain_sig(cid, atype, cp, amount, cp_contract, malicious) -> Case:
+    """A signed message, no transaction at signing time. The simulator is blind
+    (nothing to simulate), while a field rule / reputation lookup reads the decoded
+    message fields (spender, order recipient). Fills the off-chain classes (EIP-2612
+    permit, Seaport/Blur order) that leave no on-chain grant to recover."""
+    return Case(
+        id=cid, source="constructed", label=atype, malicious=malicious, kind="offchain_sig",
+        action_type=atype, chain_id=1, frm=WHALE, to=USDC_MAINNET, input="", value="0",
+        counterparty=cp, recipient=cp, amount=amount,
+        counterparty_is_contract=cp_contract, recipient_is_contract=cp_contract,
+        counterparty_known=False, recipient_known=False,
+        note="constructed off-chain signature (no tx at signing): simulator blind, field tiers read the message fields",
+    )
+
+
 def _opaque_payable(cid, to, selector, value_wei, malicious) -> Case:
     return Case(
         id=cid, source="constructed", label="payable-call", malicious=malicious, kind="onchain",
@@ -187,6 +202,9 @@ def constructed_sim_cases() -> list[Case]:
         # counterparty), the simulator should see the ETH leave the signer.
         _opaque_payable("c-opaque-payable-wallet", PAYABLE_WALLET_DRAINER, "0x5fba79f5", one_eth, True),
         _opaque_payable("c-opaque-payable-airdrop", PAYABLE_AIRDROP_DRAINER, "0x3158952e", one_eth, True),
+        # off-chain signature classes: simulator blind, field tiers read the fields.
+        _offchain_sig("c-permit-stranger", "permit", STRANGER, "UNLIMITED", False, True),
+        _offchain_sig("c-order-stranger", "order", STRANGER, "0", False, True),
     ]
 
 
