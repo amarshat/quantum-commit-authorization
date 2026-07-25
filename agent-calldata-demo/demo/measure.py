@@ -50,15 +50,22 @@ class Defense:
 
 
 def _goplus_verdict(case) -> tuple[str, str]:
-    # Reputation needs an address; an undecoded artifact has none to look up.
-    if not case.counterparty and not case.recipient:
-        return "na", "action could not be decoded; no counterparty address to look up"
-    flags = set(goplus.reputation(case.counterparty, case.chain_id))
-    if case.recipient and case.recipient.lower() != case.counterparty.lower():
-        flags |= set(goplus.reputation(case.recipient, case.chain_id))
+    # Reputation needs an address. Prefer the decoded counterparty/recipient; but
+    # an undecodable ON-CHAIN call still has a valid lookup target: the contract
+    # the signer is interacting with (the tx `to`). A wallet renders that address
+    # even when it cannot decode the calldata, so not looking it up would fake a
+    # blind spot. Off-chain signatures with no decoded party are the only true na.
+    targets = [a for a in (case.counterparty, case.recipient) if a]
+    if not targets and case.kind == "onchain" and case.to:
+        targets = [case.to]
+    if not targets:
+        return "na", "no address to look up (off-chain signature with no decoded party)"
+    flags: set[str] = set()
+    for a in {t.lower(): t for t in targets}.values():
+        flags |= set(goplus.reputation(a, case.chain_id))
     if flags:
         return "catch", "reputation flags: " + ",".join(sorted(flags))
-    return "miss", "no known-bad reputation on the sink (fresh / rotated address)"
+    return "miss", "no known-bad reputation on the target (fresh / rotated / unlabeled address)"
 
 
 DEFENSES = [

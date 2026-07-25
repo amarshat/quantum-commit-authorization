@@ -43,6 +43,14 @@ def available() -> bool:
 def verdict(case) -> tuple[str, str]:
     at = case.action_type
 
+    # An opaque call that carries native value is not fully blind to a rule: the
+    # wallet still renders "Send X ETH to 0x<to>", and a rule can flag value going
+    # to a contract whose behaviour it cannot decode. This is deliberately
+    # non-specific (it also fires on legitimate payable calls), which is the point.
+    _val = int(case.value) if str(case.value).isdigit() else 0
+    if at == "call" and not case.counterparty and not case.recipient and _val > 0:
+        return "catch", "rule: call sends native value to a contract whose calldata does not decode (unexplained value transfer)"
+
     # A rule engine needs decoded fields. If the artifact's selector was not
     # decoded (no counterparty and no recipient), Rabby's rules have nothing to
     # evaluate. A hosted simulator, by contrast, still runs the raw calldata.

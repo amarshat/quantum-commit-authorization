@@ -130,6 +130,7 @@ def synthetic_cases(chain: Chain) -> list[Case]:
 # transactions (what an agent is about to sign), which is what the simulator is
 # built to inspect. Same taxonomy as the synthetic suite, real addresses.
 USDC_MAINNET = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 PERMIT2 = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
 UNIVERSAL_ROUTER = "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"
 WHALE = "0x28C6c06298d514Db089934071355E5743bf21d60"          # a large USDC holder (funds the transfer sim)
@@ -195,13 +196,21 @@ def constructed_sim_cases() -> list[Case]:
         _constructed("c-approve-unlimited-stranger", "approve", ap(STRANGER, m), STRANGER, "UNLIMITED", False, False, True),
         _constructed("c-transfer-stranger", "transfer", tr(STRANGER, "1000000"), STRANGER, "1000000", False, False, True),
         _constructed("c-approve-unlimited-router", "approve", ap(UNIVERSAL_ROUTER, m), UNIVERSAL_ROUTER, "UNLIMITED", True, True, True),
-        _constructed("c-permit2-approve", "permit2_approve", ap(PERMIT2, m), PERMIT2, "UNLIMITED", True, True, True),
+        # The max approve to the canonical Permit2 contract is BENIGN in isolation
+        # (every Uniswap user signs it); all tiers correctly pass it. The harm is a
+        # LATER Permit2 signature, a separate signing event we do not measure. This
+        # is the deferred-harm enabler, not itself a drain, so its truth is benign.
+        _constructed("c-permit2-approve", "permit2_approve", ap(PERMIT2, m), PERMIT2, "UNLIMITED", True, True, False),
         _constructed("c-benign-approve-router", "approve", ap(UNIVERSAL_ROUTER, "1000000"), UNIVERSAL_ROUTER, "1000000", True, True, False),
         _constructed("c-benign-transfer-known", "transfer", tr(KNOWN_MERCHANT, "1000000"), KNOWN_MERCHANT, "1000000", False, True, False),
-        # the decisive opaque-payable cases: rules/reputation are blind (no decodable
-        # counterparty), the simulator should see the ETH leave the signer.
+        # opaque payable drains: no decodable counterparty, but a simulator sees the
+        # ETH leave, reputation can look up the tx `to`, and a rule flags the value.
         _opaque_payable("c-opaque-payable-wallet", PAYABLE_WALLET_DRAINER, "0x5fba79f5", one_eth, True),
         _opaque_payable("c-opaque-payable-airdrop", PAYABLE_AIRDROP_DRAINER, "0x3158952e", one_eth, True),
+        # benign payable control: a legitimate ETH wrap (WETH deposit). It exercises
+        # the same opaque-value path as the drains, so it exposes the false-positive
+        # surface of the value rule and the asset-change heuristic.
+        _opaque_payable("c-benign-payable-weth", WETH, "0xd0e30db0", one_eth, False),
         # off-chain signature classes: simulator blind, field tiers read the fields.
         _offchain_sig("c-permit-stranger", "permit", STRANGER, "UNLIMITED", False, True),
         _offchain_sig("c-order-stranger", "order", STRANGER, "0", False, True),
