@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Do Deployed Wallet Defenses Catch These Drains?</title>
+<meta name="description" content="A cross-tier measurement of three real deployed wallet defenses against real victim-signed drains, and the dataset bug that has to be fixed before the measurement means anything.">
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1a1a1a; --muted:#5c6470; --line:#e6e8ec;
+    --accent:#2f6feb; --accent-soft:#eaf1fe; --card:#f7f8fa; --code:#f2f3f5;
+    --warn-bg:#fff8e6; --warn-line:#f0d98a; --ok:#1a7f4b; --bad:#c0392b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --line:#232733;
+      --accent:#6ea0ff; --accent-soft:#16233f; --card:#161922; --code:#12151c;
+      --warn-bg:#231d0e; --warn-line:#5a4a1e; --ok:#5ac088; --bad:#e57373;
+    }
+  }
+  :root[data-theme="light"]{ --bg:#ffffff; --fg:#1a1a1a; --muted:#5c6470; --line:#e6e8ec; --accent:#2f6feb; --accent-soft:#eaf1fe; --card:#f7f8fa; --code:#f2f3f5; --warn-bg:#fff8e6; --warn-line:#f0d98a; --ok:#1a7f4b; --bad:#c0392b; }
+  :root[data-theme="dark"]{ --bg:#0f1115; --fg:#e7e9ee; --muted:#9aa3b2; --line:#232733; --accent:#6ea0ff; --accent-soft:#16233f; --card:#161922; --code:#12151c; --warn-bg:#231d0e; --warn-line:#5a4a1e; --ok:#5ac088; --bad:#e57373; }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--fg); font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:820px; margin:0 auto; padding:0 22px}
+  header{padding:60px 0 26px; border-bottom:1px solid var(--line)}
+  h1{font-size:2.0rem; line-height:1.2; margin:0 0 14px; letter-spacing:-0.02em}
+  .lede{font-size:1.16rem; color:var(--muted); margin:0}
+  .meta{margin-top:22px; display:flex; flex-wrap:wrap; gap:8px}
+  .pill{font-size:.82rem; padding:4px 11px; border:1px solid var(--line); border-radius:999px; color:var(--muted); text-decoration:none}
+  .pill:hover{border-color:var(--accent); color:var(--accent)}
+  .nav{border-bottom:1px solid var(--line); background:var(--bg); position:sticky; top:0; z-index:20}
+  .navwrap{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:11px; padding-bottom:11px}
+  .brand{font-weight:800; font-size:.92rem; text-decoration:none; color:var(--fg); letter-spacing:-0.01em; white-space:nowrap}
+  .navlinks{display:flex; flex-wrap:wrap; gap:2px}
+  .navlinks a{font-size:.85rem; text-decoration:none; color:var(--muted); padding:5px 9px; border-radius:8px; white-space:nowrap}
+  .navlinks a:hover{color:var(--accent); background:var(--accent-soft)}
+  .navlinks a[aria-current="page"]{color:var(--accent); background:var(--accent-soft); font-weight:650}
+  h2{font-size:1.42rem; margin:50px 0 10px; letter-spacing:-0.01em}
+  h3{font-size:1.1rem; margin:28px 0 6px}
+  p{margin:14px 0}
+  a{color:var(--accent)}
+  strong{font-weight:650}
+  .muted{color:var(--muted)}
+  blockquote{margin:20px 0; padding:14px 20px; border-left:3px solid var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; font-size:1.05rem;}
+  blockquote p{margin:0}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin:22px 0}
+  .card h3{margin-top:0}
+  .warn{background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:12px; padding:18px 22px; margin:22px 0}
+  .warn h3{margin-top:0}
+  pre{background:var(--code); border:1px solid var(--line); border-radius:10px; padding:16px 18px; overflow-x:auto; font-size:.86rem; line-height:1.5;}
+  code{background:var(--code); padding:1px 5px; border-radius:5px; font-size:.9em}
+  pre code{background:none; padding:0}
+  ol,ul{padding-left:1.3em}
+  li{margin:5px 0}
+  .tblwrap{overflow-x:auto; margin:20px 0}
+  table{border-collapse:collapse; width:100%; font-size:.9rem}
+  th,td{text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); white-space:nowrap}
+  th{color:var(--muted); font-weight:600}
+  td.c,th.c{text-align:center}
+  .catch{color:var(--ok); font-weight:700}
+  .miss{color:var(--bad); font-weight:700}
+  .na{color:var(--muted)}
+  .fp{color:var(--bad); font-weight:700}
+  footer{margin:56px 0 40px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:.92rem}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="wrap navwrap">
+  <a class="brand" href="index.html">Quantum-Commit Auth</a>
+  <div class="navlinks">
+    <a href="index.html">Overview</a>
+    <a href="agent-drains.html">Agent drains</a>
+    <a href="agent-drains-demo.html">Play it</a>
+    <a href="wallet-defenses.html" aria-current="page">Defenses measured</a>
+    <a href="https://github.com/amarshat/quantum-commit-authorization">GitHub</a>
+  </div>
+</div></nav>
+<div class="wrap">
+<header>
+  <h1>Do deployed wallet defenses catch these drains?</h1>
+  <p class="lede">The companion page mapped which <em>modelled</em> capability stops which drain. This one measures three defenses people actually ship, against real drains from the chain. Getting there meant fixing a bug in how everyone assembles the test data, including me.</p>
+  <div class="meta">
+    <a class="pill" href="https://doi.org/10.5281/zenodo.21560866">Paper (Zenodo DOI)</a>
+    <a class="pill" href="agent-drains.html">Companion: capability map</a>
+    <a class="pill" href="https://github.com/amarshat/quantum-commit-authorization/tree/main/agent-calldata-demo">Runnable artifact</a>
+    <a class="pill" href="https://github.com/amarshat/quantum-commit-authorization/blob/main/agent-calldata-demo/demo/reconstruct.py">reconstruct.py</a>
+  </div>
+</header>
+
+<h2>Start with the bug, because everything else depends on it</h2>
+<p>To test whether a wallet defense catches drains, you need a pile of real drains. The obvious move is to grab a labelled phishing dataset. I used <a href="https://arxiv.org/abs/2409.02386">PTXPHISH</a> from NDSS 2025, which is a good dataset, carefully built.</p>
+<p>Then I decoded the rows and found I was scoring the wrong transaction.</p>
+<p>An approval-phishing drain is <strong>two</strong> transactions, not one:</p>
+<pre><code>1. the victim signs:    approve(attacker, unlimited)          tx.from = VICTIM
+2. the attacker sweeps: transferFrom(victim, attacker, all)   tx.from = ATTACKER   &lt;- later, separate tx</code></pre>
+<p>Labelled drainer datasets record step 2, because that is the transaction where the theft is visible on-chain. But a wallet defense runs at step 1, when the victim is staring at a confirmation dialog. It never sees step 2 at all. The sweep is sent from the attacker's own address, often days later.</p>
+<blockquote><p>Score a wallet defense on the sweep and you are measuring whether it can tell that an attacker is moving money to themselves. It always can. That is not a defense result.</p></blockquote>
+<p>In my first run the ice-phishing rows decoded to <code>transferFrom</code> with <code>tx.from == attacker</code> in 19 of 20 cases, and zero <code>approve</code> calls. The table in my draft said "approve" and the calldata said otherwise. Nothing errored. This is the kind of mistake that produces clean, impressive, meaningless numbers.</p>
+<p class="muted">To be clear about who this criticises: nobody. PTXPHISH is a <em>detector</em> paper, and a detector's input genuinely is the sweep. The error only appears when you reuse sweep-labelled data to evaluate a <em>pre-signature</em> defense. That is a different job, and it needs a different row.</p>
+
+<h2>Recovering the transaction the victim signed</h2>
+<p>The grant is still on-chain, so you can walk back to it. For each sweep:</p>
+<ol>
+  <li>Read the owner from the sweep's first argument. That is the victim. The sweep's sender is the attacker-spender.</li>
+  <li><code>eth_getLogs</code> the token's <code>Approval</code> / <code>ApprovalForAll</code> events for that <code>(owner, spender)</code> pair, in blocks before the sweep.</li>
+  <li>Walk the candidates newest-first and keep the first one whose <code>tx.from == victim</code>. That is the <code>approve</code>, <code>increaseAllowance</code> or <code>setApprovalForAll</code> the victim actually signed, and the transaction a wallet would have rendered.</li>
+</ol>
+<div class="card">
+<h3>Two traps in step 3</h3>
+<p><strong>An ERC-20 <code>transferFrom</code> also emits <code>Approval</code></strong>, for the decremented allowance. So the sweep's own block hands you the sweep again. Exclude it, or you have gone in a circle.</p>
+<p><strong>A <code>permit</code> emits <code>Approval</code> too</strong>, but it is submitted by a relayer or the spender, so its <code>from</code> is not the victim. The <code>from == victim</code> filter drops these correctly. It also means off-chain signature classes (EIP-2612 permits, Seaport and Blur orders) have <em>no</em> on-chain victim transaction to recover, because the victim signed a message, not a transaction. Those are measured separately rather than faked into the corpus.</p>
+</div>
+<p>Result: 140 victim-signed artifacts, 101 malicious and 39 benign controls, replacing the sweeps.</p>
+
+<h2>What actually got measured</h2>
+<p>Three defenses, each named honestly for what it is:</p>
+<ul>
+  <li><strong>Hosted simulation</strong>: Alchemy's <code>simulateAssetChanges</code>, plus my own net-outflow classifier on top. The API reports the asset changes a transaction would cause; deciding whether that is <em>adverse</em> is my code, not a product verdict.</li>
+  <li><strong>Hosted reputation</strong>: the GoPlus <code>address_security</code> API, one representative reputation service. Returns known-bad flags for an address.</li>
+  <li><strong>Field rules</strong>: a port of Rabby's published rule logic. Rabby's shipped product runs those rules over context from a closed backend, so "run real Rabby" is not independently reproducible. This is the open rules against ground-truth context, and the difference cuts both ways: the real product may be more conservative (extra address history) or less (a popular contract gets whitelisted, suppressing an alert the port raises).</li>
+</ul>
+<p class="muted">Availability is itself a finding. Of the simulators a wallet might embed, Tenderly's API is now sales-gated and Blockaid and Blowfish are B2B only. Alchemy is the only one an independent party can call. So this measures what is reachable, and names what is not.</p>
+
+<h3>Why two different test sets</h3>
+<p>A pre-signature simulator inspects a <em>pending</em> transaction against current state. A labelled phishing dataset is <em>executed history</em>: replay it at latest and the drains revert, because the allowance was spent years ago. So each defense is scored on the substrate it can validly consume:</p>
+<ul>
+  <li><strong>Rules and reputation</strong> on the 140 historical victim-signed transactions. Their inputs are addresses and decoded fields, which need no live state.</li>
+  <li><strong>Simulation</strong> on a constructed suite of 12 pending operations, built from real calldata aimed at real mainnet contracts, posed as what an agent is about to sign.</li>
+</ul>
+
+<h2>Results, historical corpus</h2>
+<p>101 malicious victim-signed transactions, 39 benign controls.</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>tier</th><th class="c">caught</th><th class="c">missed</th><th class="c">no input</th><th>false positives</th></tr></thead>
+<tbody>
+<tr><td>Field rules (Rabby port)</td><td class="c catch">81</td><td class="c">0</td><td class="c na">20</td><td>2 of 39 benign</td></tr>
+<tr><td>Reputation (GoPlus)</td><td class="c catch">80</td><td class="c miss">21</td><td class="c na">0</td><td>0 of 39 benign</td></tr>
+<tr><td>Simulation (Alchemy)</td><td class="c na">n/a</td><td class="c na">n/a</td><td class="c na">101</td><td class="na">n/a</td></tr>
+</tbody>
+</table>
+</div>
+<p>Broken out by what the victim signed:</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>class</th><th class="c">n</th><th class="c">rules</th><th class="c">reputation</th></tr></thead>
+<tbody>
+<tr><td><code>approve</code> / <code>setApprovalForAll</code> grants</td><td class="c">21</td><td class="c catch">21</td><td class="c catch">21</td></tr>
+<tr><td>direct <code>transfer</code> (NFT bulk transfers)</td><td class="c">20</td><td class="c catch">20</td><td class="c catch">20</td></tr>
+<tr><td>opaque <code>call</code> (payable, proxy upgrade)</td><td class="c">60</td><td class="c">40 <span class="na">/ 20 no input</span></td><td class="c">39 <span class="miss">/ 21 missed</span></td></tr>
+</tbody>
+</table>
+</div>
+<p>The decodable classes are covered twice over. Both tiers catch every single <code>approve</code> and every direct transfer. That redundancy is the good news and it is worth saying plainly, because the folk claim is that these defenses do not work.</p>
+<p>The opaque class is where it gets interesting. Sixty of the malicious transactions are custom selectors: payable functions and proxy upgrades with no ERC-20 fields to read. The rules tier still reaches 40 of them, but only through a blunt instrument, a rule that fires when an opaque call carries native value. The other 20 leave it nothing to fire on.</p>
+
+<h2>Results, constructed pending suite</h2>
+<p>Twelve operations, eight malicious and four benign, all real calldata to real mainnet contracts, simulated live.</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>operation</th><th class="c">rules</th><th class="c">reputation</th><th class="c">simulation</th></tr></thead>
+<tbody>
+<tr><td>unlimited <code>approve</code> to a stranger</td><td class="c catch">catch</td><td class="c miss">miss</td><td class="c catch">catch</td></tr>
+<tr><td><code>transfer</code> to a stranger</td><td class="c catch">catch</td><td class="c miss">miss</td><td class="c catch">catch</td></tr>
+<tr><td>unlimited <code>approve</code> to an <em>allowlisted</em> router</td><td class="c catch">catch</td><td class="c miss">miss</td><td class="c miss">miss</td></tr>
+<tr><td>opaque payable call, drainer wallet</td><td class="c catch">catch</td><td class="c catch">catch</td><td class="c catch">catch</td></tr>
+<tr><td>opaque payable call, fake airdrop</td><td class="c catch">catch</td><td class="c catch">catch</td><td class="c catch">catch</td></tr>
+<tr><td>off-chain <code>permit</code> to a stranger</td><td class="c catch">catch</td><td class="c miss">miss</td><td class="c na">blind</td></tr>
+<tr><td>off-chain signed order to a stranger</td><td class="c catch">catch</td><td class="c miss">miss</td><td class="c na">blind</td></tr>
+<tr><td><code>upgradeTo</code> a fresh implementation</td><td class="c miss">miss</td><td class="c catch">catch</td><td class="c na">n/a</td></tr>
+<tr><td class="muted">benign: Permit2 enabling approval</td><td class="c na">pass</td><td class="c na">pass</td><td class="c na">pass</td></tr>
+<tr><td class="muted">benign: approve to a known router</td><td class="c na">pass</td><td class="c na">pass</td><td class="c na">pass</td></tr>
+<tr><td class="muted">benign: transfer to a known address</td><td class="c na">pass</td><td class="c na">pass</td><td class="c na">pass</td></tr>
+<tr><td class="muted">benign: wrapping ETH into WETH</td><td class="c fp">FALSE POSITIVE</td><td class="c na">pass</td><td class="c na">pass</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Three tiers, three blind spots</h2>
+<p>No tier dominates, and each one is blind in a way that follows from how it works rather than from a bug.</p>
+<h3>1. Reputation is retrospective</h3>
+<p>GoPlus catches 80 of 101, which looks strong until you notice these are drainers from a <em>published dataset</em>. Their addresses have been labelled since. The 80 is an upper bound on protection at signing time, not a measurement of it, because the labels postdate the drain they would have needed to prevent. On the constructed suite, where the sinks are fresh addresses, it catches 3 of 8. Reputation knows what is already known.</p>
+<h3>2. Simulation cannot see what is not a transaction, or not yet</h3>
+<p>Two structural gaps. An off-chain signature (a permit, a Seaport order) is not a transaction, so there is nothing to simulate, which is why those rows read <em>blind</em>. And a deferred action such as a proxy upgrade moves no value at signing, so there is no asset change to flag even though the victim just handed over the contract.</p>
+<h3>3. A direction-only rule cannot tell a drain from a deposit</h3>
+<p>This is the one I like, because it is measured rather than argued. The rules tier flags the benign WETH wrap as an attack. It sees value leaving the signer toward a non-allowlisted contract, which is exactly what a drain looks like. The simulator passes it correctly, because it nets both legs: ETH goes out, WETH of equal value comes back, so the signer's net position is flat.</p>
+<p>Same transaction, opposite verdicts, and neither tier is malfunctioning. Reading direction is not the same as reading effect.</p>
+
+<h2>Why the corpus size matters</h2>
+<p>The closest published system to this setup is <a href="https://arxiv.org/abs/2510.18438">DeepTx</a> (ASE 2025), which simulates a pending transaction and warns before the user confirms. It gets the substrate right, independently: it scores the victim's transaction, not the sweep. Its evaluation is <strong>14 transactions</strong>, twelve phishing and two benign, gathered by hand from a scam feed and archived phishing pages. Its authors call it preliminary.</p>
+<p>That is not carelessness, it is the ceiling. Victim-signed drains are not what labelled corpora record, so if you collect them by hand you get a dozen. Recovering them from sweep-labelled data is what gets you to 101, and the same method would scale much further. The reconstruction is the contribution here, more than any individual number in the tables above.</p>
+
+<div class="warn">
+<h3>What this is, and is not</h3>
+<p>It <strong>is</strong> a measurement of three real, reachable defenses against real victim-signed drains, on the substrate each can validly consume. It is <strong>not</strong> a product benchmark: the simulation verdict is my classifier over Alchemy's asset diff, the rules tier is a port and not shipped Rabby, and GoPlus is one representative reputation service rather than "reputation" as a category. The 101 malicious cases collapse to a much smaller number of distinct attacker addresses, so treat per-class rates as indicative, not precise. Blockaid and Blowfish are not measured because they are not obtainable. And GoPlus's 80 is an upper bound, for the reason given above.</p>
+</div>
+
+<h2>A note on how this was built</h2>
+<p>Five rounds of adversarial review, and every round killed a headline.</p>
+<ol>
+  <li>The substrate was wrong. Fixed by reconstruction, described above.</li>
+  <li>Pseudoreplication: an impressive-looking sample size that was really a handful of repeated drainer addresses.</li>
+  <li>"The simulator uniquely catches the opaque payable class." It did not. My harness was zeroing the counterparty field, so the other two tiers had nothing to look up and returned <em>no input</em>. Give them the transaction's <code>to</code> and reputation flags it.</li>
+  <li>"These drains beat every tier." They did not, once each tier got a fair shot at the fields it can actually read.</li>
+  <li>"Tier complementarity" as a clean story. Too clean. What survived is the messier claim above: overlapping coverage of the easy cases, three structural blind spots, no tier sufficient alone.</li>
+</ol>
+<p>The pattern worth taking away: a clean-looking "only tool X catches this" result is usually your own harness, not a property of the world. Look up the obvious field and net the obvious legs before claiming anyone is structurally blind.</p>
+
+<h2>Run it</h2>
+<p>Requires <code>python3</code> and, for the live tiers, API keys in <code>.env</code>. The historical corpus is committed, so the rules tier runs offline.</p>
+<pre><code>git clone https://github.com/amarshat/quantum-commit-authorization
+cd quantum-commit-authorization/agent-calldata-demo
+./run-measure.sh</code></pre>
+<p>Writes the full matrix to <code>out/measured.json</code>. Hosted calls are cached and hard-capped, so re-runs are free. One environment warning worth repeating: behind a TLS-intercepting corporate VPN, Python rejects the proxy's certificate and every reputation lookup fails silently, which reads as a wall of misses rather than an error. The runner preflights the API and reports a skip instead, but run it off the VPN.</p>
+
+<footer>
+<p>Paper: <a href="https://doi.org/10.5281/zenodo.21560866">Three Tiers, Three Blind Spots: A Cross-Tier Measurement of Deployed Wallet Defenses Against Agent-Signing Drains</a> (Zenodo, CC-BY-4.0). Companion: <a href="agent-drains.html">the capability map</a>. Artifact and source: <a href="https://github.com/amarshat/quantum-commit-authorization/tree/main/agent-calldata-demo">github.com/amarshat/quantum-commit-authorization</a>. Author: Amar Akshat (ORCID 0009-0000-4446-020X).</p>
+</footer>
+</div>
+</body>
+</html>
