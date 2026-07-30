@@ -187,6 +187,35 @@
 <p>This is the one I like, because it is measured rather than argued. The rules tier flags the benign WETH wrap as an attack. It sees value leaving the signer toward a non-allowlisted contract, which is exactly what a drain looks like. The simulator passes it correctly, because it nets both legs: ETH goes out, WETH of equal value comes back, so the signer's net position is flat.</p>
 <p>Same transaction, opposite verdicts, and neither tier is malfunctioning. Reading direction is not the same as reading effect.</p>
 
+<h2>A fourth tier: what if you read the code?</h2>
+<p class="muted">Source data powered by <a href="https://etherscan.io">Etherscan.io</a> APIs.</p>
+<p>All three tiers above inspect the transaction. None of them reads the <em>code</em> of the contract that will govern what happens. That sounds like an obvious gap to close, so I tried to close it, and the result inverted my expectation.</p>
+<p>A code-reading defense has to answer a prior question: <strong>which contract actually decides the outcome?</strong> For these drains, it is almost never the address the transaction is sent to.</p>
+<div class="tblwrap">
+<table>
+<thead><tr><th>class</th><th class="c">rows</th><th>the transaction's <code>to</code></th><th>the object that governs</th></tr></thead>
+<tbody>
+<tr><td><code>approve</code></td><td class="c">21</td><td>12 verified blue-chip tokens: Lido stETH, Tether, BoredApeYachtClub, Pepe, wstETH, rETH, RPL, an Aave proxy</td><td>the spender, an EOA</td></tr>
+<tr><td><code>transfer</code></td><td class="c">20</td><td>OpenSea Seaport <code>TransferHelper</code></td><td>the recipient, an EOA</td></tr>
+<tr><td><code>upgradeTo</code></td><td class="c">20</td><td>the victim's own OpenSea <code>OwnableDelegateProxy</code>, verified and audited</td><td>the new implementation, from the calldata</td></tr>
+<tr><td>other <code>call</code></td><td class="c">40</td><td>the attacker's own contract</td><td>the same contract, so here <code>to</code> is right</td></tr>
+</tbody>
+</table>
+</div>
+<p>Measured over the 101 malicious cases: verified source exists for the governing object in <strong>52</strong>, there is code but no published source in <strong>8</strong>, and in <strong>41</strong> there is no code at all, because the governing object is an ordinary wallet address.</p>
+<blockquote><p>In <strong>61 of 101</strong> cases the transaction target has verified source and is <em>not</em> the object that governs the outcome. A code reader pointed at it reads audited blue-chip code and answers "fine", and it is right. The code is fine. The theft is in the arguments.</p></blockquote>
+<p>The proxy-upgrade class shows this at its sharpest. The victim signs <code>upgradeTo(impl)</code> on their own OpenSea proxy. That proxy is legitimate, verified since 2018, and deployed identically for thousands of users. The implementation address in the calldata is this, in full:</p>
+<pre><code>// @mr_inferno_drainer / inferno drainer
+contract WyvernReplaceProxyContract {
+    function multicall(CallData[] memory calls) public {
+        require(msg.sender == address(0x0000db5c8B030ae20308ac975898E09741e70000),
+                "Caller is not an owner");
+        for (uint256 i = 0; i &lt; calls.length; i++) {
+            (bool success, ) = calls[i].contractAddress.call(calls[i].callBytes);</code></pre>
+<p>Thirty lines, verified source, self-labelled by the drainer crew, an arbitrary-call machine gated to a hardcoded stranger. Once the victim's proxy points at it, the attacker drives any call through a proxy holding the victim's NFT approvals.</p>
+<p>So the difficulty is not analysis. Any competent reader, human or model, flags that instantly. <strong>The difficulty is knowing which of the two contracts to open.</strong> Source availability on the transaction target is close to total, and close to useless.</p>
+<p class="muted">Two bounds on this. Etherscan publishes no verification date, so I cannot establish whether a given contract's source was public at the moment the victim signed; availability is measured as of now and is an upper bound, in the same way the reputation tier's hits are. And 20 upgradeTo rows resolve to only 6 distinct implementations, of which 2 are verified, so those are counts and not a rate.</p>
+
 <h2>Why the corpus size matters</h2>
 <p>The closest published system to this setup is <a href="https://arxiv.org/abs/2510.18438">DeepTx</a> (ASE 2025), which simulates a pending transaction and warns before the user confirms. It gets the substrate right, independently: it scores the victim's transaction, not the sweep. Its evaluation is <strong>14 transactions</strong>, twelve phishing and two benign, gathered by hand from a scam feed and archived phishing pages. Its authors call it preliminary.</p>
 <p>That is not carelessness, it is the ceiling. Victim-signed drains are not what labelled corpora record, so if you collect them by hand you get a dozen. Recovering them from sweep-labelled data is what gets you to 101, and the same method would scale much further. The reconstruction is the contribution here, more than any individual number in the tables above.</p>
@@ -215,7 +244,7 @@ cd quantum-commit-authorization/agent-calldata-demo
 <p>Writes the full matrix to <code>out/measured.json</code>. Hosted calls are cached and hard-capped, so re-runs are free. One environment warning worth repeating: behind a TLS-intercepting corporate VPN, Python rejects the proxy's certificate and every reputation lookup fails silently, which reads as a wall of misses rather than an error. The runner preflights the API and reports a skip instead, but run it off the VPN.</p>
 
 <footer>
-<p>Paper: <a href="https://doi.org/10.5281/zenodo.21560866">Three Tiers, Three Blind Spots: A Cross-Tier Measurement of Deployed Wallet Defenses Against Agent-Signing Drains</a> (Zenodo, CC-BY-4.0). Companion: <a href="agent-drains.html">the capability map</a>. Artifact and source: <a href="https://github.com/amarshat/quantum-commit-authorization/tree/main/agent-calldata-demo">github.com/amarshat/quantum-commit-authorization</a>. Author: Amar Akshat (ORCID 0009-0000-4446-020X).</p>
+<p>Paper: <a href="https://doi.org/10.5281/zenodo.21560866">Three Tiers, Three Blind Spots: A Cross-Tier Measurement of Deployed Wallet Defenses Against Agent-Signing Drains</a> (Zenodo, CC-BY-4.0). Companion: <a href="agent-drains.html">the capability map</a>. Artifact and source: <a href="https://github.com/amarshat/quantum-commit-authorization/tree/main/agent-calldata-demo">github.com/amarshat/quantum-commit-authorization</a>. Author: Amar Akshat (ORCID 0009-0000-4446-020X). Contract source data powered by <a href="https://etherscan.io">Etherscan.io</a> APIs; address reputation by <a href="https://gopluslabs.io">GoPlus Security</a>; transaction simulation by <a href="https://www.alchemy.com">Alchemy</a>.</p>
 </footer>
 </div>
 </body>

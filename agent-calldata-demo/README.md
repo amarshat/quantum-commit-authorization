@@ -178,6 +178,52 @@ GoPlus is a reputation service, not a simulator, so it cannot upgrade the
 simulation rungs (L5, L6); those stay models until wired to a real simulation
 API (Tenderly, or Blockaid/Blowfish's gated scan APIs).
 
+## Source availability on the authority object (Etherscan)
+
+*Powered by [Etherscan.io](https://etherscan.io) APIs.*
+
+Every other tier inspects the transaction. None reads the *code* of the contract
+that will govern the outcome, and answering that requires a prior question: which
+contract actually decides what happens here? For most drain shapes it is not the
+transaction target.
+
+Set `ETHERSCAN_API_KEY` in the `.env` and `demo/measure.py` adds a fourth column.
+It resolves the authority object, then reports whether a code reader would have
+anything to read. States are **availability, not detection**: `catch` means
+verified source exists for the governing object, `blind` means code but no source,
+`na` means no code at all. It deliberately does not judge whether the code is
+malicious; hand-rolling a malice classifier would be a strawman of the agentic
+analysers this is meant to characterise.
+
+Measured over the 101 malicious victim-signed cases:
+
+```
+class      rows  the tx `to`                             authority object      state
+approve      21  12 verified blue-chip tokens            the spender           na  (EOA)
+                 (stETH, USDT, BoredApeYachtClub, PEPE,
+                  wstETH, rETH, RPL, an Aave proxy)
+transfer     20  OpenSea Seaport TransferHelper          the recipient         na  (EOA) x19
+upgradeTo    20  the victim's own OpenSea                the new               catch x16
+                 OwnableDelegateProxy (verified, benign)  implementation       blind x3, na x1
+other call   40  the attacker's own contract             the same contract     catch x36, blind x4
+
+totals: catch 52, blind 8, na 41
+the tx target is verified but is NOT the authority object: 61 / 101
+```
+
+So in 61 of 101 rows the readable contract is legitimate, verified, famous
+infrastructure, and a source reader pointed at it correctly answers "fine",
+because the code *is* fine. The theft lives in the arguments: an EOA spender, an
+EOA recipient, or a replacement implementation address. **Source availability on
+the target is nearly total and nearly useless. Object selection is the bottleneck,
+not availability.**
+
+Two bounds. Etherscan exposes no verification date, so we cannot establish whether
+a contract's source was public at the moment the victim signed; availability is
+measured as of now and is therefore an upper bound, exactly as the reputation
+tier's hits are. And 20 `upgradeTo` rows resolve to only 6 distinct
+implementations, so those are reported as counts, not rates.
+
 ## Concessions (what would flip, and what the demo assumes)
 
 These are load-bearing; do not quote the matrix without them.
@@ -263,12 +309,16 @@ demo/attacks.py       the eight-drain suite
 demo/reviewers.py     the capability ladder
 demo/llm.py           optional live plan-review (frontier LLM + injection guardrail)
 demo/goplus.py        optional live address-reputation lens (GoPlus Security API)
+demo/source_tier.py   optional source-availability lens on the authority object (Etherscan)
 demo/race.py          quantifies the E residual: P(drain) = 1 - (1-beta)^K
 demo/scorecard.py     run the suite, emit the coverage matrix
 ```
 
 Optional keys (put in a gitignored `.env`; `run.sh` sources it): `GO_PLUS_APP_KEY`
-+ `GO_PLUS_APP_SECRET` enable the live reputation lens; `ANTHROPIC_API_KEY`
++ `GO_PLUS_APP_SECRET` enable the live reputation lens; `ETHERSCAN_API_KEY`
+enables the source-availability lens (free tier is 5 calls/sec, and its use
+requires the "Powered by Etherscan.io APIs" attribution shown above);
+`ANTHROPIC_API_KEY`
 (+ `pip install anthropic`) and/or `LAKERA_GUARD_API_KEY` make the L1 plan-review
 rung call a real model / guardrail.
 

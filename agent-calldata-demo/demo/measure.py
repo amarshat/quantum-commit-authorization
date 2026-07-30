@@ -24,10 +24,11 @@ always clear what is a real API call versus a ported rule set.
 
 from __future__ import annotations
 
+import collections
 import json
 import os
 
-from . import alchemy, cast, corpus, goplus, rabby, tenderly
+from . import alchemy, cast, corpus, goplus, rabby, source_tier, tenderly
 from .chain import Chain
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "out")
@@ -36,11 +37,16 @@ STATE_MARK = {"catch": "✓", "miss": "✗", "blind": "–", "na": "·", "skip":
 
 
 class Defense:
-    def __init__(self, name, tier, available_fn, verdict_fn):
+    def __init__(self, name, tier, available_fn, verdict_fn, detector=True):
         self.name = name
         self.tier = tier
         self._available = available_fn
         self._verdict = verdict_fn
+        # A detector's `catch` means "would have stopped this". An availability
+        # lens's `catch` means "the information was readable". Mixing them into
+        # one catch-rate table would report a 100% detector and count legitimate
+        # verified contracts as false positives, so the aggregates skip them.
+        self.detector = detector
 
     def available(self) -> bool:
         return self._available()
@@ -76,6 +82,10 @@ DEFENSES = [
     Defense(rabby.NAME, rabby.TIER, rabby.available, rabby.verdict),
     Defense("GoPlus reputation", "hosted",
             lambda: goplus.available() and goplus.preflight(), _goplus_verdict),
+    # Reads the code of the object that governs the outcome, which is usually not
+    # the transaction target. Availability, not detection: see demo/source_tier.py.
+    Defense(source_tier.NAME, source_tier.TIER, source_tier.available, source_tier.verdict,
+            detector=False),
 ]
 
 
@@ -134,6 +144,8 @@ def print_matrix(rows: list[dict], defenses: list[Defense]) -> None:
     print("\nPer-defense catch rate on malicious cases it can actually see "
           "(excludes blind / na / skip):")
     for d in defenses:
+        if not d.detector:
+            continue
         seen = [r for r in rows if r["malicious"] and r["verdicts"][d.name]["state"] in ("catch", "miss")]
         caught = sum(1 for r in seen if r["verdicts"][d.name]["state"] == "catch")
         blind = sum(1 for r in rows if r["malicious"] and r["verdicts"][d.name]["state"] == "blind")
@@ -143,10 +155,25 @@ def print_matrix(rows: list[dict], defenses: list[Defense]) -> None:
         tag = "" if d.available() else "  [skipped: not configured]"
         print(f"  {d.name:<28} {rate:>7}{extra}{tag}")
 
+    for d in defenses:
+        if d.detector or not d.available():
+            continue
+        mal = [r for r in rows if r["malicious"]]
+        c = collections.Counter(r["verdicts"][d.name]["state"] for r in mal)
+        div = sum(1 for r in mal
+                  if "IS verified, but it is not the object" in r["verdicts"][d.name]["reason"])
+        print(f"\n{d.name} on {len(mal)} malicious cases (availability, not detection):")
+        print(f"  readable source for the governing object: {c['catch']}")
+        print(f"  code but no verified source:              {c['blind']}")
+        print(f"  no code at all (inapplicable):            {c['na']}")
+        print(f"  tx target verified but NOT that object:   {div}  <- the wrong-object gap")
+
     fp_cases = [r for r in rows if not r["malicious"]]
     if fp_cases:
         print("\nFalse positives on benign controls:")
         for d in defenses:
+            if not d.detector:
+                continue
             fp = sum(1 for r in fp_cases if r["verdicts"][d.name]["state"] == "catch")
             print(f"  {d.name:<28} {fp}/{len(fp_cases)}")
     else:
@@ -180,6 +207,8 @@ def main() -> None:
     capped = f", {s['capped']} capped" if s["capped"] else ""
     print(f"Alchemy (PAYG) usage this run: {s['live']} live call(s), {s['cache']} cache hit(s)"
           f"{capped}  [cap {alchemy._MAX_CALLS}, cached responses reused free].")
+    if source_tier.available():
+        print(source_tier.summary())
 
 
 if __name__ == "__main__":
