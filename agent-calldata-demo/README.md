@@ -224,6 +224,46 @@ measured as of now and is therefore an upper bound, exactly as the reputation
 tier's hits are. And 20 `upgradeTo` rows resolve to only 6 distinct
 implementations, so those are reported as counts, not rates.
 
+## Intent settlement: does the signed order govern what executes?
+
+*Powered by [Etherscan.io](https://etherscan.io) APIs.*
+
+Everything above measures a transaction the user signs directly. An intent system
+inverts that: the user signs an *order* and never authors the settlement
+transaction. A solver does, later, and supplies the calls that run against the
+user's approved balance.
+
+`demo/intent_gap.py` decodes CoW Protocol settlements and asks how many of the
+contracts that actually execute appear anywhere in the signed order.
+
+```bash
+python3 -m demo.intent_gap --windows 7 --per-window 25 --spacing-days 45
+```
+
+Over 174 settlements sampled across seven days spread over nine months:
+
+```
+median |T\S|/|T|   0.845        (share of executing contracts named in no order)
+mean               0.794
+all absent         84/174        settlements naming none of them
+none absent         0/174        settlements naming all of them
+distinct contracts governing execution but named in no order: 77
+```
+
+Of those 77, ten have no published source (the most used governs 22 of the 174
+settlements) and five sit behind upgradeable proxies. Those are the same two
+shapes as the historical corpus, at a site with different mechanics.
+
+**This is not a vulnerability claim.** A CoW order's limit price and receiver are
+enforced at settlement, so the value outcome is bounded no matter which contracts
+execute. That is the design working. The point is what a defense can *see* at
+signing time: the signed artifact governs the value bound and nothing else, while
+the execution set is governed elsewhere and is mostly invisible.
+
+Two bounds. `|T|` comes from settlement calldata, so contracts reached through
+nested internal calls are invisible, making it a lower bound that works against
+the finding rather than for it. And each window samples one day of blocks.
+
 ## Concessions (what would flip, and what the demo assumes)
 
 These are load-bearing; do not quote the matrix without them.
@@ -310,6 +350,7 @@ demo/reviewers.py     the capability ladder
 demo/llm.py           optional live plan-review (frontier LLM + injection guardrail)
 demo/goplus.py        optional live address-reputation lens (GoPlus Security API)
 demo/source_tier.py   optional source-availability lens on the authority object (Etherscan)
+demo/intent_gap.py    signed-order vs executed-contract gap in CoW settlements (Etherscan)
 demo/race.py          quantifies the E residual: P(drain) = 1 - (1-beta)^K
 demo/scorecard.py     run the suite, emit the coverage matrix
 ```
