@@ -236,6 +236,12 @@ user's approved balance.
 `demo/intent_gap.py` decodes CoW Protocol settlements and asks how many of the
 contracts that actually execute appear anywhere in the signed order.
 
+What this run was expected to show, including the confirmation and falsification
+thresholds, was written down before it ran: see [PREDICTION.md](PREDICTION.md).
+That file also says plainly what its dates do and do not establish, since it was
+published here after the measurement rather than before it. One of its three
+claims was mis-specified and is left in place rather than quietly fixed.
+
 ```bash
 python3 -m demo.intent_gap --windows 7 --per-window 25 --spacing-days 45
 ```
