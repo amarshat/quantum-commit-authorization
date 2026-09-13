@@ -71,6 +71,13 @@ ATTRIBUTION = "Powered by Etherscan.io APIs"
 
 BASE = "https://api.etherscan.io/v2/api"
 
+# Etherscan's proxy endpoint is NOT backed by an archive node: any historical
+# `tag` comes back as {"error": "historical state ... is not available"}. Code
+# presence at the signing block therefore has to come from an archive RPC, and
+# the repo already has one configured for the simulator. Without it we fall
+# back to `latest` and label the row, rather than pretending to know.
+_ARCHIVE_RPC = os.environ.get("ALCHEMY_ENDPOINT_URL") or os.environ.get("MAINNET_RPC") or ""
+
 # EIP-1967-era OpenSea proxy upgrade, and the OZ transparent-proxy variants.
 # `upgradeTo(address)` / `upgradeToAndCall(address,bytes)`.
 _UPGRADE_SELECTORS = ("0x3659cfe6", "0x4f1ef286")
@@ -116,16 +123,47 @@ def _get(params: dict) -> dict:
     return out
 
 
-def source_info(address: str, chain_id: int = 1) -> dict:
-    """Cached getsourcecode. Returns {has_code, verified, name}.
+def _code_at(addr: str, tag: str) -> str | None:
+    """Raw bytecode for `addr` at `tag` from the archive RPC, or None if the
+    lookup could not be made. None means unknown; it never means "no code"."""
+    if not _ARCHIVE_RPC:
+        return None
+    body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "eth_getCode",
+                       "params": [addr, tag]}).encode()
+    req = urllib.request.Request(_ARCHIVE_RPC, data=body,
+                                 headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            out = json.loads(r.read())
+    except (urllib.error.URLError, ValueError, OSError):
+        return None
+    res = out.get("result")
+    return res if isinstance(res, str) and res.startswith("0x") else None
 
-    A cache hit costs nothing. Results are keyed by chain and address, and the
-    cache is gitignored, so a re-run is free and offline.
+
+def source_info(address: str, chain_id: int = 1, block: int | None = None) -> dict:
+    """Cached code-presence + verification lookup. Returns {has_code, verified, name}.
+
+    `block` is the block the victim signed at. Code presence is queried AT that
+    block, because an address that held code at signing and self-destructed
+    afterwards is indistinguishable at `latest` from one that never had code,
+    and that distinction is exactly what the n/a class claims. Passing None
+    falls back to `latest` and records it, so a row measured that way is
+    visible rather than silently mixed in.
+
+    Verification status has no historical equivalent: Etherscan exposes no
+    "was this verified at block N" query, so `verified` remains a measurement
+    of today and stays an upper bound. Only code presence is fixed here.
+
+    The cache key includes the tag. Without that, block-specific queries would
+    be served stale `latest` answers from an earlier run, which would silently
+    undo the whole point of this change.
     """
     addr = (address or "").lower()
     if not addr.startswith("0x") or len(addr) != 42:
         return {"has_code": False, "verified": False, "name": "", "note": "not an address"}
-    key = f"{chain_id}:{addr}"
+    tag = hex(block) if isinstance(block, int) and block > 0 else "latest"
+    key = f"{chain_id}:{addr}:{tag}"
     cache = _load_cache()
     if key in cache:
         STATS["cache"] += 1
@@ -138,19 +176,30 @@ def source_info(address: str, chain_id: int = 1) -> dict:
         # both come back with empty SourceCode and an ABI of "Contract source code
         # not verified". So establish code presence first, and only ask about
         # source when there is code to have source for.
-        code = _get({"chainid": str(chain_id), "module": "proxy",
-                     "action": "eth_getCode", "address": addr, "tag": "latest"})
-        raw = code.get("result") or "0x"
+        if tag == "latest":
+            code = _get({"chainid": str(chain_id), "module": "proxy",
+                         "action": "eth_getCode", "address": addr, "tag": "latest"})
+            raw = code.get("result")
+        else:
+            raw = _code_at(addr, tag)
+        # An archive-less backend answers a historical tag with an error object
+        # rather than a result. Treat that as unknown, never as "no code":
+        # silently reading it as "no code" would inflate the n/a class, which is
+        # the exact number this block-accurate lookup exists to establish.
+        if not isinstance(raw, str) or not raw.startswith("0x"):
+            return {"has_code": False, "verified": False, "name": "",
+                    "note": f"code presence at {tag} unknown (no archive result)"}
         has_code = raw not in ("0x", "0x0", "")
         if not has_code:
-            info = {"has_code": False, "verified": False, "name": "", "note": ""}
+            info = {"has_code": False, "verified": False, "name": "",
+                    "note": "", "at": tag}
         else:
             res = _get({"chainid": str(chain_id), "module": "contract",
                         "action": "getsourcecode", "address": addr})
             row = (res.get("result") or [{}])[0]
             src = row.get("SourceCode") or ""
             info = {"has_code": True, "verified": bool(src),
-                    "name": row.get("ContractName") or "", "note": ""}
+                    "name": row.get("ContractName") or "", "note": "", "at": tag}
     except (urllib.error.URLError, ValueError, KeyError) as exc:
         return {"has_code": False, "verified": False, "name": "",
                 "note": f"lookup failed: {type(exc).__name__}"}
@@ -177,19 +226,34 @@ def authority_object(case) -> tuple[str, str]:
 
 
 def verdict(case) -> tuple[str, str]:
+    """Resolve the authority object and report what a code reader would have.
+
+    States: catch / blind / na / unknown.
+
+    `unknown` exists because the three are not the same thing and collapsing
+    them is how a measurement lies. `na` is a positive finding: we asked, and
+    the address held no code at the signing block. `unknown` means we could not
+    ask, because the archive lookup failed or the call cap was hit. Folding
+    `unknown` into `na` would make a run with no archive RPC report "no code at
+    all" for every row, which is exactly the number this tier exists to
+    establish. Callers must not aggregate `unknown` into any reported rate.
+    """
     obj, why = authority_object(case)
     if not obj:
         return "na", why
-    info = source_info(obj, case.chain_id)
+    # Code presence is asked at the block the victim signed at, not at latest.
+    blk = getattr(case, "block", None)
+    info = source_info(obj, case.chain_id, blk)
     if info.get("note"):
-        return "na", info["note"]
+        # Distinguish "we could not ask" from "we asked and there was no code".
+        return "unknown", info["note"]
 
     # Is the transaction target itself verified? If it is, but it is not the
     # authority object, that is the wrong-object gap this tier exists to expose.
     divergence = ""
     same = case.to and obj.lower() == case.to.lower()
     if not same and case.to and case.kind == "onchain":
-        tgt = source_info(case.to, case.chain_id)
+        tgt = source_info(case.to, case.chain_id, blk)
         if tgt.get("verified"):
             divergence = (f"; the tx target {tgt['name'] or case.to[:10]} IS verified, "
                           f"but it is not the object that governs the outcome")

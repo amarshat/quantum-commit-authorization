@@ -4,11 +4,22 @@ Drop labeled real transactions here as `*.json` files. `demo/corpus.py`'s
 `real_cases()` loads every `*.json` in this directory; each file is a JSON list of
 records. Unknown keys are ignored, so you can keep provenance fields.
 
-This repo ships the loader and schema, **not** a bundled dataset. The measurement
-against hosted defenses (Tenderly, GoPlus) is only meaningful once real records
-are here. Populate from a labeled source, for example the PTXPHISH release
-(NDSS 2025, arXiv 2409.02386), on-chain-labeled drainer transactions, or a
-ScamSniffer / BlockSec feed. Record the source and label of every case.
+**What is here.** `ptxphish_sample.json` is the reconstructed corpus the papers
+measure on: 140 victim-signed rows (101 malicious, 39 benign controls),
+reconstructed from the PTXPHISH release (NDSS 2025, arXiv 2409.02386) by
+recovering each victim's own signed grant from `Approval` / `ApprovalForAll`
+logs rather than the attacker's later sweep. It ships in this repo, so
+`./run.sh` reproduces the reported numbers without any additional data
+collection.
+
+(This file previously said the repo ships "the loader and schema, not a bundled
+dataset". That stopped being true when the reconstructed sample landed, and the
+stale sentence read as a missing artifact to anyone checking reproducibility.)
+
+**Adding more.** `demo/corpus.py`'s `real_cases()` loads every `*.json` in this
+directory, so further labeled sources (on-chain-labeled drainer transactions, a
+ScamSniffer or BlockSec feed) can be dropped in alongside. Record the source and
+label of every case.
 
 ## Record schema
 

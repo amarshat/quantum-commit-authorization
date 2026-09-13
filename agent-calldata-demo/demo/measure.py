@@ -33,7 +33,7 @@ from .chain import Chain
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "out")
 
-STATE_MARK = {"catch": "✓", "miss": "✗", "blind": "–", "na": "·", "skip": " "}
+STATE_MARK = {"catch": "✓", "miss": "✗", "blind": "–", "na": "·", "unknown": "?", "skip": " "}
 
 
 class Defense:
@@ -150,8 +150,11 @@ def print_matrix(rows: list[dict], defenses: list[Defense]) -> None:
         caught = sum(1 for r in seen if r["verdicts"][d.name]["state"] == "catch")
         blind = sum(1 for r in rows if r["malicious"] and r["verdicts"][d.name]["state"] == "blind")
         na = sum(1 for r in rows if r["malicious"] and r["verdicts"][d.name]["state"] == "na")
+        unk = sum(1 for r in rows if r["malicious"] and r["verdicts"][d.name]["state"] == "unknown")
         rate = f"{caught}/{len(seen)}" if seen else "0/0"
-        extra = f"  (+{blind} blind, {na} n/a)" if (blind or na) else ""
+        bits = [f"+{blind} blind" if blind else "", f"{na} n/a" if na else "",
+                f"{unk} UNKNOWN" if unk else ""]
+        extra = "  (" + ", ".join(b for b in bits if b) + ")" if any(bits) else ""
         tag = "" if d.available() else "  [skipped: not configured]"
         print(f"  {d.name:<28} {rate:>7}{extra}{tag}")
 
@@ -166,6 +169,9 @@ def print_matrix(rows: list[dict], defenses: list[Defense]) -> None:
         print(f"  readable source for the governing object: {c['catch']}")
         print(f"  code but no verified source:              {c['blind']}")
         print(f"  no code at all (inapplicable):            {c['na']}")
+        if c['unknown']:
+            print(f"  NOT ESTABLISHED (lookup failed/capped):   {c['unknown']}"
+                  f"  <- excluded from every rate above; re-run with an archive RPC")
         print(f"  tx target verified but NOT that object:   {div}  <- the wrong-object gap")
 
     fp_cases = [r for r in rows if not r["malicious"]]
