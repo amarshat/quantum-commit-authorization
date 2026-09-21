@@ -28,3 +28,9 @@ contracts/bench-4337-addrs-8.json
 contracts/bench-4337-addrs-16.json
 contracts/bench-4337-addrs-20.json
 repro-out/
+
+# Local build scaffolding for producing derived copies of the demo. Not part of
+# the artifact, not needed to run or reproduce anything here, and deliberately
+# untracked in this repository. The canonical copy is versioned elsewhere; see
+# the maintainer notes. Do not add it back.
+agent-calldata-demo/tools/

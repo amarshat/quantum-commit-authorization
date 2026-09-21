@@ -1,0 +1,789 @@
+{
+ "note": "Contracts governing execution while named in no signed order.",
+ "source_run": {
+  "windows": 7,
+  "per_window": 25,
+  "spacing_days": 45,
+  "end_block": 25660951,
+  "window_span_blocks": 7200,
+  "settlement_contract": "0x9008d19f58aabd9ed0d60971565aa8510560ab41"
+ },
+ "totals": {
+  "distinct": 77,
+  "unverified": 14,
+  "proxy_shaped": 10,
+  "under_one_year": 34
+ },
+ "contracts": [
+  {
+   "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+   "name": "WETH9",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 37,
+   "created_block": 4719568,
+   "blocks_old_at_first_settlement": 18997359
+  },
+  {
+   "address": "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+   "name": "DeadlineCheck",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 36,
+   "created_block": 23942667,
+   "blocks_old_at_first_settlement": -225740
+  },
+  {
+   "address": "0x111111125421ca6dc452d289314280a0f8842a65",
+   "name": "AggregationRouterV6",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 31,
+   "created_block": 19212918,
+   "blocks_old_at_first_settlement": 4504009
+  },
+  {
+   "address": "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+   "name": "BebopSettlement",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 29,
+   "created_block": 19783283,
+   "blocks_old_at_first_settlement": 3933644
+  },
+  {
+   "address": "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+   "name": "HooksTrampoline",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 22,
+   "created_block": 23031383,
+   "blocks_old_at_first_settlement": 685544
+  },
+  {
+   "address": "0xd524f98f554bd34f4185678f64a85bb98971d314",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 21,
+   "created_block": 23125345,
+   "blocks_old_at_first_settlement": 591582
+  },
+  {
+   "address": "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+   "name": "CoWSwapEthFlow",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 19,
+   "created_block": 21674096,
+   "blocks_old_at_first_settlement": 2042831
+  },
+  {
+   "address": "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+   "name": "UniversalRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 16,
+   "created_block": 21689092,
+   "blocks_old_at_first_settlement": 2027835
+  },
+  {
+   "address": "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 15,
+   "created_block": 24028793,
+   "blocks_old_at_first_settlement": -311866
+  },
+  {
+   "address": "0x55084ee0fef03f14a305cd24286359a35d735151",
+   "name": "HashflowRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 9,
+   "created_block": 18059492,
+   "blocks_old_at_first_settlement": 5657435
+  },
+  {
+   "address": "0xf08d4dea369c456d26a3168ff0024b904f2d8b91",
+   "name": "BCoWPool",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 8,
+   "created_block": 20476566,
+   "blocks_old_at_first_settlement": 3240361
+  },
+  {
+   "address": "0xba12222222228d8ba445958a75a0704d566bf2c8",
+   "name": "Vault",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 7,
+   "created_block": 12272146,
+   "blocks_old_at_first_settlement": 11444781
+  },
+  {
+   "address": "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+   "name": "InitializableImmutableAdminUpgradeabilityProxy",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0x728a138a4823392c2efa55e028d434f526fe03cf",
+   "settlements_governed": 7,
+   "created_block": 16291127,
+   "blocks_old_at_first_settlement": 7425800
+  },
+  {
+   "address": "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 6,
+   "created_block": 24789935,
+   "blocks_old_at_first_settlement": -1073008
+  },
+  {
+   "address": "0xa929c559e5e6537359680f39cb4e3708e1a14dd1",
+   "name": "AggregatorGuard",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 6,
+   "created_block": 24420911,
+   "blocks_old_at_first_settlement": -703984
+  },
+  {
+   "address": "0x3de27efa2f1aa663ae5d458857e731c129069f29",
+   "name": "WeightedPool",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 6,
+   "created_block": 17663805,
+   "blocks_old_at_first_settlement": 6053122
+  },
+  {
+   "address": "0xa540ec8c73322200d68e1b86c471a5c850854f22",
+   "name": "NativeRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 6,
+   "created_block": 23189574,
+   "blocks_old_at_first_settlement": 527353
+  },
+  {
+   "address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+   "name": "UniswapV2Router02",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 6,
+   "created_block": 10207858,
+   "blocks_old_at_first_settlement": 13509069
+  },
+  {
+   "address": "0x0000000000001ff3684f28c67538d4d072c22734",
+   "name": "AllowanceHolder",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 6,
+   "created_block": 19582162,
+   "blocks_old_at_first_settlement": 4134765
+  },
+  {
+   "address": "0xfe470834f297a227e0856e5a7ea637582c061ec5",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 6,
+   "created_block": 23640395,
+   "blocks_old_at_first_settlement": 76532
+  },
+  {
+   "address": "0xfd0b31d2e955fa55e3fa641fe90e08b677188d35",
+   "name": "TychoRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 5,
+   "created_block": 22575004,
+   "blocks_old_at_first_settlement": 1141923
+  },
+  {
+   "address": "0x6131b5fae19ea4f9d964eac0408e4408b66337b5",
+   "name": "MetaAggregationRouterV2",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 5,
+   "created_block": 16366767,
+   "blocks_old_at_first_settlement": 7350160
+  },
+  {
+   "address": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+   "name": "ZeroEx",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0x44a6999ec971cfca458aff25a808f272f6d492a2",
+   "settlements_governed": 5,
+   "created_block": 10247094,
+   "blocks_old_at_first_settlement": 13469833
+  },
+  {
+   "address": "0x7a819fa46734a49d0112796f9377e024c350fb26",
+   "name": "KyberSwapRFQ",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 5,
+   "created_block": 18182728,
+   "blocks_old_at_first_settlement": 5534199
+  },
+  {
+   "address": "0x55c64ae908a9c770c163b0dfdfd74ede2158e83f",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 4,
+   "created_block": 24918727,
+   "blocks_old_at_first_settlement": -1201800
+  },
+  {
+   "address": "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+   "name": "SwapRouter02",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+   "settlements_governed": 4,
+   "created_block": 13804681,
+   "blocks_old_at_first_settlement": 9912246
+  },
+  {
+   "address": "0x7a50a89550c4b142d1df57ec47b9cb3386d852da",
+   "name": "",
+   "verified": false,
+   "proxy": true,
+   "implementation": "0xc495f766b0e93999679380a0f8cdc2f7d2fe1cda",
+   "settlements_governed": 4,
+   "created_block": 25186241,
+   "blocks_old_at_first_settlement": -1469314
+  },
+  {
+   "address": "0x000000000022d473030f116ddee9f6b43ac78ba3",
+   "name": "Permit2",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 4,
+   "created_block": 15986406,
+   "blocks_old_at_first_settlement": 7730521
+  },
+  {
+   "address": "0x96fb3209fb4da072fb5cc493fa0ff4ea5eaa2d41",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 3,
+   "created_block": 24275491,
+   "blocks_old_at_first_settlement": -558564
+  },
+  {
+   "address": "0x39d1d8fcc5e6eeaf567bce4e29b94fec956d3519",
+   "name": "SwapV2Router",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 20245558,
+   "blocks_old_at_first_settlement": 3471369
+  },
+  {
+   "address": "0x5c6ee304399dbdb9c8ef030ab642b10820db8f56",
+   "name": "WeightedPool2Tokens",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 12369384,
+   "blocks_old_at_first_settlement": 11347543
+  },
+  {
+   "address": "0x13f4ea83d0bd40e75c8222255bc855a974568dd4",
+   "name": "SmartRouter",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0x13f4ea83d0bd40e75c8222255bc855a974568dd4",
+   "settlements_governed": 2,
+   "created_block": 16944997,
+   "blocks_old_at_first_settlement": 6771930
+  },
+  {
+   "address": "0x7f86bf177dd4f3494b841a37e810a34dd56c829b",
+   "name": "CurveTricryptoOptimizedWETH",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 17371455,
+   "blocks_old_at_first_settlement": 6345472
+  },
+  {
+   "address": "0x9d0e8cdf137976e03ef92ede4c30648d05e25285",
+   "name": "BCoWPool",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 20587725,
+   "blocks_old_at_first_settlement": 3129202
+  },
+  {
+   "address": "0x5e1f62dac767b0491e3ce72469c217365d5b48cc",
+   "name": "DexRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 23894108,
+   "blocks_old_at_first_settlement": -177181
+  },
+  {
+   "address": "0xa4c567c662349bec3d0fb94c4e7f85ba95e208e4",
+   "name": "Vyper_contract",
+   "verified": true,
+   "proxy": false,
+   "implementation": "0xc629a01ec23ab04e1050500a3717a2a5c0701497",
+   "settlements_governed": 2,
+   "created_block": 17817797,
+   "blocks_old_at_first_settlement": 5899130
+  },
+  {
+   "address": "0xf6e72db5454dd049d0788e411b06cfaf16853042",
+   "name": "DssLitePsm",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 20283666,
+   "blocks_old_at_first_settlement": 3433261
+  },
+  {
+   "address": "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4",
+   "name": "Vyper_contract",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 13783426,
+   "blocks_old_at_first_settlement": 9933501
+  },
+  {
+   "address": "0x9995855c00494d039ab6792f18e368e530dff931",
+   "name": "Router",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 22047306,
+   "blocks_old_at_first_settlement": 1669621
+  },
+  {
+   "address": "0x91331b6dd589163af02fb13e0466c3ba10ee310f",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 2,
+   "created_block": 23689565,
+   "blocks_old_at_first_settlement": 27362
+  },
+  {
+   "address": "0xa356867fdcea8e71aeaf87805808803806231fdc",
+   "name": "DODOV2Proxy02",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 11730395,
+   "blocks_old_at_first_settlement": 11986532
+  },
+  {
+   "address": "0xc42b7df84bc61ab7461b78ed4e81c1284e139024",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 25636522,
+   "blocks_old_at_first_settlement": -1919595
+  },
+  {
+   "address": "0xa1c7a8360eb4049595a24d6919e74e105b409cb5",
+   "name": "CurveRouterV2",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 25041924,
+   "blocks_old_at_first_settlement": -1324997
+  },
+  {
+   "address": "0x342b8458161137d0203605fa51e4363c1445adcd",
+   "name": "KipseliPropAMMWrapper",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 25043243,
+   "blocks_old_at_first_settlement": -1326316
+  },
+  {
+   "address": "0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f",
+   "name": "UniswapV2Router02",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 10794261,
+   "blocks_old_at_first_settlement": 12922666
+  },
+  {
+   "address": "0xcabd955322dfbf94c084929ac5e9eca3feb5556f",
+   "name": "BeaconProxy",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0xebbcb2cee51c2fee4062c9c1270dcb98b0b22250",
+   "settlements_governed": 1,
+   "created_block": 22985314,
+   "blocks_old_at_first_settlement": 731613
+  },
+  {
+   "address": "0x3c59a38e9ea02a48f7bda8ea2dd5a38831371d31",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 24832578,
+   "blocks_old_at_first_settlement": -1115651
+  },
+  {
+   "address": "0x28b1dc1a5e3699a428bc51d234dfab7c9cb2a183",
+   "name": "DexRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 24696000,
+   "blocks_old_at_first_settlement": -979073
+  },
+  {
+   "address": "0x7529d8ac08d4dddc159bc8809a971a7605c34f80",
+   "name": "BCoWPool",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 21688115,
+   "blocks_old_at_first_settlement": 2028812
+  },
+  {
+   "address": "0x33b2faf0d58fd2b5caba371b990826e3d021662f",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 24841414,
+   "blocks_old_at_first_settlement": -1124487
+  },
+  {
+   "address": "0x232ce3bd40fcd6f80f3d55a522d03f25df784ee2",
+   "name": "Lighter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 23669741,
+   "blocks_old_at_first_settlement": 47186
+  },
+  {
+   "address": "0xe592427a0aece92de3edee1f18e0157c05861564",
+   "name": "SwapRouter",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0xe592427a0aece92de3edee1f18e0157c05861564",
+   "settlements_governed": 1,
+   "created_block": 12369634,
+   "blocks_old_at_first_settlement": 11347293
+  },
+  {
+   "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+   "name": "FiatTokenProxy",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0x43506849d7c04f9138d1a2050bbf3a0c054402dd",
+   "settlements_governed": 1,
+   "created_block": 6082465,
+   "blocks_old_at_first_settlement": 17634462
+  },
+  {
+   "address": "0xd26f20001a72a18c002b00e6710000d68700ce00",
+   "name": "MEVCaptureRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 24155249,
+   "blocks_old_at_first_settlement": -438322
+  },
+  {
+   "address": "0xd51a44d3fae010294c616388b506acda1bfaae46",
+   "name": "Vyper_contract",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 12821148,
+   "blocks_old_at_first_settlement": 10895779
+  },
+  {
+   "address": "0xdb74dfdd3bb46be8ce6c33dc9d82777bcfc3ded5",
+   "name": "CurveStableSwapNG",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 19714579,
+   "blocks_old_at_first_settlement": 4002348
+  },
+  {
+   "address": "0xeac874aed7761460dd4c89778ba6db7d320911a8",
+   "name": "CurveStableSwapNG",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 19171341,
+   "blocks_old_at_first_settlement": 4545586
+  },
+  {
+   "address": "0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee",
+   "name": "UUPSProxy",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0xa6ca0607190d03cf16fe6f2865cf40c3d160ccf3",
+   "settlements_governed": 1,
+   "created_block": 17664336,
+   "blocks_old_at_first_settlement": 6052591
+  },
+  {
+   "address": "0x92762b42a06dcdddc5b7362cfb01e631c4d44b40",
+   "name": "WeightedPool",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 14475162,
+   "blocks_old_at_first_settlement": 9241765
+  },
+  {
+   "address": "0x40a50cf069e992aa4536211b23f286ef88752187",
+   "name": "CoWSwapEthFlow",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 16169866,
+   "blocks_old_at_first_settlement": 7547061
+  },
+  {
+   "address": "0x57e114b691db790c35207b2e685d4a43181e6061",
+   "name": "ENA",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 19371662,
+   "blocks_old_at_first_settlement": 4345265
+  },
+  {
+   "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+   "name": "TetherToken",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 4634748,
+   "blocks_old_at_first_settlement": 19082179
+  },
+  {
+   "address": "0xe2f6127b5c93a95415af14df900db52a509cf590",
+   "name": "BCoWPool",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 24507370,
+   "blocks_old_at_first_settlement": -790443
+  },
+  {
+   "address": "0xf9078fb962a7d13f55d40d49c8aa6472abd1a5a6",
+   "name": "Vyper_contract",
+   "verified": true,
+   "proxy": false,
+   "implementation": "0x6523ac15ec152cb70a334230f6c5d62c5bd963f1",
+   "settlements_governed": 1,
+   "created_block": 15724002,
+   "blocks_old_at_first_settlement": 7992925
+  },
+  {
+   "address": "0xd65ed4bce447195187f37ce7d82f56adf1826f8f",
+   "name": "CurveStableSwapNG",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 21249565,
+   "blocks_old_at_first_settlement": 2467362
+  },
+  {
+   "address": "0xbeb0b0623f66be8ce162ebdfa2ec543a522f4ea6",
+   "name": "JamSettlement",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 21444718,
+   "blocks_old_at_first_settlement": 2272209
+  },
+  {
+   "address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+   "name": "Dai",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 8928158,
+   "blocks_old_at_first_settlement": 14788769
+  },
+  {
+   "address": "0xa188eec8f81263234da3622a406892f3d630f98c",
+   "name": "UsdsPsmWrapper",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 20668728,
+   "blocks_old_at_first_settlement": 3048199
+  },
+  {
+   "address": "0x62e31802c6145a2d5e842eed8efe01fc224422fa",
+   "name": "MaverickV2Router",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 20027244,
+   "blocks_old_at_first_settlement": 3689683
+  },
+  {
+   "address": "0x5426178799ee0a0181a89b4f57efddfab49941ec",
+   "name": "CurveTricryptoOptimizedWETH",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 17591884,
+   "blocks_old_at_first_settlement": 6125043
+  },
+  {
+   "address": "0xc26b84a5aa0b4fb8a7cff41153d37f2681ad88cc",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 23095687,
+   "blocks_old_at_first_settlement": 621240
+  },
+  {
+   "address": "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9",
+   "name": "InitializableAdminUpgradeabilityProxy",
+   "verified": true,
+   "proxy": true,
+   "implementation": "0x5d4aa78b08bc7c530e21bf7447988b1be7991322",
+   "settlements_governed": 1,
+   "created_block": 10926829,
+   "blocks_old_at_first_settlement": 12790098
+  },
+  {
+   "address": "0x4fae7c4ad38e1f4a343780ce791678be8011b225",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 20494123,
+   "blocks_old_at_first_settlement": 3222804
+  },
+  {
+   "address": "0x93d199263632a4ef4bb438f1feb99e57b4b5f0bd",
+   "name": "ComposableStablePool",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 17915001,
+   "blocks_old_at_first_settlement": 5801926
+  },
+  {
+   "address": "0x3d0d331390d14df42c16fc20700f7e6ad4849c50",
+   "name": "CurveTwocryptoOptimized",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 21215358,
+   "blocks_old_at_first_settlement": 2501569
+  },
+  {
+   "address": "0x0c95ea31e4501b3b879cae2232087e478d44aeab",
+   "name": "MEVResistRouter",
+   "verified": true,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 22695305,
+   "blocks_old_at_first_settlement": 1021622
+  },
+  {
+   "address": "0x7b0a7a4add86c41650040a0574cf6201dda42e20",
+   "name": "",
+   "verified": false,
+   "proxy": false,
+   "implementation": null,
+   "settlements_governed": 1,
+   "created_block": 23475616,
+   "blocks_old_at_first_settlement": 241311
+  }
+ ]
+}

@@ -40,6 +40,12 @@ Read the states as availability, not detection:
     na     the authority object has no code (an EOA, or nothing deployed).
            Source analysis is inapplicable by construction, not merely unhelpful.
 
+An object that is an EOA carrying an EIP-7702 delegation designator is none of
+those on its own reading, so the tier resolves through to the delegate and
+reports the delegate's availability, naming the indirection in `reason`. The
+account stays an EOA either way: since Pectra, a non-empty `eth_getCode` is not
+evidence of a contract, and treating it as such misclassifies ordinary accounts.
+
 `reason` always names which object was chosen, and flags the case where the
 transaction target is verified but is not the authority object. That divergence
 is the finding: source availability on the target is nearly total and nearly
@@ -81,6 +87,25 @@ _ARCHIVE_RPC = os.environ.get("ALCHEMY_ENDPOINT_URL") or os.environ.get("MAINNET
 # EIP-1967-era OpenSea proxy upgrade, and the OZ transparent-proxy variants.
 # `upgradeTo(address)` / `upgradeToAndCall(address,bytes)`.
 _UPGRADE_SELECTORS = ("0x3659cfe6", "0x4f1ef286")
+
+# EIP-7702 delegation designator: exactly 23 bytes, 0xef0100 followed by the
+# 20-byte delegate address. Since Pectra a non-empty eth_getCode is NO LONGER
+# sufficient evidence of a contract, because an ordinary externally owned
+# account that has signed a delegation returns these 23 bytes. Reading that as
+# "this is a contract" is wrong twice: the account can still originate
+# transactions, and the code that would actually run lives at the delegate.
+_DELEGATION_PREFIX = "0xef0100"
+_DELEGATION_LEN = 2 + 2 * 23      # "0x" + 23 bytes as hex
+
+
+def delegation_target(raw: str) -> str | None:
+    """The delegate address if `raw` is an EIP-7702 designator, else None."""
+    if not isinstance(raw, str):
+        return None
+    r = raw.lower()
+    if len(r) == _DELEGATION_LEN and r.startswith(_DELEGATION_PREFIX):
+        return "0x" + r[len(_DELEGATION_PREFIX):]
+    return None
 
 # Free tier is 5 calls/sec. Stay under it rather than on it.
 _RATE_SLEEP = float(os.environ.get("ETHERSCAN_RATE_SLEEP", "0.25"))
@@ -158,12 +183,18 @@ def source_info(address: str, chain_id: int = 1, block: int | None = None) -> di
     The cache key includes the tag. Without that, block-specific queries would
     be served stale `latest` answers from an earlier run, which would silently
     undo the whole point of this change.
+
+    The key is also versioned. v1 entries stored only the derived flags, so an
+    address cached before EIP-7702 designators were recognised would be served
+    back as `has_code: True` forever and never re-examined. v2 stores the raw
+    `eth_getCode` result alongside the flags, which both fixes that and lets the
+    shipped per-row output show what was actually read.
     """
     addr = (address or "").lower()
     if not addr.startswith("0x") or len(addr) != 42:
         return {"has_code": False, "verified": False, "name": "", "note": "not an address"}
     tag = hex(block) if isinstance(block, int) and block > 0 else "latest"
-    key = f"{chain_id}:{addr}:{tag}"
+    key = f"v2:{chain_id}:{addr}:{tag}"
     cache = _load_cache()
     if key in cache:
         STATS["cache"] += 1
@@ -190,16 +221,37 @@ def source_info(address: str, chain_id: int = 1, block: int | None = None) -> di
             return {"has_code": False, "verified": False, "name": "",
                     "note": f"code presence at {tag} unknown (no archive result)"}
         has_code = raw not in ("0x", "0x0", "")
-        if not has_code:
+        delegate = delegation_target(raw)
+        if delegate:
+            # An EOA that has signed an EIP-7702 delegation. The account holds
+            # no code of its own; the delegate's code is what executes. Record
+            # both, and let the caller decide which one its question is about.
             info = {"has_code": False, "verified": False, "name": "",
-                    "note": "", "at": tag}
+                    "note": "", "at": tag, "delegated_to": delegate,
+                    "raw": raw}
+        elif not has_code:
+            info = {"has_code": False, "verified": False, "name": "",
+                    "note": "", "at": tag, "raw": raw}
         else:
             res = _get({"chainid": str(chain_id), "module": "contract",
                         "action": "getsourcecode", "address": addr})
-            row = (res.get("result") or [{}])[0]
+            # On a rate limit or an error the endpoint returns `result` as a
+            # bare STRING ("Max rate limit reached"), not a list of records.
+            # Indexing that gives a character, and asking a character for
+            # .get() raises. Worse, a silent except here would record the
+            # address as unverified, turning throttling into a finding. Treat
+            # a malformed shape as unknown and say so.
+            result = res.get("result")
+            if not isinstance(result, list) or not result or not isinstance(result[0], dict):
+                return {"has_code": True, "verified": False, "name": "",
+                        "note": f"source lookup returned no usable record "
+                                f"({res.get('message') or result!r:.60})",
+                        "at": tag, "raw": raw}
+            row = result[0]
             src = row.get("SourceCode") or ""
             info = {"has_code": True, "verified": bool(src),
-                    "name": row.get("ContractName") or "", "note": "", "at": tag}
+                    "name": row.get("ContractName") or "", "note": "", "at": tag,
+                    "raw": raw}
     except (urllib.error.URLError, ValueError, KeyError) as exc:
         return {"has_code": False, "verified": False, "name": "",
                 "note": f"lookup failed: {type(exc).__name__}"}
@@ -258,6 +310,29 @@ def verdict(case) -> tuple[str, str]:
             divergence = (f"; the tx target {tgt['name'] or case.to[:10]} IS verified, "
                           f"but it is not the object that governs the outcome")
 
+    # EIP-7702: the object is an EOA whose executing code lives at a delegate.
+    # It is NOT a contract, so this is not a `blind`/`catch` on the account
+    # itself, but a source reader does have somewhere to look. Resolve through
+    # and say so, rather than either crediting the EOA with code it does not
+    # have or reporting "no code" when code will in fact run.
+    dele = info.get("delegated_to")
+    if dele:
+        d = source_info(dele, case.chain_id, blk)
+        if d.get("note"):
+            return "unknown", (f"authority object {obj[:10]} ({why}) is an EOA with an "
+                               f"EIP-7702 delegation to {dele[:10]}, whose code could not "
+                               f"be resolved: {d['note']}")
+        if d.get("verified"):
+            return "catch", (f"authority object {obj[:10]} ({why}) is an EOA with an "
+                             f"EIP-7702 delegation to {d['name'] or dele[:10]}, which has "
+                             f"verified source{divergence}")
+        if d.get("has_code"):
+            return "blind", (f"authority object {obj[:10]} ({why}) is an EOA with an "
+                             f"EIP-7702 delegation to {dele[:10]}, which has no verified "
+                             f"source: a reader gets bytecode only{divergence}")
+        return "na", (f"authority object {obj[:10]} ({why}) is an EOA with an EIP-7702 "
+                      f"delegation to {dele[:10]}, which itself holds no code{divergence}")
+
     if not info["has_code"]:
         return "na", (f"authority object {obj[:10]} ({why}) has no code: "
                       f"source analysis is inapplicable, not merely unhelpful{divergence}")
@@ -272,3 +347,94 @@ def summary() -> str:
     s = STATS
     return (f"source availability: {s['live']} live lookups, {s['cache']} cached, "
             f"{s['capped']} capped [cap {_MAX_CALLS}]. {ATTRIBUTION}.")
+
+
+# --------------------------------------------------------------------------
+# Per-row emitter.
+#
+# The paper reports aggregate counts (catch/blind/na, and the divergence) and
+# asserts that `unknown` is zero. Neither claim is checkable from an aggregate,
+# so this writes the row-level record the aggregates are computed from: for
+# each case, the authority object that was resolved and why, the block the
+# query was made at, the RAW eth_getCode result, and the resulting state.
+#
+#     python3 -m demo.source_tier            # -> results/source_tier_rows.json
+#
+# Re-running with the shipped cache costs zero API calls and zero network.
+# --------------------------------------------------------------------------
+
+_RESULTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "results")
+
+# Excluded from the paper's analysis set: its upgradeTo argument is the
+# sender's own EOA, so it is probably a proxy owner disabling their own proxy
+# rather than a drain. Emitted here anyway, flagged, so the exclusion can be
+# checked instead of taken on trust.
+EXCLUDED = {"ptx-J-01": "probably mislabelled: upgradeTo argument is the sender's own EOA"}
+
+
+def emit_rows(cases) -> dict:
+    rows = []
+    for case in cases:
+        obj, why = authority_object(case)
+        blk = getattr(case, "block", None)
+        info = source_info(obj, case.chain_id, blk) if obj else {}
+        state, reason = verdict(case)
+        rows.append({
+            "id": case.id,
+            "class": case.label,
+            "signing_block": blk,
+            "tx_target": (case.to or "").lower(),
+            "authority_object": obj.lower(),
+            "resolution": why,
+            "code_at_signing_block": info.get("raw"),
+            "queried_at": info.get("at"),
+            "delegated_to": info.get("delegated_to"),
+            "verified_source": info.get("verified"),
+            "contract_name": info.get("name") or None,
+            "state": state,
+            "target_verified_but_not_authority":
+                "IS verified, but it is not the object" in reason,
+            "excluded_from_analysis_set": EXCLUDED.get(case.id),
+            "reason": reason,
+        })
+    counted = [r for r in rows if not r["excluded_from_analysis_set"]]
+    tally = {s: sum(1 for r in counted if r["state"] == s)
+             for s in ("catch", "blind", "na", "unknown")}
+    return {
+        "note": ("Per-row record behind the Section 4 counts. `code_at_signing_block` "
+                 "is the raw eth_getCode result at `queried_at`, from an archive RPC. "
+                 "Rows with `excluded_from_analysis_set` set are reported but not "
+                 "counted in `totals`."),
+        "analysis_set_rows": len(counted),
+        "corpus_malicious_rows": len(rows),
+        "totals": tally,
+        "divergence": sum(1 for r in counted if r["target_verified_but_not_authority"]),
+        "distinct_authority_objects": len({r["authority_object"] for r in counted}),
+        "rows": rows,
+    }
+
+
+def main() -> None:
+    from . import corpus
+    if not available():
+        raise SystemExit("Set ETHERSCAN_API_KEY (the shipped cache covers the "
+                         "reported run, but the key gates the lens).")
+    cases = [c for c in corpus.real_cases() if c.malicious]
+    out = emit_rows(cases)
+    os.makedirs(_RESULTS_DIR, exist_ok=True)
+    path = os.path.join(_RESULTS_DIR, "source_tier_rows.json")
+    with open(path, "w") as f:
+        json.dump(out, f, indent=1)
+    t = out["totals"]
+    print(f"{out['analysis_set_rows']} rows in the analysis set "
+          f"({out['corpus_malicious_rows']} malicious in the corpus)")
+    print(f"  catch {t['catch']}  blind {t['blind']}  na {t['na']}  unknown {t['unknown']}")
+    print(f"  tx target verified but not the authority object: {out['divergence']}")
+    print(f"  distinct authority objects: {out['distinct_authority_objects']}")
+    print(f"wrote {path}")
+    print(summary())
+
+
+if __name__ == "__main__":
+    main()

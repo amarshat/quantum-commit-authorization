@@ -195,34 +195,64 @@ verified source exists for the governing object, `blind` means code but no sourc
 malicious; hand-rolling a malice classifier would be a strawman of the agentic
 analysers this is meant to characterise.
 
-Measured over the 101 malicious victim-signed cases:
+Code presence is queried at each row's **signing block** against an archive RPC
+(`ALCHEMY_ENDPOINT_URL` or `MAINNET_RPC`), not at the latest block. An address
+that held no code when the victim signed and holds code today is a different
+thing from one that always had code, and only the signing-block state is the
+state a pre-signature reader could have seen. Etherscan's proxy endpoint is not
+archive-backed and cannot answer this; without an archive RPC the row is
+recorded as `unknown` and excluded from every rate, never silently folded into
+`na`.
+
+Measured over the 100-row analysis set (the 101 malicious cases less `ptx-J-01`,
+whose `upgradeTo` argument is the sender's own EOA and which is probably
+mislabelled):
 
 ```
 class      rows  the tx `to`                             authority object      state
-approve      21  12 verified blue-chip tokens            the spender           na  (EOA)
-                 (stETH, USDT, BoredApeYachtClub, PEPE,
+approve      21  12 verified blue-chip tokens            the spender           na x21
+                 (stETH, USDT, BoredApeYachtClub, PEPE,   (15 distinct)
                   wstETH, rETH, RPL, an Aave proxy)
-transfer     20  OpenSea Seaport TransferHelper          the recipient         na  (EOA) x19
-upgradeTo    20  the victim's own OpenSea                the new               catch x16
-                 OwnableDelegateProxy (verified, benign)  implementation       blind x3, na x1
-other call   40  the attacker's own contract             the same contract     catch x36, blind x4
+transfer     20  OpenSea Seaport TransferHelper          the recipient         na x20
+                                                          (4 distinct)
+upgradeTo    19  the victim's own OpenSea                the new               catch x16
+                 OwnableDelegateProxy (verified, benign)  implementation (5)   blind x3
+other call   40  the attacker's own contract             the same contract     catch x36
+                                                          (10 distinct)        blind x4
 
-totals: catch 52, blind 8, na 41
-the tx target is verified but is NOT the authority object: 61 / 101
+totals: catch 52, blind 7, na 41, unknown 0
+the tx target is verified but is NOT the authority object: 60 / 100
+(including ptx-J-01: catch 52, blind 7, na 42, divergence 61 / 101)
 ```
 
-So in 61 of 101 rows the readable contract is legitimate, verified, famous
+Per-row output, with each authority object, its signing block, the raw
+`eth_getCode` result and the resulting state, is written to
+`results/source_tier_rows.json` by `python3 -m demo.source_tier`. It runs from
+the shipped cache at zero API calls, so the aggregates above can be checked
+without a key.
+
+So in 60 of 100 rows the readable contract is legitimate, verified, famous
 infrastructure, and a source reader pointed at it correctly answers "fine",
 because the code *is* fine. The theft lives in the arguments: an EOA spender, an
-EOA recipient, or a replacement implementation address. **Source availability on
-the target is nearly total and nearly useless. Object selection is the bottleneck,
-not availability.**
+EOA recipient, or a replacement implementation address.
 
-Two bounds. Etherscan exposes no verification date, so we cannot establish whether
-a contract's source was public at the moment the victim signed; availability is
-measured as of now and is therefore an upper bound, exactly as the reputation
-tier's hits are. And 20 `upgradeTo` rows resolve to only 6 distinct
-implementations, so those are reported as counts, not rates.
+Read that carefully, though, because the obvious conclusion overshoots. For the
+`approve` and `transfer` classes the field already reads the object this lens
+resolves: Rabby's security engine flags an approval whose spender is an EOA, and
+Blockaid classifies malicious spenders and operators. `demo/rabby.py` ports that
+rule, and on this corpus the ported rules and GoPlus each catch 81 of the 101
+rows. The class they miss is `upgradeTo`, because reputation looks up the proxy
+and not the implementation. **Object selection is the bottleneck for the upgrade
+class specifically; for approvals and transfers it is a description of where the
+authority sits, not an open gap.**
+
+Three bounds. Etherscan exposes no verification date, so we cannot establish
+whether a contract's source was public at the moment the victim signed;
+availability is measured as of now and is therefore an upper bound, exactly as
+the reputation tier's hits are. The 100 rows resolve to only 33 distinct
+authority objects, so these are counts, never rates. And the states are
+**availability, not detection**: `catch` means a reader would have had
+something to read, never that it would have reached the right verdict.
 
 ## Intent settlement: does the signed order govern what executes?
 

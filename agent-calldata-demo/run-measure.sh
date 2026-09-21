@@ -23,6 +23,10 @@ need anvil; need cast; need forge; need python3
 
 forge build >/dev/null
 
+# out/ is gitignored, so on a fresh clone it does not exist and the anvil log
+# redirect below fails before anvil ever starts.
+mkdir -p out
+
 STARTED_ANVIL=0
 if ! cast block-number --rpc-url "$RPC" >/dev/null 2>&1; then
   echo "starting anvil..."
@@ -36,3 +40,12 @@ else
 fi
 
 python3 -m demo.measure
+
+# The per-row record behind the Section 4 counts: authority object, signing
+# block, raw eth_getCode, resulting state. Free from the shipped cache.
+python3 -m demo.source_tier
+
+# The within-subjects test on the proxy-upgrade class: the same live reputation
+# service asked about the transaction target and then about the authority
+# object, varying nothing else. Needs the GoPlus keys.
+python3 -m demo.upgrade_tier || echo "(upgrade_tier skipped: GoPlus not configured)"

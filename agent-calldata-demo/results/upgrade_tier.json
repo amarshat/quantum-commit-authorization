@@ -1,0 +1,314 @@
+{
+ "note": "Within-subjects test: one deployed reputation service, the same proxy-upgrade transactions, varying only which address it is asked about. demo/rabby.py is excluded because that port does not parse upgradeTo, so a miss by it would be a property of the port rather than evidence about shipped Rabby.",
+ "within_subjects": {
+  "rows": 19,
+  "distinct_targets": 19,
+  "distinct_authority_objects": 5,
+  "rows_flagged_aiming_at_target": 0,
+  "rows_flagged_aiming_at_authority_object": 18,
+  "objects_flagged": 4,
+  "per_row": [
+   {
+    "id": "ptx-J-00",
+    "signing_block": 17747352,
+    "target": "0xdfda474da220e477ed6111e3e55f7fe1c8ad64ef",
+    "authority_object": "0xfc48255bff44906c8ab25ccfdb15e2fed953084a",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": false,
+    "authority_object_name": null
+   },
+   {
+    "id": "ptx-J-02",
+    "signing_block": 17571866,
+    "target": "0xf3495dc71cb3c39072cf6759bffc2325ee7fcc59",
+    "authority_object": "0x987411b73708d5746de2c412cc234da90b1245a7",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": false,
+    "authority_object_verified_source": false,
+    "authority_object_name": null
+   },
+   {
+    "id": "ptx-J-03",
+    "signing_block": 17644519,
+    "target": "0xe0a85bb928954ecfd6714ce75003451cfea197ab",
+    "authority_object": "0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities",
+     "stealing_attack"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": false,
+    "authority_object_name": null
+   },
+   {
+    "id": "ptx-J-04",
+    "signing_block": 18320390,
+    "target": "0x9eddbbea29045b6a652bc72e4058d83be25e4da0",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-05",
+    "signing_block": 18338866,
+    "target": "0x0abccc2e4a9fe78a520a1ddf6cd1c093d5c10508",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-06",
+    "signing_block": 18332970,
+    "target": "0xb0efb787db639b14cccd09f4e38776c37953476b",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-07",
+    "signing_block": 18292463,
+    "target": "0xab99c3a5a03e057fa5e176a66739db89d054a197",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-08",
+    "signing_block": 18358894,
+    "target": "0xb570a15dba8a5b47d3091724eb28269010c26791",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-09",
+    "signing_block": 18372227,
+    "target": "0x53ece67a0f17c57c358214b2aed5adef6cb887e4",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-10",
+    "signing_block": 18381566,
+    "target": "0x85048845a5b2266fa5cf37291d25953177a41603",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-11",
+    "signing_block": 18361727,
+    "target": "0xacbb6c9f338c8f3b3d2790019b9aefe2dece76f4",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-12",
+    "signing_block": 18069706,
+    "target": "0xeb7c461cdff2dba8faf240f7556f516d520e407d",
+    "authority_object": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "MultiFunctionContract"
+   },
+   {
+    "id": "ptx-J-13",
+    "signing_block": 18365054,
+    "target": "0x54ee89a01328cff39d3785452b7b5744b3d61582",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-14",
+    "signing_block": 18365763,
+    "target": "0x3c38cb031c51d200fe659f79a0a4849d2e03791f",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-15",
+    "signing_block": 18372104,
+    "target": "0x48d9b462c87c45b57b9937cf58214eb5e1b3f9dd",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-16",
+    "signing_block": 18376458,
+    "target": "0xeac2354a33003b4a8f12b2b02f071a3d43151ed2",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-17",
+    "signing_block": 18426599,
+    "target": "0xd3094fd62b002525f008a28830818896d2b75653",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-18",
+    "signing_block": 18394181,
+    "target": "0xc56437de0fc67b88be1586042468c90057787f27",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   },
+   {
+    "id": "ptx-J-19",
+    "signing_block": 18395551,
+    "target": "0xc9ccc9093231ed7d7972d25b240c173d1798c96d",
+    "authority_object": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "reputation_on_target": [],
+    "reputation_on_authority_object": [
+     "blacklist_doubt",
+     "phishing_activities"
+    ],
+    "caught_aiming_at_target": false,
+    "caught_aiming_at_authority_object": true,
+    "authority_object_verified_source": true,
+    "authority_object_name": "WyvernReplaceProxyContract"
+   }
+  ]
+ },
+ "benign_scan": {
+  "sampled": 1179,
+  "resolved": 1170,
+  "with_directly_signed_txs": 142,
+  "with_any_upgrade": 2,
+  "upgrades": [
+   {
+    "proxy": "0x3528fbe3b81eb8193249489256bacab925af9e19",
+    "impl": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "hash": "0x07d56f6c553efdb47ca891402ab47d2a026ecef0ae9f16cfaada126ab780cebd"
+   },
+   {
+    "proxy": "0xa1630f665db9220c386e750ebb28737775399327",
+    "impl": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "hash": "0x3473d049399c87375bfe2c27ce4b6b6b79791b53aa095cd86d4af2de89f99a3d"
+   }
+  ]
+ }
+}

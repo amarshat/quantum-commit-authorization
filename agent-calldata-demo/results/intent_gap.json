@@ -1,0 +1,2693 @@
+{
+ "note": "Signed-order versus executed-contract gap in CoW Protocol settlements. `outside_addrs` per settlement are the contracts that executed and appear in no signed order. |T| is a lower bound (nested internal calls are invisible in calldata) and |T\\S| an upper bound (appData hook commitments are not decoded).",
+ "reproducible": true,
+ "params": {
+  "windows": 7,
+  "per_window": 25,
+  "spacing_days": 45,
+  "end_block": 25660951,
+  "window_span_blocks": 7200,
+  "settlement_contract": "0x9008d19f58aabd9ed0d60971565aa8510560ab41"
+ },
+ "window_ranges": [
+  {
+   "window": 1,
+   "start_block": 25653751,
+   "end_block": 25660951,
+   "fetched": 25,
+   "decoded": 24,
+   "dropped": 1,
+   "median_ratio": 0.6666666666666666,
+   "all_absent": 7,
+   "ts_first": 1785597419,
+   "ts_last": 1785598403
+  },
+  {
+   "window": 2,
+   "start_block": 25329751,
+   "end_block": 25336951,
+   "fetched": 25,
+   "decoded": 25,
+   "dropped": 0,
+   "median_ratio": 0.75,
+   "all_absent": 10,
+   "ts_first": 1781694515,
+   "ts_last": 1781695475
+  },
+  {
+   "window": 3,
+   "start_block": 25005751,
+   "end_block": 25012951,
+   "fetched": 25,
+   "decoded": 25,
+   "dropped": 0,
+   "median_ratio": 0.6666666666666666,
+   "all_absent": 8,
+   "ts_first": 1777789823,
+   "ts_last": 1777792715
+  },
+  {
+   "window": 4,
+   "start_block": 24681751,
+   "end_block": 24688951,
+   "fetched": 25,
+   "decoded": 25,
+   "dropped": 0,
+   "median_ratio": 0.8333333333333334,
+   "all_absent": 12,
+   "ts_first": 1773890123,
+   "ts_last": 1773892199
+  },
+  {
+   "window": 5,
+   "start_block": 24357751,
+   "end_block": 24364951,
+   "fetched": 25,
+   "decoded": 25,
+   "dropped": 0,
+   "median_ratio": 1.0,
+   "all_absent": 15,
+   "ts_first": 1769983487,
+   "ts_last": 1769984327
+  },
+  {
+   "window": 6,
+   "start_block": 24033751,
+   "end_block": 24040951,
+   "fetched": 25,
+   "decoded": 25,
+   "dropped": 0,
+   "median_ratio": 1.0,
+   "all_absent": 13,
+   "ts_first": 1766078315,
+   "ts_last": 1766078555
+  },
+  {
+   "window": 7,
+   "start_block": 23709751,
+   "end_block": 23716951,
+   "fetched": 25,
+   "decoded": 25,
+   "dropped": 0,
+   "median_ratio": 0.6666666666666666,
+   "all_absent": 10,
+   "ts_first": 1762150343,
+   "ts_last": 1762150643
+  }
+ ],
+ "settlements": 174,
+ "median_ratio": 0.75,
+ "mean_ratio": 0.7772783251231526,
+ "all_absent": 75,
+ "none_absent": 0,
+ "S_distribution": {
+  "3": 1,
+  "4": 155,
+  "5": 1,
+  "6": 5,
+  "7": 8,
+  "8": 1,
+  "9": 1,
+  "11": 1,
+  "12": 1
+ },
+ "T_distribution": {
+  "1": 23,
+  "2": 61,
+  "3": 53,
+  "4": 15,
+  "5": 8,
+  "6": 7,
+  "7": 2,
+  "8": 2,
+  "9": 2,
+  "14": 1
+ },
+ "distinct_outside_contracts": 77,
+ "outside_counts": {
+  "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad": 36,
+  "0x111111125421ca6dc452d289314280a0f8842a65": 31,
+  "0xbbbbbbb520d69a9775e85b458c58c648259fad5f": 29,
+  "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2": 37,
+  "0xa356867fdcea8e71aeaf87805808803806231fdc": 1,
+  "0xc42b7df84bc61ab7461b78ed4e81c1284e139024": 1,
+  "0x55c64ae908a9c770c163b0dfdfd74ede2158e83f": 4,
+  "0xd524f98f554bd34f4185678f64a85bb98971d314": 21,
+  "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f": 6,
+  "0xa1c7a8360eb4049595a24d6919e74e105b409cb5": 1,
+  "0xa929c559e5e6537359680f39cb4e3708e1a14dd1": 6,
+  "0x342b8458161137d0203605fa51e4363c1445adcd": 1,
+  "0x60bf78233f48ec42ee3f101b9a05ec7878728006": 22,
+  "0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f": 1,
+  "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973": 15,
+  "0x39d1d8fcc5e6eeaf567bce4e29b94fec956d3519": 2,
+  "0x3de27efa2f1aa663ae5d458857e731c129069f29": 6,
+  "0xba12222222228d8ba445958a75a0704d566bf2c8": 7,
+  "0xcabd955322dfbf94c084929ac5e9eca3feb5556f": 1,
+  "0xba3cb449bd2b4adddbc894d8697f5170800eadec": 19,
+  "0x3c59a38e9ea02a48f7bda8ea2dd5a38831371d31": 1,
+  "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45": 4,
+  "0x7a50a89550c4b142d1df57ec47b9cb3386d852da": 4,
+  "0xa540ec8c73322200d68e1b86c471a5c850854f22": 6,
+  "0xf08d4dea369c456d26a3168ff0024b904f2d8b91": 8,
+  "0x28b1dc1a5e3699a428bc51d234dfab7c9cb2a183": 1,
+  "0x7a250d5630b4cf539739df2c5dacb4c659f2488d": 6,
+  "0x7529d8ac08d4dddc159bc8809a971a7605c34f80": 1,
+  "0x0000000000001ff3684f28c67538d4d072c22734": 6,
+  "0x33b2faf0d58fd2b5caba371b990826e3d021662f": 1,
+  "0x000000000022d473030f116ddee9f6b43ac78ba3": 4,
+  "0x232ce3bd40fcd6f80f3d55a522d03f25df784ee2": 1,
+  "0x66a9893cc07d91d95644aedd05d03f95e1dba8af": 16,
+  "0xe592427a0aece92de3edee1f18e0157c05861564": 1,
+  "0x5c6ee304399dbdb9c8ef030ab642b10820db8f56": 2,
+  "0x13f4ea83d0bd40e75c8222255bc855a974568dd4": 2,
+  "0x7f86bf177dd4f3494b841a37e810a34dd56c829b": 2,
+  "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 1,
+  "0xd26f20001a72a18c002b00e6710000d68700ce00": 1,
+  "0xd51a44d3fae010294c616388b506acda1bfaae46": 1,
+  "0xdb74dfdd3bb46be8ce6c33dc9d82777bcfc3ded5": 1,
+  "0xeac874aed7761460dd4c89778ba6db7d320911a8": 1,
+  "0xfd0b31d2e955fa55e3fa641fe90e08b677188d35": 5,
+  "0x6131b5fae19ea4f9d964eac0408e4408b66337b5": 5,
+  "0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee": 1,
+  "0x55084ee0fef03f14a305cd24286359a35d735151": 9,
+  "0x92762b42a06dcdddc5b7362cfb01e631c4d44b40": 1,
+  "0x9d0e8cdf137976e03ef92ede4c30648d05e25285": 2,
+  "0x40a50cf069e992aa4536211b23f286ef88752187": 1,
+  "0x57e114b691db790c35207b2e685d4a43181e6061": 1,
+  "0xdac17f958d2ee523a2206206994597c13d831ec7": 1,
+  "0xe2f6127b5c93a95415af14df900db52a509cf590": 1,
+  "0xfe470834f297a227e0856e5a7ea637582c061ec5": 6,
+  "0x5e1f62dac767b0491e3ce72469c217365d5b48cc": 2,
+  "0xf9078fb962a7d13f55d40d49c8aa6472abd1a5a6": 1,
+  "0xa4c567c662349bec3d0fb94c4e7f85ba95e208e4": 2,
+  "0xd65ed4bce447195187f37ce7d82f56adf1826f8f": 1,
+  "0xf6e72db5454dd049d0788e411b06cfaf16853042": 2,
+  "0xbeb0b0623f66be8ce162ebdfa2ec543a522f4ea6": 1,
+  "0x6b175474e89094c44da98b954eedeac495271d0f": 1,
+  "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4": 2,
+  "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2": 7,
+  "0xa188eec8f81263234da3622a406892f3d630f98c": 1,
+  "0x62e31802c6145a2d5e842eed8efe01fc224422fa": 1,
+  "0x5426178799ee0a0181a89b4f57efddfab49941ec": 1,
+  "0x9995855c00494d039ab6792f18e368e530dff931": 2,
+  "0x96fb3209fb4da072fb5cc493fa0ff4ea5eaa2d41": 3,
+  "0xdef1c0ded9bec7f1a1670819833240f027b25eff": 5,
+  "0x91331b6dd589163af02fb13e0466c3ba10ee310f": 2,
+  "0xc26b84a5aa0b4fb8a7cff41153d37f2681ad88cc": 1,
+  "0x7a819fa46734a49d0112796f9377e024c350fb26": 5,
+  "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9": 1,
+  "0x4fae7c4ad38e1f4a343780ce791678be8011b225": 1,
+  "0x93d199263632a4ef4bb438f1feb99e57b4b5f0bd": 1,
+  "0x3d0d331390d14df42c16fc20700f7e6ad4849c50": 1,
+  "0x0c95ea31e4501b3b879cae2232087e478d44aeab": 1,
+  "0x7b0a7a4add86c41650040a0574cf6201dda42e20": 1
+ },
+ "settlement_rows": [
+  {
+   "hash": "0xf266205b75a88afcee22d9cf8e327d106e40c7f56619782816932990a3744e68",
+   "block": 25660948,
+   "ts": 1785598403,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 4,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x0d7c6d65227694234b975fc2d1a6ad544522144cf5cdb6303f7df5049913cba6",
+   "block": 25660947,
+   "ts": 1785598391,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 4,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0xa356867fdcea8e71aeaf87805808803806231fdc",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0xd8cfc5f9c62ce6f887f5c60d1ee875a00533b5939aafcbb2d78ea99f8418b57c",
+   "block": 25660934,
+   "ts": 1785598235,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xc42b7df84bc61ab7461b78ed4e81c1284e139024"
+   ]
+  },
+  {
+   "hash": "0x3881f75878aa468d667a22d99d3defcc27aecbe02c25044d814bf903196d3eb7",
+   "block": 25660927,
+   "ts": 1785598151,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x55c64ae908a9c770c163b0dfdfd74ede2158e83f",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x5c04e8f8ff186bce17b1a852381cd0d6e39f5d4edeeaa1255e97fb216832779a",
+   "block": 25660927,
+   "ts": 1785598151,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0x55d795229a267fe8a30f79f921996ebf1532626da004b839ab57c1a664f7174e",
+   "block": 25660924,
+   "ts": 1785598115,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f"
+   ]
+  },
+  {
+   "hash": "0x588326b1e3e1e54b3fa03fb0306d9e98e7db1e32a27ea0d01788d8361cdc91ad",
+   "block": 25660912,
+   "ts": 1785597971,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x55c64ae908a9c770c163b0dfdfd74ede2158e83f",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xfe2dd2d41add85072ef558eae13d6a7db3ed2723d74a49512f0273166fec2ee2",
+   "block": 25660911,
+   "ts": 1785597959,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xa1c7a8360eb4049595a24d6919e74e105b409cb5"
+   ]
+  },
+  {
+   "hash": "0x864e585eedd04fd9032f1cba32adec0d24505be67d096155f72975c9632653e4",
+   "block": 25660910,
+   "ts": 1785597947,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0xf2bfbd892899ac6ee437b2a0f2a5296b34a3eab4f0046a83499b0a70d5553568",
+   "block": 25660905,
+   "ts": 1785597887,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xa929c559e5e6537359680f39cb4e3708e1a14dd1",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xbf66d65da518b537286dbd33df9f73a8442461ee32bcccfe4cb0bececf2ee0ab",
+   "block": 25660899,
+   "ts": 1785597815,
+   "trades": 2,
+   "T": 3,
+   "S": 6,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x342b8458161137d0203605fa51e4363c1445adcd"
+   ]
+  },
+  {
+   "hash": "0xf3edf012f5815b313023b8e9f76cc8e18e6d517de3777bcb388eb340fde74ec3",
+   "block": 25660896,
+   "ts": 1785597779,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xa929c559e5e6537359680f39cb4e3708e1a14dd1",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x1c43421615a7cdd07929804db2c79bc65656ed555f5eb1a369b8f9f988e52c97",
+   "block": 25660896,
+   "ts": 1785597779,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f"
+   ]
+  },
+  {
+   "hash": "0xadef61833dd099ff085b2cc419a5e8df9801406f8a84b315362cd5e9ffe742f9",
+   "block": 25660890,
+   "ts": 1785597707,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x3ab3dd994ea2ce929c4810282ceb270f77c98e9091f837956e17fd4095d8ce3b",
+   "block": 25660889,
+   "ts": 1785597695,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x9dcb3194beb0e27e59766b7114b876c3ab3119b54238347ec29bc8a8f2727ce3",
+   "block": 25660887,
+   "ts": 1785597671,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x0623f7a3b568a11a3f3f9f021fcd4119f7691ca376d99f3ae4d9c8192ede7280",
+   "block": 25660885,
+   "ts": 1785597647,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x31c82aeaad09fae3dd741d564a78e4ae568fa80d86baa5daa415eb642449f3a4",
+   "block": 25660881,
+   "ts": 1785597599,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x7cd6e1f695f703b0af2aa2bd704ee292308b9d2ce1db2a7e8bdc37634977b02c",
+   "block": 25660880,
+   "ts": 1785597587,
+   "trades": 2,
+   "T": 6,
+   "S": 6,
+   "outside": 6,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x39d1d8fcc5e6eeaf567bce4e29b94fec956d3519",
+    "0x3de27efa2f1aa663ae5d458857e731c129069f29",
+    "0xba12222222228d8ba445958a75a0704d566bf2c8",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xcabd955322dfbf94c084929ac5e9eca3feb5556f"
+   ]
+  },
+  {
+   "hash": "0x04e7e9a5981dab9bb2ae406504f757088532e990f955cde5a0ae8a3aeaa5626f",
+   "block": 25660879,
+   "ts": 1785597575,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x4fb7362e7dd59b99f207f1a2cb2abc025257fffc3e9f47cce0f4057767619615",
+   "block": 25660872,
+   "ts": 1785597491,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0xc914f5efffa059802bc72e1ac6240393e589d946995610b68d1b39cc2ace2b4e",
+   "block": 25660870,
+   "ts": 1785597467,
+   "trades": 1,
+   "T": 1,
+   "S": 3,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006"
+   ]
+  },
+  {
+   "hash": "0x94f445aa2732d3170d545a63002286e47aa4725680b31a7ddf9fa119b97cee06",
+   "block": 25660869,
+   "ts": 1785597455,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x3d81a13a0f43a16227a1d47c073b01221dc3cbd32205fad3825d0324e3696712",
+   "block": 25660866,
+   "ts": 1785597419,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x9018f1ae591d6044bc3225c3943c91fa44e4d5d07e6d1e59aa2444334dd64c99",
+   "block": 25336949,
+   "ts": 1781695475,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x71088d45c7448db983ddc602bc5d43d71a76fd6936e18a2cf170f3948792d599",
+   "block": 25336947,
+   "ts": 1781695451,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x5d1fcd12efb90695d4e97a19f92f15203ec3c1f1c48510310df8bb0fb95c63b7",
+   "block": 25336945,
+   "ts": 1781695427,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x3c59a38e9ea02a48f7bda8ea2dd5a38831371d31",
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006"
+   ]
+  },
+  {
+   "hash": "0x7bc186ea0a22973c1c35f7a55070739825bada94c51802d309dd3da27aa2c635",
+   "block": 25336939,
+   "ts": 1781695355,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x820d58cccb462e3d65d4472b886a5848b78387d137f3219adb789f98fc2912ed",
+   "block": 25336937,
+   "ts": 1781695331,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7a50a89550c4b142d1df57ec47b9cb3386d852da"
+   ]
+  },
+  {
+   "hash": "0xfc69d4845762281876cb6428f2332fe5415d42c486786b7642be414e5ccfe8b7",
+   "block": 25336937,
+   "ts": 1781695331,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f"
+   ]
+  },
+  {
+   "hash": "0x94d7d5878dabace12ec1bced0fcd8f4a23108eef45fecd3c29e9218c8570bbee",
+   "block": 25336932,
+   "ts": 1781695259,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xa540ec8c73322200d68e1b86c471a5c850854f22"
+   ]
+  },
+  {
+   "hash": "0x188657339bcdc88e697cfe8a5b1300cb7e220189dfa869adef37ad0264ebe574",
+   "block": 25336930,
+   "ts": 1781695235,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xa540ec8c73322200d68e1b86c471a5c850854f22"
+   ]
+  },
+  {
+   "hash": "0x56d42c03d4e94392124cbf35c0a0bcc9a191a7033e858c0d7959c58981384628",
+   "block": 25336920,
+   "ts": 1781695115,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xa540ec8c73322200d68e1b86c471a5c850854f22",
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91"
+   ]
+  },
+  {
+   "hash": "0x22cc42ef4243d7a86d82598ba74c31e95efdb20015bd465df150dda1f3e5141c",
+   "block": 25336915,
+   "ts": 1781695055,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x28b1dc1a5e3699a428bc51d234dfab7c9cb2a183",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xc6edcb879a36258b50dd4945fec058263768f62c951a761704072e09b25eb306",
+   "block": 25336914,
+   "ts": 1781695043,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xa540ec8c73322200d68e1b86c471a5c850854f22",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x63882afca3caec95a1356afc9ca782f85f35f708690fd80afae658a4b5cf89a1",
+   "block": 25336908,
+   "ts": 1781694971,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x55c64ae908a9c770c163b0dfdfd74ede2158e83f"
+   ]
+  },
+  {
+   "hash": "0x2314f79cdf0b24a218fe5ddb0705d69a867a36e03d6c1dfcae7148e46b62c9e4",
+   "block": 25336902,
+   "ts": 1781694899,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7a50a89550c4b142d1df57ec47b9cb3386d852da"
+   ]
+  },
+  {
+   "hash": "0xcd6e2d30e229fef1554c0fc9b80cbb795d3e0a068c1038ad7c445ed78fa7af17",
+   "block": 25336901,
+   "ts": 1781694887,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+   ]
+  },
+  {
+   "hash": "0x8c236b50ea023543c182a725bb481cef584a00567ce9219abfb7606f8d594cab",
+   "block": 25336900,
+   "ts": 1781694875,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x7529d8ac08d4dddc159bc8809a971a7605c34f80",
+    "0x7a50a89550c4b142d1df57ec47b9cb3386d852da"
+   ]
+  },
+  {
+   "hash": "0x6ea9bb72f55641f6b0298fdb56438a104804e0bd4f8ec9207240023026ca7d3d",
+   "block": 25336900,
+   "ts": 1781694875,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xcc23c1d15e21a4774186db3658e86b266a330a645a95b9be8a565c0290ae3486",
+   "block": 25336886,
+   "ts": 1781694707,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7a50a89550c4b142d1df57ec47b9cb3386d852da"
+   ]
+  },
+  {
+   "hash": "0x94fdf8bc7ac5d945325e83151e7281229ab66df55dbb0b3661faa54bc73b4cf9",
+   "block": 25336886,
+   "ts": 1781694707,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0000000000001ff3684f28c67538d4d072c22734",
+    "0x33b2faf0d58fd2b5caba371b990826e3d021662f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x8e185d25d3622dec736a06b9c9677a76d9fd78cb83b232725e2ac20f77fb4e72",
+   "block": 25336883,
+   "ts": 1781694671,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x55c64ae908a9c770c163b0dfdfd74ede2158e83f",
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x694f2e63dc9ccc29873d8ada2d334cea95125fb95188cfdf77897a6872ed5e66",
+   "block": 25336880,
+   "ts": 1781694635,
+   "trades": 1,
+   "T": 7,
+   "S": 4,
+   "outside": 6,
+   "ratio": 0.8571428571428571,
+   "outside_addrs": [
+    "0x000000000022d473030f116ddee9f6b43ac78ba3",
+    "0x232ce3bd40fcd6f80f3d55a522d03f25df784ee2",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xe592427a0aece92de3edee1f18e0157c05861564"
+   ]
+  },
+  {
+   "hash": "0xb46e955e7fb96b38180721f9bad7f2644fbfa5aff55fd00dc8caf0fad0b2f892",
+   "block": 25336875,
+   "ts": 1781694575,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+   ]
+  },
+  {
+   "hash": "0x1fcf46d3b714bdfc72951d1c21ae8baf0e79eb063bccebe36d433b5a9ad76033",
+   "block": 25336875,
+   "ts": 1781694575,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0x1fdb282a65bde8f806e18a6bada6990016f6a2d18f6acf21ed35b17f499ff379",
+   "block": 25336874,
+   "ts": 1781694563,
+   "trades": 1,
+   "T": 6,
+   "S": 4,
+   "outside": 5,
+   "ratio": 0.8333333333333334,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x39d1d8fcc5e6eeaf567bce4e29b94fec956d3519",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x1ecbcd6a35bbc75985f7cebbdf7b9410dfcb7c18bf153f3432838ff3f79c4eb8",
+   "block": 25336871,
+   "ts": 1781694527,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+   ]
+  },
+  {
+   "hash": "0x59255ea48f6274260ed215055c3e6286799f883b2f4b34089d5a3b9bb220bfa6",
+   "block": 25336870,
+   "ts": 1781694515,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x5e326025871d4b11c591e60972ebd71049e6834a8a1cc7e9e7330d2873e843ef",
+   "block": 25012919,
+   "ts": 1777792715,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x5c6ee304399dbdb9c8ef030ab642b10820db8f56",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xc14dcc022fc9038b5332892672cbfe11de5b31950e21372fc785e90bc324f33b",
+   "block": 25012917,
+   "ts": 1777792691,
+   "trades": 2,
+   "T": 14,
+   "S": 7,
+   "outside": 12,
+   "ratio": 0.8571428571428571,
+   "outside_addrs": [
+    "0x000000000022d473030f116ddee9f6b43ac78ba3",
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x13f4ea83d0bd40e75c8222255bc855a974568dd4",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0x7f86bf177dd4f3494b841a37e810a34dd56c829b",
+    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xd26f20001a72a18c002b00e6710000d68700ce00",
+    "0xd51a44d3fae010294c616388b506acda1bfaae46",
+    "0xdb74dfdd3bb46be8ce6c33dc9d82777bcfc3ded5",
+    "0xeac874aed7761460dd4c89778ba6db7d320911a8"
+   ]
+  },
+  {
+   "hash": "0x4aedce10fa1b42ad10e1ff326fea9949e4383c06fd090e8534d60f0f793eb6a6",
+   "block": 25012914,
+   "ts": 1777792655,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xfd0b31d2e955fa55e3fa641fe90e08b677188d35"
+   ]
+  },
+  {
+   "hash": "0x6fc7b7bc0fab1b5e05394ff6a041b3eac9add52c2d343db8814aa78236ca676e",
+   "block": 25012911,
+   "ts": 1777792619,
+   "trades": 2,
+   "T": 9,
+   "S": 7,
+   "outside": 7,
+   "ratio": 0.7777777777777778,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x13f4ea83d0bd40e75c8222255bc855a974568dd4",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xa540ec8c73322200d68e1b86c471a5c850854f22",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x30f4be881ea26264030846defc371262b7fa173b4e6ccbd8b09864a66dda4db8",
+   "block": 25012899,
+   "ts": 1777792475,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5"
+   ]
+  },
+  {
+   "hash": "0xec6d85be14798577173ad94c6a2fbc71201f7796c36d58587718686b67e39bb8",
+   "block": 25012890,
+   "ts": 1777792367,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 4,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee"
+   ]
+  },
+  {
+   "hash": "0xc1810bd4fb257beb4fc466d5b4bef278ffc07c2a3da7cf5941d9dc5c2fcba493",
+   "block": 25012886,
+   "ts": 1777792319,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5"
+   ]
+  },
+  {
+   "hash": "0x63f1a4578372893ae67d0a72af861a458fe39e96b10d8ff549227e4c0ae739a0",
+   "block": 25012870,
+   "ts": 1777792127,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xfd0b31d2e955fa55e3fa641fe90e08b677188d35"
+   ]
+  },
+  {
+   "hash": "0x71774d19a0ace6272a224814ee3f0ea13a822c660afa3c3390a839eff11c74a8",
+   "block": 25012866,
+   "ts": 1777792079,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xa929c559e5e6537359680f39cb4e3708e1a14dd1"
+   ]
+  },
+  {
+   "hash": "0x69e7c4be86fd713c7f2f337a62351efc6e01dc44af76fc424c0c33824bd3b4fa",
+   "block": 25012866,
+   "ts": 1777792079,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0xdd1907100fe3f571bc1a920c3947ca72ba227dd9e2dce161f6ef4ea3d113b35b",
+   "block": 25012864,
+   "ts": 1777792055,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x55084ee0fef03f14a305cd24286359a35d735151",
+    "0x92762b42a06dcdddc5b7362cfb01e631c4d44b40",
+    "0xfd0b31d2e955fa55e3fa641fe90e08b677188d35"
+   ]
+  },
+  {
+   "hash": "0xa6f23456f84cc4bab18481748f44d77fc53fbe334f5b4239a711f137ac0ac104",
+   "block": 25012863,
+   "ts": 1777792043,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0x1c71a4c687cfbea98434f4d34c39146aa568bbb03574f646bdf4409437f7b923",
+   "block": 25012845,
+   "ts": 1777791827,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x1f1b6446e0049b5178b4019917bbc396a5e7a8e9520dc25e1ac5931c2db325bf",
+   "block": 25012831,
+   "ts": 1777791659,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f",
+    "0x9d0e8cdf137976e03ef92ede4c30648d05e25285"
+   ]
+  },
+  {
+   "hash": "0x625b18a2f00260cd623d8e87116930b5a4cd4e11f61abf474bb9db583aa920d6",
+   "block": 25012804,
+   "ts": 1777791335,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x095a03bc13f9f249e7fb584c98262301234667835c54bbbb035ce9f38917e204",
+   "block": 25012804,
+   "ts": 1777791335,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x62b21ec23e3f275dacf64cb68b064d5d858781b792b5b9dcf7093f88cef2dee4",
+   "block": 25012802,
+   "ts": 1777791311,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x55084ee0fef03f14a305cd24286359a35d735151"
+   ]
+  },
+  {
+   "hash": "0x7f740b423e0938f706ca5c8a9339e402f8da9034995e1e4d5225e86210b49b90",
+   "block": 25012797,
+   "ts": 1777791251,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f"
+   ]
+  },
+  {
+   "hash": "0x84abf9a5b3ad42f14d6058f850dbdc2e64a0e0c4c6c29fd961c3dbde7a6c564f",
+   "block": 25012791,
+   "ts": 1777791179,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x0f6892131be0f9e61da12909aae328a3498cb25443b7278242ec5a467400c592",
+   "block": 25012789,
+   "ts": 1777791155,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x5c6ee304399dbdb9c8ef030ab642b10820db8f56",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x9f774098fa526c9eaed5088ee41a129f235869ee4f2765d1bc59f45f88dd8a67",
+   "block": 25012761,
+   "ts": 1777790819,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x77e01bb61e2ac477a37a7fed85ec3b46ab1336b75e5fb3e6fabfd79806f7ec88",
+   "block": 25012731,
+   "ts": 1777790459,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x40a50cf069e992aa4536211b23f286ef88752187",
+    "0xa929c559e5e6537359680f39cb4e3708e1a14dd1"
+   ]
+  },
+  {
+   "hash": "0x0282e221bc14bb4ed06e61883f42c9ae5b4596444284668851c8ec9aa28ed625",
+   "block": 25012726,
+   "ts": 1777790399,
+   "trades": 1,
+   "T": 6,
+   "S": 4,
+   "outside": 6,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x55084ee0fef03f14a305cd24286359a35d735151",
+    "0x57e114b691db790c35207b2e685d4a43181e6061",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xdac17f958d2ee523a2206206994597c13d831ec7"
+   ]
+  },
+  {
+   "hash": "0x26648804b9974d78a6794f666f9d8f2576c5c10e4d3d6d1ab4295ac4589ade1c",
+   "block": 25012681,
+   "ts": 1777789859,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xe2f6127b5c93a95415af14df900db52a509cf590",
+    "0xfe470834f297a227e0856e5a7ea637582c061ec5"
+   ]
+  },
+  {
+   "hash": "0x88194d92235e8d48031c022881babb6e5843637ab50ba865dfcd5e2b969757f2",
+   "block": 25012678,
+   "ts": 1777789823,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x80b4a27276d0c9cce34bf984877c5c9ed5982a9f"
+   ]
+  },
+  {
+   "hash": "0x2ac4267ad0cff69e71d2395c7a23168456a4d675dea856f9a7ce1b0948a97a36",
+   "block": 24688950,
+   "ts": 1773892199,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xfe470834f297a227e0856e5a7ea637582c061ec5"
+   ]
+  },
+  {
+   "hash": "0xf7dc44ad941edd19e99a98d2611da04afee29f54f7a96c6ce992d45fbaa45c0f",
+   "block": 24688941,
+   "ts": 1773892091,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x5e1f62dac767b0491e3ce72469c217365d5b48cc"
+   ]
+  },
+  {
+   "hash": "0x4296e51a77effb3cd53094a5fe9a16df6d4426127a33c5c50bd745c4b584be30",
+   "block": 24688936,
+   "ts": 1773892031,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 4,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xf9078fb962a7d13f55d40d49c8aa6472abd1a5a6"
+   ]
+  },
+  {
+   "hash": "0x4eec7a2709cb36b83cdd70033b139f67ba9d79a0eb0a367e65a1670b81a1a5d7",
+   "block": 24688935,
+   "ts": 1773892019,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x5b8bc261f8106ab1234adeca1cf4d465c63be85c64a33beb559e072217142041",
+   "block": 24688932,
+   "ts": 1773891983,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x564fe9f199a3942b27eb6dd01bbb47a4aabc32a71925a9278d21a7a2b9cd6b3a",
+   "block": 24688931,
+   "ts": 1773891971,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0x7b57d58e982e5f527a6931e1db65cd4fcd1e4c80250c251cb5a376785ac9406e",
+   "block": 24688931,
+   "ts": 1773891971,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0xa4c567c662349bec3d0fb94c4e7f85ba95e208e4",
+    "0xd65ed4bce447195187f37ce7d82f56adf1826f8f"
+   ]
+  },
+  {
+   "hash": "0xd475600d6b4427e09b816f3d5c5e490156358bba4e5b7b7f47aa7bdccf5ab3ae",
+   "block": 24688930,
+   "ts": 1773891959,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xba12222222228d8ba445958a75a0704d566bf2c8"
+   ]
+  },
+  {
+   "hash": "0x068b92867016069a7311851281d67368211671349dd77c77bb229c75e911bbd2",
+   "block": 24688928,
+   "ts": 1773891935,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xa4c567c662349bec3d0fb94c4e7f85ba95e208e4",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x57786e58e062f5b63c0a376a74924c35b0c123513f3961c0a934cd1cadc09f73",
+   "block": 24688927,
+   "ts": 1773891923,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x28ce9de4265456b1191380a7a737d2477e4e3b575417e81f7f588a01faf96da4",
+   "block": 24688909,
+   "ts": 1773891707,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xfe470834f297a227e0856e5a7ea637582c061ec5"
+   ]
+  },
+  {
+   "hash": "0x28094213b3c90de7bc2a8e7d00b09e0749208849057a62357ec797e95f26cc0f",
+   "block": 24688907,
+   "ts": 1773891683,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xa929c559e5e6537359680f39cb4e3708e1a14dd1"
+   ]
+  },
+  {
+   "hash": "0x533131fb7ffb7a7971d3c3f9d3e2a15827433749ef2a4032c468a7219a3d72f9",
+   "block": 24688907,
+   "ts": 1773891683,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0xfacb3623074524de98bc0ab985e996ef414b67c2190541485cecbb73ed304f99",
+   "block": 24688853,
+   "ts": 1773891035,
+   "trades": 1,
+   "T": 6,
+   "S": 4,
+   "outside": 5,
+   "ratio": 0.8333333333333334,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x55084ee0fef03f14a305cd24286359a35d735151",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xf6e72db5454dd049d0788e411b06cfaf16853042",
+    "0xfd0b31d2e955fa55e3fa641fe90e08b677188d35"
+   ]
+  },
+  {
+   "hash": "0x923fa7fb88ec73c8dc5946f92d8b88b5367962c144bbeeb22d98e4b64fde56e9",
+   "block": 24688837,
+   "ts": 1773890843,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xbc1d9760bd6ca468ca9fb5ff2cfbeac35d86c973"
+   ]
+  },
+  {
+   "hash": "0x0569cb00bd99dc9dc27d05a0d4b4b80f6087899b60160789632400927ca43cc9",
+   "block": 24688831,
+   "ts": 1773890759,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xfe470834f297a227e0856e5a7ea637582c061ec5"
+   ]
+  },
+  {
+   "hash": "0xe4030423f5aadf4eed5031f01d58eb58c4ad12628d842b39c7a30b91b3f69c4f",
+   "block": 24688828,
+   "ts": 1773890723,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x4d36f68ee22ba40bb81f2213a15da1d00382a84101e0df61e69f56e717a10fa2",
+   "block": 24688822,
+   "ts": 1773890651,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xbeb0b0623f66be8ce162ebdfa2ec543a522f4ea6"
+   ]
+  },
+  {
+   "hash": "0xcb0b479c438242416a77c1d53fcd5ba543331e852a45e4616427b3c7fd2ed7cd",
+   "block": 24688813,
+   "ts": 1773890543,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xcd015a62b2348ca2729783e57b76a8c0834e8c1e8041dbb84a70d4bc8f315131",
+   "block": 24688806,
+   "ts": 1773890459,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91",
+    "0xfe470834f297a227e0856e5a7ea637582c061ec5"
+   ]
+  },
+  {
+   "hash": "0x4e52466c2946912d40237229c6b2dc8e1c239e37ae7421eaf0fc716610932426",
+   "block": 24688805,
+   "ts": 1773890447,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5"
+   ]
+  },
+  {
+   "hash": "0x3a990f0002f59937a12585d1a734fed4b24fea61bd1167400ba07f1520db1015",
+   "block": 24688796,
+   "ts": 1773890339,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x77ea8d17a07321e6fbc9dfca86a8b5ad7ad6f4d175c2da68a77177a7123762b4",
+   "block": 24688791,
+   "ts": 1773890279,
+   "trades": 1,
+   "T": 5,
+   "S": 4,
+   "outside": 5,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x55084ee0fef03f14a305cd24286359a35d735151",
+    "0x6b175474e89094c44da98b954eedeac495271d0f",
+    "0xf6e72db5454dd049d0788e411b06cfaf16853042",
+    "0xfd0b31d2e955fa55e3fa641fe90e08b677188d35"
+   ]
+  },
+  {
+   "hash": "0x387d43b20f7e751b2c8dcab84aa9ff0a3ac6cbf24e50f77ab03947176465ac51",
+   "block": 24688778,
+   "ts": 1773890123,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xfe470834f297a227e0856e5a7ea637582c061ec5"
+   ]
+  },
+  {
+   "hash": "0x8dfecac2b5033ea54acbe2ae1ada36946d8dbbb838374ff91ffdfc6fd5fae70e",
+   "block": 24688778,
+   "ts": 1773890123,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xa929c559e5e6537359680f39cb4e3708e1a14dd1"
+   ]
+  },
+  {
+   "hash": "0x316e5cda543c9e2dc1c641308ce697a050f345cd40906aa412582831940a8168",
+   "block": 24364949,
+   "ts": 1769984327,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x5e1f62dac767b0491e3ce72469c217365d5b48cc"
+   ]
+  },
+  {
+   "hash": "0x1027c3575735bd80690c5db8467ca084a1a8f97b9276961b42ff3ca6a21e4d5b",
+   "block": 24364944,
+   "ts": 1769984267,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xf4cfa156342eeb1fa1382bff62d1ffb1b1cc7536d27be2ace53ff13258ee6025",
+   "block": 24364940,
+   "ts": 1769984219,
+   "trades": 2,
+   "T": 7,
+   "S": 6,
+   "outside": 6,
+   "ratio": 0.8571428571428571,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91"
+   ]
+  },
+  {
+   "hash": "0xc2f5e7be01996dfb67f6334bdb6c4859bdf495c89ad8dbf52aa5ebf79b07fc52",
+   "block": 24364937,
+   "ts": 1769984183,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x12f00508f3a2e5641d826b8b7650022362ad8efcb46f821e9e388e18f449ef4c",
+   "block": 24364934,
+   "ts": 1769984135,
+   "trades": 2,
+   "T": 5,
+   "S": 7,
+   "outside": 5,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x55084ee0fef03f14a305cd24286359a35d735151",
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91"
+   ]
+  },
+  {
+   "hash": "0x01370875ab2bc53880e35d72b28756d700266323988e0d53d266a75138cef972",
+   "block": 24364929,
+   "ts": 1769984075,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xa188eec8f81263234da3622a406892f3d630f98c"
+   ]
+  },
+  {
+   "hash": "0x311ae3a38e96cfef20dfd2e9dcf5ab413b0611b6cdd24f2fcacee1f9159e0ed5",
+   "block": 24364922,
+   "ts": 1769983991,
+   "trades": 1,
+   "T": 6,
+   "S": 4,
+   "outside": 6,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x62e31802c6145a2d5e842eed8efe01fc224422fa",
+    "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    "0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0xc4b63249ef18522b015b4363b677730f523e67b243e5c4a236fb042878bc3716",
+   "block": 24364920,
+   "ts": 1769983967,
+   "trades": 2,
+   "T": 1,
+   "S": 5,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0xdda1d9fba4fe87be866b91e0c6542cfcc0b784d7f622de0eb80ca19eb0cad0c3",
+   "block": 24364914,
+   "ts": 1769983895,
+   "trades": 2,
+   "T": 9,
+   "S": 7,
+   "outside": 8,
+   "ratio": 0.8888888888888888,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x5426178799ee0a0181a89b4f57efddfab49941ec",
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    "0x9995855c00494d039ab6792f18e368e530dff931",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91"
+   ]
+  },
+  {
+   "hash": "0xdd10491b8f8c47c0d81b2ba090947ec842cdbc9db73e9551ed925db7019fb194",
+   "block": 24364912,
+   "ts": 1769983871,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x96fb3209fb4da072fb5cc493fa0ff4ea5eaa2d41",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x2db6bf0d56130a6563c0ae74a6233bee2a2669c30a4575cd5c48aed1974094f8",
+   "block": 24364909,
+   "ts": 1769983835,
+   "trades": 2,
+   "T": 5,
+   "S": 7,
+   "outside": 5,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xb83a6417f316f0c0d274221235ba6165e05a7e833382571ca091654b6a3ef1c4",
+   "block": 24364909,
+   "ts": 1769983835,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xa540ec8c73322200d68e1b86c471a5c850854f22",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xc1d7df9fc28eae4fc7f2ee8ac91eab8fbf086dbd73f8c5c70dd6385af50bedda",
+   "block": 24364908,
+   "ts": 1769983823,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0xe7efc7f31c66ddec608ac375e103ecd8f697015f533962de7213cff9b98c8c61",
+   "block": 24364907,
+   "ts": 1769983811,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xb1fa8b6e6c5149580ae7ad78d2e4fd3950f3ece45cf09566a6a63d05288692f8",
+   "block": 24364900,
+   "ts": 1769983727,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xfa1953b30839a65915bb11cd6bcf32aa425c2c9fb9fd0b1c3b22f77e42b9b066",
+   "block": 24364897,
+   "ts": 1769983691,
+   "trades": 1,
+   "T": 6,
+   "S": 4,
+   "outside": 6,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x55084ee0fef03f14a305cd24286359a35d735151",
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0xa9af3243526fa9848b65aaf59f981828a44060f9d6408f044eecdf71db273b77",
+   "block": 24364895,
+   "ts": 1769983667,
+   "trades": 2,
+   "T": 4,
+   "S": 7,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91"
+   ]
+  },
+  {
+   "hash": "0xef86fa42add83c1bf06a95e79ee3061392bb01c620caab05442e61a050aa227b",
+   "block": 24364893,
+   "ts": 1769983643,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x96fb3209fb4da072fb5cc493fa0ff4ea5eaa2d41",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xc3e2c1e41ab5490ae250eca695bd2f4ba29826785fe00dce8419c03c6356c079",
+   "block": 24364891,
+   "ts": 1769983619,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x727c2a95f0607a043b9689087ff0c7947eebf0dca2a7607d095df01513f2949d",
+   "block": 24364890,
+   "ts": 1769983607,
+   "trades": 3,
+   "T": 8,
+   "S": 8,
+   "outside": 7,
+   "ratio": 0.875,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x3de27efa2f1aa663ae5d458857e731c129069f29",
+    "0x55084ee0fef03f14a305cd24286359a35d735151",
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0xba12222222228d8ba445958a75a0704d566bf2c8",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91"
+   ]
+  },
+  {
+   "hash": "0xbb8d33ae8697bad5ac4f67e2f512a7e69f35291aa7cc9b56239638c7d31aca95",
+   "block": 24364888,
+   "ts": 1769983583,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5"
+   ]
+  },
+  {
+   "hash": "0xfc976e47f65ed0d38ea5a1cde99a0e85642091a66b05f1f0c08f9e25a907c8c1",
+   "block": 24364887,
+   "ts": 1769983571,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x6131b5fae19ea4f9d964eac0408e4408b66337b5"
+   ]
+  },
+  {
+   "hash": "0x1b34dc271f811b98dc24126dd6b09d1636a0b8f6bc19c517b63e801b129c7980",
+   "block": 24364883,
+   "ts": 1769983523,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x9633b6110920ea35b83d8d8338b19926edef7aa0916359db0f79a1da516424c0",
+   "block": 24364882,
+   "ts": 1769983511,
+   "trades": 1,
+   "T": 5,
+   "S": 4,
+   "outside": 5,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0e91b5b157e98c20b90332cc3b9cf4ae67b222ad",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0x7f86bf177dd4f3494b841a37e810a34dd56c829b",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x3d828f5a739c4e5912a537060dab6faba161ea2c3cdf5eca2cdc732f8a64280f",
+   "block": 24364880,
+   "ts": 1769983487,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x96fb3209fb4da072fb5cc493fa0ff4ea5eaa2d41"
+   ]
+  },
+  {
+   "hash": "0x0308c78fd09c372d0318fe9d13cbba16e0b4129934136d07fcc2ccd5c3bc1678",
+   "block": 24040951,
+   "ts": 1766078555,
+   "trades": 2,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0000000000001ff3684f28c67538d4d072c22734"
+   ]
+  },
+  {
+   "hash": "0x008758828582fe302ec1347e07c209c329ce3a10bc771e75c44e06d271407fb4",
+   "block": 24040950,
+   "ts": 1766078543,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x148e46ce1300e16ab987a628d27707f5dda9c0c8f6c5334933e5d12836011786",
+   "block": 24040950,
+   "ts": 1766078543,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x8f4aac5cd03efcb93e390a5dd3a717b12d54b9483d8325ad673ff72645bc2f92",
+   "block": 24040949,
+   "ts": 1766078531,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 3,
+   "ratio": 0.75,
+   "outside_addrs": [
+    "0x000000000022d473030f116ddee9f6b43ac78ba3",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0x9d0e8cdf137976e03ef92ede4c30648d05e25285"
+   ]
+  },
+  {
+   "hash": "0x0efcee16744d51a0762feb6629ca2ca01884da61d843d75735ccde321e49327a",
+   "block": 24040949,
+   "ts": 1766078531,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0000000000001ff3684f28c67538d4d072c22734"
+   ]
+  },
+  {
+   "hash": "0x27be8c8a0b9feb0407c06ae817e98afbf489501df672a973db886178d13640ce",
+   "block": 24040949,
+   "ts": 1766078531,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xdef1c0ded9bec7f1a1670819833240f027b25eff"
+   ]
+  },
+  {
+   "hash": "0x94391870b0730bc5060355401aebd36aadc7e16bd8f009301d06a25bcf8f49fa",
+   "block": 24040947,
+   "ts": 1766078507,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0000000000001ff3684f28c67538d4d072c22734"
+   ]
+  },
+  {
+   "hash": "0x1c5138df6f14d659a4eee084d4507abc127465061c08be74425dae2abdda5ca0",
+   "block": 24040947,
+   "ts": 1766078507,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x91331b6dd589163af02fb13e0466c3ba10ee310f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x8636e03d7e13c6dc4bfc86f9e4d7b70b3bba42d76bcfa2b8493a4cdbbd71ea81",
+   "block": 24040947,
+   "ts": 1766078507,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xc26b84a5aa0b4fb8a7cff41153d37f2681ad88cc"
+   ]
+  },
+  {
+   "hash": "0xb01ff1e4abcba783b8eef97f2b1a81664d6b5167a4b3e0fa6c27815dd3489503",
+   "block": 24040945,
+   "ts": 1766078483,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x11d456d8bd79f9223dd7d607ad5bccbd791ee26527aaedd64fc5553b3129a315",
+   "block": 24040945,
+   "ts": 1766078483,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xdef1c0ded9bec7f1a1670819833240f027b25eff"
+   ]
+  },
+  {
+   "hash": "0xf4fa175b6cff603888240014161cc2a3d3d1cf2561803f54bfab254eeef2ccaa",
+   "block": 24040942,
+   "ts": 1766078447,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45"
+   ]
+  },
+  {
+   "hash": "0xaeba782b395504a3892414230470c944df60116878255b760c14d24ffca45fd9",
+   "block": 24040941,
+   "ts": 1766078435,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x55084ee0fef03f14a305cd24286359a35d735151"
+   ]
+  },
+  {
+   "hash": "0xa80b5646b684eb0e5ea44582fbdfc9c4296f6cd15b80fb60d8c080872240f1d8",
+   "block": 24040940,
+   "ts": 1766078423,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xedcde9fcd582255e56f4e7ab9a002a2938651881bcab9cddc52a84fbd31d74cf",
+   "block": 24040939,
+   "ts": 1766078411,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xbf4a926c7178b3d114dea5f32c20391c99109c47ddff60df39dc79ad1bfb545f",
+   "block": 24040939,
+   "ts": 1766078411,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0000000000001ff3684f28c67538d4d072c22734"
+   ]
+  },
+  {
+   "hash": "0x1b1afdf317bb288bf48a506c37975e8aca710b0d52a175f99eae44fb1474d581",
+   "block": 24040934,
+   "ts": 1766078351,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x91331b6dd589163af02fb13e0466c3ba10ee310f"
+   ]
+  },
+  {
+   "hash": "0xa2e783cff6584444606c90fdd033d17d99166d271c5862b8997eee86f92db3cc",
+   "block": 24040934,
+   "ts": 1766078351,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xdef1c0ded9bec7f1a1670819833240f027b25eff"
+   ]
+  },
+  {
+   "hash": "0xf69afcf95d8bdd5cb2f26745c6d2aac2abd2f4319f35611564d4c57bad26b0f1",
+   "block": 24040933,
+   "ts": 1766078339,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 2,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xedf391b2421dac8e451dd494f16065c1765b6acc13274c3dceaddc2323d8065f",
+   "block": 24040933,
+   "ts": 1766078339,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x563e812e5eba3fef7105a2e9acf2efacca5939c4f17302e13869e8d569d10186",
+   "block": 24040933,
+   "ts": 1766078339,
+   "trades": 1,
+   "T": 4,
+   "S": 4,
+   "outside": 4,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x60bf78233f48ec42ee3f101b9a05ec7878728006",
+    "0x7a819fa46734a49d0112796f9377e024c350fb26",
+    "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9",
+    "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2"
+   ]
+  },
+  {
+   "hash": "0x27ba9ed666055129b9ae477c75f54d3827a8b05b429cfa4fdb76cca98aaae48f",
+   "block": 24040932,
+   "ts": 1766078327,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xdef1c0ded9bec7f1a1670819833240f027b25eff"
+   ]
+  },
+  {
+   "hash": "0x54f50531e0c75e59e35d3cb2fc361997c6366b9f3ae552e4fa8420a044b65ccc",
+   "block": 24040932,
+   "ts": 1766078327,
+   "trades": 2,
+   "T": 3,
+   "S": 6,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0x4fae7c4ad38e1f4a343780ce791678be8011b225",
+    "0xf08d4dea369c456d26a3168ff0024b904f2d8b91"
+   ]
+  },
+  {
+   "hash": "0xc815ab130a27bd7d325dc3a8892d9455df756ff6fa184a69e1f1aa270b3a4a6f",
+   "block": 24040931,
+   "ts": 1766078315,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x4c2d4c9b4e0e0931f9f29971f6e3faf22b0268de7c1eace89b6764063e8a0944",
+   "block": 24040931,
+   "ts": 1766078315,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0000000000001ff3684f28c67538d4d072c22734"
+   ]
+  },
+  {
+   "hash": "0x81edbc7912125dabb05111ca6b600f96071d7b358a78c3b671a71e494ab00409",
+   "block": 23716951,
+   "ts": 1762150643,
+   "trades": 3,
+   "T": 5,
+   "S": 9,
+   "outside": 2,
+   "ratio": 0.4,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xed04e1a44d8ea395319acf7ad4376a33e6111c1eefdf66787e79cb8dbf6df11b",
+   "block": 23716949,
+   "ts": 1762150619,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0xc2367b21fb9333b7387bc47ae8932310da6caf4c936135aca611b6613b2e6127",
+   "block": 23716948,
+   "ts": 1762150607,
+   "trades": 1,
+   "T": 8,
+   "S": 4,
+   "outside": 8,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x3de27efa2f1aa663ae5d458857e731c129069f29",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    "0x93d199263632a4ef4bb438f1feb99e57b4b5f0bd",
+    "0x9995855c00494d039ab6792f18e368e530dff931",
+    "0xba12222222228d8ba445958a75a0704d566bf2c8",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x7758fca4c7e6731793c7fbee589c7b68802718b7f5cbace7cf8fd754864e2d9e",
+   "block": 23716948,
+   "ts": 1762150607,
+   "trades": 2,
+   "T": 3,
+   "S": 7,
+   "outside": 1,
+   "ratio": 0.3333333333333333,
+   "outside_addrs": [
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x88bfb908643cf27dfe310e296ebfc61271fd44688e3bf869114f0ee10df65229",
+   "block": 23716947,
+   "ts": 1762150595,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x3d0d331390d14df42c16fc20700f7e6ad4849c50",
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec"
+   ]
+  },
+  {
+   "hash": "0x835a3bde856d06a8af0d2dae8a1077415033e23179844cec600de989a289e72f",
+   "block": 23716946,
+   "ts": 1762150583,
+   "trades": 2,
+   "T": 4,
+   "S": 7,
+   "outside": 2,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x02dca047c66267bdba011d3b6667cf5355a4cc0ca11fb6fe2cff386004b73773",
+   "block": 23716946,
+   "ts": 1762150583,
+   "trades": 1,
+   "T": 5,
+   "S": 4,
+   "outside": 5,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x000000000022d473030f116ddee9f6b43ac78ba3",
+    "0x111111125421ca6dc452d289314280a0f8842a65",
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0x8622f4498e31705a947da95dfd6154cbf70b07c00b630c49e732c2a82d668ea6",
+   "block": 23716945,
+   "ts": 1762150571,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x3de27efa2f1aa663ae5d458857e731c129069f29",
+    "0xba12222222228d8ba445958a75a0704d566bf2c8",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x500f04062acf37fa4dbb6cd2788dd98fd8b4f60c1611eb64bb5ef44a594541a7",
+   "block": 23716944,
+   "ts": 1762150559,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7a819fa46734a49d0112796f9377e024c350fb26"
+   ]
+  },
+  {
+   "hash": "0x00bf17b6681fcf1f77731339bece338a199fc42d5781fc7cae84e7b7f91f1681",
+   "block": 23716943,
+   "ts": 1762150547,
+   "trades": 4,
+   "T": 5,
+   "S": 11,
+   "outside": 2,
+   "ratio": 0.4,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x4d2dfafcd7b8be9bec5cce31e2df7bbadbaf70922eec305a66f20914ea246c9c",
+   "block": 23716942,
+   "ts": 1762150535,
+   "trades": 1,
+   "T": 5,
+   "S": 4,
+   "outside": 5,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x0c95ea31e4501b3b879cae2232087e478d44aeab",
+    "0x3de27efa2f1aa663ae5d458857e731c129069f29",
+    "0xba12222222228d8ba445958a75a0704d566bf2c8",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f",
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+   ]
+  },
+  {
+   "hash": "0xec930ebeba5cc5ba1f53c2e2a91daf64d1abdae5442a8ba7126511d5225dc15d",
+   "block": 23716942,
+   "ts": 1762150535,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7a819fa46734a49d0112796f9377e024c350fb26"
+   ]
+  },
+  {
+   "hash": "0xecfc0f6fbd2f24ac94d470c161b97796b5096cbe88439f99f40c1b13dc9f92a5",
+   "block": 23716940,
+   "ts": 1762150511,
+   "trades": 4,
+   "T": 6,
+   "S": 12,
+   "outside": 2,
+   "ratio": 0.3333333333333333,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x2cf2938baef4e0c38d9e52390eafdc3b9158c01f610ac7f3d34953a50dc3a604",
+   "block": 23716937,
+   "ts": 1762150463,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xf057d3d62c5d1a336d0a4e3d332c6dbb6d3ab537eadf2cf5b21eb4628ce8e5d4",
+   "block": 23716935,
+   "ts": 1762150439,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7a819fa46734a49d0112796f9377e024c350fb26"
+   ]
+  },
+  {
+   "hash": "0xca66f0d158bdbb9c8dac559e9474c215e63ca47a208ab8113d635bd262810740",
+   "block": 23716934,
+   "ts": 1762150427,
+   "trades": 2,
+   "T": 4,
+   "S": 6,
+   "outside": 2,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0xd5bd45038e3cd3051901d5cbaf06d2f4ea7da6b381555635b79e152fe31af6ec",
+   "block": 23716934,
+   "ts": 1762150427,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 3,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x3de27efa2f1aa663ae5d458857e731c129069f29",
+    "0xba12222222228d8ba445958a75a0704d566bf2c8",
+    "0xbbbbbbb520d69a9775e85b458c58c648259fad5f"
+   ]
+  },
+  {
+   "hash": "0x22d55729ae7130dc55b2b807bd82198963a38008019d4d1a55cb4b013972e5e6",
+   "block": 23716933,
+   "ts": 1762150415,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7a819fa46734a49d0112796f9377e024c350fb26"
+   ]
+  },
+  {
+   "hash": "0xd00a3f51e9a601d6515eff78c1f70173a2acc62f27fc0cb09a4b149d293fdf0d",
+   "block": 23716932,
+   "ts": 1762150403,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xba3cb449bd2b4adddbc894d8697f5170800eadec",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  },
+  {
+   "hash": "0x88a706c29fcf6e7812b086ffe6d6917c2cb1c9a1569a26f44c385b9f0566b2e0",
+   "block": 23716932,
+   "ts": 1762150403,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0xc3e7af48f2548912c82601cbb87553d8d618a75df0df226f43aefaaf2651bdab",
+   "block": 23716931,
+   "ts": 1762150391,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x66a9893cc07d91d95644aedd05d03f95e1dba8af"
+   ]
+  },
+  {
+   "hash": "0xe8d63bf2d132b8c071818c6dd09cc726a9d2dfd0baabed8a0fa5e2b96c659338",
+   "block": 23716930,
+   "ts": 1762150379,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0xdef1c0ded9bec7f1a1670819833240f027b25eff"
+   ]
+  },
+  {
+   "hash": "0x327ac4977f24dfafa65a2eb310be351d432583cbb1bcebc32e0f425517ed6483",
+   "block": 23716929,
+   "ts": 1762150367,
+   "trades": 1,
+   "T": 1,
+   "S": 4,
+   "outside": 1,
+   "ratio": 1.0,
+   "outside_addrs": [
+    "0x111111125421ca6dc452d289314280a0f8842a65"
+   ]
+  },
+  {
+   "hash": "0x78432f88f7645d81d06f50ffe0b605365390aeeba52e6db05d4c4b7512e1a3c3",
+   "block": 23716929,
+   "ts": 1762150367,
+   "trades": 1,
+   "T": 2,
+   "S": 4,
+   "outside": 1,
+   "ratio": 0.5,
+   "outside_addrs": [
+    "0x7b0a7a4add86c41650040a0574cf6201dda42e20"
+   ]
+  },
+  {
+   "hash": "0x3115b947a57b6234fe71290cca980b0e8997891070197f27a06d801831183bc9",
+   "block": 23716927,
+   "ts": 1762150343,
+   "trades": 1,
+   "T": 3,
+   "S": 4,
+   "outside": 2,
+   "ratio": 0.6666666666666666,
+   "outside_addrs": [
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xd524f98f554bd34f4185678f64a85bb98971d314"
+   ]
+  }
+ ]
+}
