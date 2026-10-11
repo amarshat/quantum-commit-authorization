@@ -1,0 +1,39 @@
+{
+  "relays": [
+    "relay.ultrasound.money",
+    "boost-relay.flashbots.net",
+    "titanrelay.xyz",
+    "aestus.live",
+    "agnostic-relay.net"
+  ],
+  "anchors": {
+    "20208192": {
+      "blocks": 4096,
+      "relay_covered": 2567
+    },
+    "25479978": {
+      "blocks": 4096,
+      "relay_covered": 3392
+    }
+  },
+  "joined_blocks": 5959,
+  "builder_pubkeys": 92,
+  "agreement": 0.9966437321698272,
+  "self_built_but_relay_delivered": 24,
+  "impure_pubkeys": {
+    "0xa03b00ddb78b2c11": {
+      "flashbots": 4,
+      "beaverbuild": 1
+    },
+    "0xb3a6dc1f159cd010": {
+      "self:20211224": 1,
+      "self:20208411": 1
+    },
+    "0xa03781b94ceb05f4": {
+      "self:25484065": 1,
+      "self:25483989": 1,
+      "self:25483893": 1,
+      "self:25483818": 1
+    }
+  }
+}

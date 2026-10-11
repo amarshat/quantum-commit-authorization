@@ -1,0 +1,108 @@
+{
+  "_doc": "Builder attribution for analyze.py. A block is assigned by its extraData tag first: the decoded tag is lowercased and matched against each builder's substrings in order. If no tag matches, the fee recipient is looked up in `by_miner`. A block matching neither is treated as built by its own proposer, with a label unique to that block, so it never extends a run. That is the right default for client-version strings (geth/nethermind/reth) and empty tags, which are what a locally built block carries, and it understates runs only if an unknown builder hides behind a blank tag. analyze.py reports how many blocks fell through to that default. BuilderNet blocks share one fee recipient and are matched first, as one entity, because that is how they appear on chain and it is the conservative choice (more concentration). The `buildernet_operators` variant splits them by the operator named in the tag, as a sensitivity check.",
+  "by_tag": {
+    "buildernet": [
+      "buildernet"
+    ],
+    "beaverbuild": [
+      "beaverbuild"
+    ],
+    "titan": [
+      "titanbuilder",
+      "titan ("
+    ],
+    "rsync": [
+      "rsync-builder",
+      "rsyncbuilder"
+    ],
+    "flashbots": [
+      "illuminate dmocratize dstribute",
+      "illuminate democratize distribute",
+      "flashbots"
+    ],
+    "jetbldr": [
+      "jetbldr"
+    ],
+    "loki": [
+      "lokibuilder"
+    ],
+    "penguin": [
+      "penguinbuild"
+    ],
+    "btcs": [
+      "btcs.com/builder"
+    ],
+    "bitget": [
+      "bitget"
+    ],
+    "gigabuilder": [
+      "gigabuilder"
+    ],
+    "boba": [
+      "boba-builder"
+    ],
+    "blockbeelder": [
+      "blockbeelder"
+    ],
+    "quasar": [
+      "quasar"
+    ],
+    "bloxroute": [
+      "bloxroute"
+    ],
+    "eden": [
+      "eden network",
+      "edennetwork"
+    ],
+    "manifold": [
+      "manifold"
+    ],
+    "builder0x69": [
+      "builder0x69"
+    ],
+    "eth-builder": [
+      "eth-builder"
+    ],
+    "smithbot": [
+      "smithbot"
+    ],
+    "nfactorial": [
+      "nfactorial"
+    ],
+    "ty-for-the-block": [
+      "ty for the block"
+    ],
+    "eureka": [
+      "eurekabuilder"
+    ],
+    "bobthebuilder": [
+      "bobthebuilder"
+    ],
+    "iobuilder": [
+      "iobuilder"
+    ],
+    "turbobuilder": [
+      "turbobuilder"
+    ],
+    "ultrasound": [
+      "builder.ultrasound.money"
+    ],
+    "snail": [
+      "snailbuilder"
+    ]
+  },
+  "by_miner": {
+    "0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5": "beaverbuild",
+    "0x4838b106fce9647bdf1e7877bf73ce8b0bad5f97": "titan",
+    "0x1f9090aae28b8a3dceadf281b0f12828e676c326": "rsync",
+    "0xdf99a0839818b3f120ebac9b73f82b617dc6a555": "flashbots",
+    "0xdadb0d80178819f2319190d340ce9a924f783711": "buildernet"
+  },
+  "variants": {
+    "buildernet_operators": {
+      "buildernet (beaver)": "beaverbuild",
+      "buildernet (flashbots)": "flashbots",
+      "buildernet (nethermind)": "nethermind-buildernet"
+    }
+  }
+}
