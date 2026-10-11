@@ -34,10 +34,12 @@ BENCH = ROOT / "bench" / "results"
 OUT_MD = ROOT / "fees" / "results" / "RESULTS.md"
 OUT_JSON = ROOT / "fees" / "results" / "basefee-stats.json"
 
-# Gaps in blocks between commit and reveal. The starred ones are candidate
-# minCommitAge values; the rest fill in the curve up to commitTTL = 256.
-GAPS = [1, 2, 4, 8, 16, 32, 64, 128, 256]
-HIGHLIGHT = [4, 8, 16, 32]
+# Gaps in blocks between commit and reveal, up to commitTTL = 256. The starred
+# ones are the minCommitAge values builders/ says are needed at measured
+# builder concentration: the worst anchor's top 1, top 2 and top 3 builders
+# held to a 1e-3 theft rate (13, 63, 78) and to 1e-6 (25, 126, 156).
+GAPS = [1, 2, 4, 8, 13, 16, 25, 32, 63, 64, 78, 126, 128, 156, 256]
+HIGHLIGHT = [13, 25, 63, 78, 126, 156]
 
 
 def load_gas():
@@ -175,9 +177,11 @@ def main():
             f"| {r['p99_9']:.2f}x | {r['max']:.2f}x |"
         )
     L.append("")
-    L.append("Rows marked * are candidate minCommitAge values. Even at the p99.9")
-    L.append("tail the ratio stays far below the break-even multiples above, which")
-    L.append("is the empirical core of the cost argument.")
+    L.append("Rows marked * are the minCommitAge values needed at measured builder")
+    L.append("concentration (builders/results): 13 and 25 blocks hold a single top")
+    L.append("builder to theft rates of 1e-3 and 1e-6, 63 and 126 a colluding top")
+    L.append("two, 78 and 156 a top three. Even at those gaps the p99.9 ratio stays")
+    L.append("below the ML-DSA-44 break-even, and below the ETHFALCON one up to 78.")
     L.append("")
     L.append("## How often the flow was actually more expensive")
     L.append("")
@@ -194,10 +198,15 @@ def main():
         L.append(f"| {g} | action | {fe * 100:.3f}% | {fm * 100:.3f}% |")
     L.append("")
     L.append("A user reveals as soon as the commitment ages, so the operative gap")
-    L.append("is minCommitAge (4 to 32 blocks), where the flow was cheaper than")
-    L.append("both baselines at 100% of historical entry points: no base-fee move")
-    L.append("in two years came close to the break-even multiple over that few-")
-    L.append("block window. The economics only flip in the long tail, and only")
+    L.append("is minCommitAge. Sized against measured builder concentration that is")
+    L.append("13 to 156 blocks, not the 4 to 32 first assumed. Against a single")
+    L.append("top builder (up to 25 blocks) the flow was cheaper than both")
+    L.append("baselines at every historical entry point.")
+    fe2 = cheaper_frac[f"g126|action|{ethf}"]
+    fe3 = cheaper_frac[f"g156|action|{ethf}"]
+    L.append(f"Against a colluding top two or three (126, 156) it still won")
+    L.append(f"{fe2 * 100:.3f}% and {fe3 * 100:.3f}% of the time against ETHFALCON.")
+    L.append("The economics only flip in the long tail, and only")
     L.append("when an adversary censors the reveal toward commitTTL (256 blocks):")
     worst = cheaper_frac[f"g256|action|{ethf}"]
     L.append(f"even at a full 256-block delay the flow still won {worst * 100:.2f}% of")

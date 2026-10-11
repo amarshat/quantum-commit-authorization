@@ -49,6 +49,14 @@
       "p99_9": 1.7143458692850317,
       "max": 2.5644629681425277
     },
+    "13": {
+      "samples": 163320,
+      "p50": 0.992315567970421,
+      "p90": 1.1607942505177438,
+      "p99": 1.4791016359197444,
+      "p99_9": 2.0898459696601046,
+      "max": 3.8800199902332437
+    },
     "16": {
       "samples": 163200,
       "p50": 0.9917427097704314,
@@ -56,6 +64,14 @@
       "p99": 1.5472271628778207,
       "p99_9": 2.3273088579653702,
       "max": 4.607526878773049
+    },
+    "25": {
+      "samples": 162840,
+      "p50": 0.9897299192686366,
+      "p90": 1.216582711789462,
+      "p99": 1.730030151222385,
+      "p99_9": 3.1847820646599008,
+      "max": 7.792032489438338
     },
     "32": {
       "samples": 162560,
@@ -65,6 +81,14 @@
       "p99_9": 3.841610571674917,
       "max": 9.612542599366153
     },
+    "63": {
+      "samples": 161320,
+      "p50": 0.9878772383145564,
+      "p90": 1.3306871462040162,
+      "p99": 2.5078245666202115,
+      "p99_9": 7.2739430444441595,
+      "max": 17.469019953044935
+    },
     "64": {
       "samples": 161280,
       "p50": 0.9876035896425104,
@@ -73,6 +97,22 @@
       "p99_9": 7.49010088032548,
       "max": 17.89556775715504
     },
+    "78": {
+      "samples": 160720,
+      "p50": 0.9864528264252148,
+      "p90": 1.3622684358860075,
+      "p99": 2.808780338560862,
+      "p99_9": 8.862260644537793,
+      "max": 20.12276843759158
+    },
+    "126": {
+      "samples": 158800,
+      "p50": 0.9841247713761623,
+      "p90": 1.453599700903876,
+      "p99": 3.799049188635308,
+      "p99_9": 16.207694623092962,
+      "max": 42.725391730522105
+    },
     "128": {
       "samples": 158720,
       "p50": 0.9838586073118322,
@@ -80,6 +120,14 @@
       "p99": 3.8311346549904206,
       "p99_9": 16.140412132853776,
       "max": 43.886160786919866
+    },
+    "156": {
+      "samples": 157600,
+      "p50": 0.9822581929663193,
+      "p90": 1.5036191612677692,
+      "p99": 4.447540085425607,
+      "p99_9": 17.470791657209357,
+      "max": 65.27398722072016
     },
     "256": {
       "samples": 153600,
@@ -107,22 +155,46 @@
     "g8|action|ML-DSA-44 (NIST)": 1.0,
     "g8|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
     "g8|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g13|action|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
+    "g13|action|ML-DSA-44 (NIST)": 1.0,
+    "g13|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
+    "g13|auth_only|ML-DSA-44 (NIST)": 1.0,
     "g16|action|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
     "g16|action|ML-DSA-44 (NIST)": 1.0,
     "g16|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
     "g16|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g25|action|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
+    "g25|action|ML-DSA-44 (NIST)": 1.0,
+    "g25|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
+    "g25|auth_only|ML-DSA-44 (NIST)": 1.0,
     "g32|action|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
     "g32|action|ML-DSA-44 (NIST)": 1.0,
     "g32|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
     "g32|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g63|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9999690057029507,
+    "g63|action|ML-DSA-44 (NIST)": 1.0,
+    "g63|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
+    "g63|auth_only|ML-DSA-44 (NIST)": 1.0,
     "g64|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9999627976190476,
     "g64|action|ML-DSA-44 (NIST)": 1.0,
     "g64|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
     "g64|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g78|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9997324539571927,
+    "g78|action|ML-DSA-44 (NIST)": 1.0,
+    "g78|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
+    "g78|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g126|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9989105793450882,
+    "g126|action|ML-DSA-44 (NIST)": 1.0,
+    "g126|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9995277078085643,
+    "g126|auth_only|ML-DSA-44 (NIST)": 1.0,
     "g128|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9988848286290323,
     "g128|action|ML-DSA-44 (NIST)": 1.0,
     "g128|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9995274697580645,
     "g128|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g156|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9986167512690355,
+    "g156|action|ML-DSA-44 (NIST)": 1.0,
+    "g156|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9993718274111675,
+    "g156|auth_only|ML-DSA-44 (NIST)": 1.0,
     "g256|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9971158854166666,
     "g256|action|ML-DSA-44 (NIST)": 0.9999869791666667,
     "g256|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9986328125,
