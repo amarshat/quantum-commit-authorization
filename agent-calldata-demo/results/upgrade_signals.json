@@ -1,0 +1,276 @@
+{
+ "implementations": {
+  "0x00005df0bf6e7f9cbf697f3019212ca2084e0000": {
+   "deployer": "0x8761260bcf2a3ae87518b1ecb96f4269787e07c2",
+   "creation_tx": "0xaf67426498e1f3d4901e349a53de821632f875707adea365d07ae130980577db",
+   "creation_block": 18098139,
+   "code_bytes": 1923
+  },
+  "0x66833c45d52b3f950cb60368a5fd30b84754c17f": {
+   "deployer": "0x0000553f880ffa3728b290e04e819053a3590000",
+   "creation_tx": "0x3ac5b94af07350eca2cacb2678cb99f54bdf122b885a947e75775999d3f59da2",
+   "creation_block": 17820967,
+   "code_bytes": 1923
+  },
+  "0x987411b73708d5746de2c412cc234da90b1245a7": {
+   "deployer": "0x32ed318a0e96e974e47cb753e59f8f623dcc8ca2",
+   "creation_tx": "0xe0fb8d2ccd3a842bbb3d1a0914967e4028f9900de1c68c7a1ddcd72d31c55ddf",
+   "creation_block": 17294370,
+   "code_bytes": 2042
+  },
+  "0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5": {
+   "deployer": "0x63605e53d422c4f1ac0e01390ac59aaf84c44a51",
+   "creation_tx": "0x926f8f4b30611fc86634ea33cd7f35b70a80510ab18e233fd4fa7749040519f7",
+   "creation_block": 17036444,
+   "code_bytes": 1757
+  },
+  "0xfc48255bff44906c8ab25ccfdb15e2fed953084a": {
+   "deployer": "0x0000553f880ffa3728b290e04e819053a3590000",
+   "creation_tx": "0x6c7a08b31162514a1b5ee10b56bd606848dcfdee4fd44323636aa6a290ed5c0e",
+   "creation_block": 17714725,
+   "code_bytes": 2346
+  }
+ },
+ "pairwise_similarity": {
+  "0x00005df0bf6e7f9cbf697f3019212ca2084e0000|0x66833c45d52b3f950cb60368a5fd30b84754c17f": 0.9991,
+  "0x00005df0bf6e7f9cbf697f3019212ca2084e0000|0x987411b73708d5746de2c412cc234da90b1245a7": 0.533,
+  "0x00005df0bf6e7f9cbf697f3019212ca2084e0000|0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5": 0.3225,
+  "0x00005df0bf6e7f9cbf697f3019212ca2084e0000|0xfc48255bff44906c8ab25ccfdb15e2fed953084a": 0.5414,
+  "0x66833c45d52b3f950cb60368a5fd30b84754c17f|0x987411b73708d5746de2c412cc234da90b1245a7": 0.533,
+  "0x66833c45d52b3f950cb60368a5fd30b84754c17f|0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5": 0.3225,
+  "0x66833c45d52b3f950cb60368a5fd30b84754c17f|0xfc48255bff44906c8ab25ccfdb15e2fed953084a": 0.5423,
+  "0x987411b73708d5746de2c412cc234da90b1245a7|0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5": 0.2965,
+  "0x987411b73708d5746de2c412cc234da90b1245a7|0xfc48255bff44906c8ab25ccfdb15e2fed953084a": 0.6821,
+  "0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5|0xfc48255bff44906c8ab25ccfdb15e2fed953084a": 0.2815
+ },
+ "rows": [
+  {
+   "id": "ptx-J-02",
+   "signing_block": 17571866,
+   "implementation": "0x987411b73708d5746de2c412cc234da90b1245a7",
+   "age_blocks": 277496,
+   "age_days": 38.54,
+   "same_impl_already_used": false,
+   "closest_prior_other_impl": null,
+   "closest_prior_similarity": null,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": false
+  },
+  {
+   "id": "ptx-J-03",
+   "signing_block": 17644519,
+   "implementation": "0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5",
+   "age_blocks": 608075,
+   "age_days": 84.45,
+   "same_impl_already_used": false,
+   "closest_prior_other_impl": "0x987411b73708d5746de2c412cc234da90b1245a7",
+   "closest_prior_similarity": 0.2965,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-00",
+   "signing_block": 17747352,
+   "implementation": "0xfc48255bff44906c8ab25ccfdb15e2fed953084a",
+   "age_blocks": 32627,
+   "age_days": 4.53,
+   "same_impl_already_used": false,
+   "closest_prior_other_impl": "0x987411b73708d5746de2c412cc234da90b1245a7",
+   "closest_prior_similarity": 0.6821,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-12",
+   "signing_block": 18069706,
+   "implementation": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "age_blocks": 248739,
+   "age_days": 34.55,
+   "same_impl_already_used": false,
+   "closest_prior_other_impl": "0xfc48255bff44906c8ab25ccfdb15e2fed953084a",
+   "closest_prior_similarity": 0.5423,
+   "deployer_already_shipped_a_used_impl": true,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-07",
+   "signing_block": 18292463,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 194324,
+   "age_days": 26.99,
+   "same_impl_already_used": false,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-04",
+   "signing_block": 18320390,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 222251,
+   "age_days": 30.87,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-06",
+   "signing_block": 18332970,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 234831,
+   "age_days": 32.62,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-05",
+   "signing_block": 18338866,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 240727,
+   "age_days": 33.43,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-08",
+   "signing_block": 18358894,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 260755,
+   "age_days": 36.22,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-11",
+   "signing_block": 18361727,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 263588,
+   "age_days": 36.61,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-13",
+   "signing_block": 18365054,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 266915,
+   "age_days": 37.07,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-14",
+   "signing_block": 18365763,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 267624,
+   "age_days": 37.17,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-15",
+   "signing_block": 18372104,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 273965,
+   "age_days": 38.05,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-09",
+   "signing_block": 18372227,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 274088,
+   "age_days": 38.07,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-16",
+   "signing_block": 18376458,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 278319,
+   "age_days": 38.66,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-10",
+   "signing_block": 18381566,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 283427,
+   "age_days": 39.36,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-18",
+   "signing_block": 18394181,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 296042,
+   "age_days": 41.12,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-19",
+   "signing_block": 18395551,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 297412,
+   "age_days": 41.31,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  },
+  {
+   "id": "ptx-J-17",
+   "signing_block": 18426599,
+   "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+   "age_blocks": 328460,
+   "age_days": 45.62,
+   "same_impl_already_used": true,
+   "closest_prior_other_impl": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+   "closest_prior_similarity": 0.9991,
+   "deployer_already_shipped_a_used_impl": false,
+   "flagged_today": true
+  }
+ ]
+}
