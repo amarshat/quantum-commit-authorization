@@ -1,0 +1,63 @@
+{
+ "note": "A second reputation source with dates: ScamSniffer's open address list.",
+ "summary": {
+  "list_start": "2023-12-02",
+  "delay_days": 7,
+  "repository_head": "bfce7b7",
+  "implementations_ever_listed": 4,
+  "implementations": 6,
+  "victims_covered": 76,
+  "victims_after_list_existed": 611,
+  "victims_total": 1389
+ },
+ "per_implementation": {
+  "0x00005df0bf6e7f9cbf697f3019212ca2084e0000": {
+   "first_listed": null,
+   "listed_at_list_start": false,
+   "listed_now": false,
+   "covered_from_block": null,
+   "victims": 834,
+   "victims_after_listing": 0
+  },
+  "0x3de34a1fd5c088821aa1a03f0f2284af9bff8b37": {
+   "first_listed": "2023-12-02",
+   "listed_at_list_start": true,
+   "listed_now": true,
+   "covered_from_block": 18744962,
+   "victims": 22,
+   "victims_after_listing": 10
+  },
+  "0x66833c45d52b3f950cb60368a5fd30b84754c17f": {
+   "first_listed": "2023-12-02",
+   "listed_at_list_start": true,
+   "listed_now": true,
+   "covered_from_block": 18744962,
+   "victims": 111,
+   "victims_after_listing": 0
+  },
+  "0x987411b73708d5746de2c412cc234da90b1245a7": {
+   "first_listed": null,
+   "listed_at_list_start": false,
+   "listed_now": false,
+   "covered_from_block": null,
+   "victims": 157,
+   "victims_after_listing": 0
+  },
+  "0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5": {
+   "first_listed": "2023-12-02",
+   "listed_at_list_start": true,
+   "listed_now": true,
+   "covered_from_block": 18744962,
+   "victims": 172,
+   "victims_after_listing": 66
+  },
+  "0xfc48255bff44906c8ab25ccfdb15e2fed953084a": {
+   "first_listed": "2023-12-02",
+   "listed_at_list_start": true,
+   "listed_now": true,
+   "covered_from_block": 18744962,
+   "victims": 93,
+   "victims_after_listing": 0
+  }
+ }
+}
