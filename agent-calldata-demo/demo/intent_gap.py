@@ -94,10 +94,25 @@ def _get(params: dict, cache_key: str | None = None) -> dict:
         return cache[cache_key]
     q = urllib.parse.urlencode({**params, "apikey": os.environ["ETHERSCAN_API_KEY"]})
     req = urllib.request.Request(f"{BASE}?{q}", headers={"Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=40) as r:
-        out = json.loads(r.read())
-    time.sleep(_RATE_SLEEP)
-    STATS["live"] += 1
+    # A rate-limit reply is a NOTOK body, not an HTTP error, and caching it
+    # would freeze a transient failure into the data (an empty transfer list
+    # read as "no loss"). Back off and retry; never cache it.
+    for attempt in range(6):
+        try:
+            with urllib.request.urlopen(req, timeout=40) as r:
+                out = json.loads(r.read())
+        except (OSError, ValueError):  # resets, timeouts, truncated bodies
+            if attempt == 5:
+                raise
+            time.sleep(2 * (attempt + 1))
+            continue
+        time.sleep(_RATE_SLEEP)
+        STATS["live"] += 1
+        if "rate limit" not in str(out.get("result", "")).lower():
+            break
+        if attempt == 5:
+            raise RuntimeError(f"Etherscan rate limit persisted: {params.get('action')}")
+        time.sleep(1.5 * (attempt + 1))
     if cache_key:
         cache[cache_key] = out
         _save_cache()
