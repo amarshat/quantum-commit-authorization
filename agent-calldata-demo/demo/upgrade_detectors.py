@@ -7,7 +7,12 @@ itself, which is the only kind a wallet is ever asked to sign).
 
 Detectors, by defense category:
 
-  rules        type rule          fires on any upgradeTo
+  rules        type rule          the signed transaction calls upgradeTo
+                                  (selector 0x3659cfe6); `_either` also
+                                  counts upgradeToAndCall. Read from the
+                                  transaction, so a benign upgrade made
+                                  through a factory, multisig or multicall
+                                  does not fire.
                ptxphish rule      Chen et al. (NDSS 2025), Table III:
                                   `param = 'upgradeto' & tx.from != param.owner`.
                                   The paper does not define param.owner, so
@@ -21,6 +26,8 @@ Detectors, by defense category:
                                     proxy owner  proxyOwner(), else owner(),
                                                  of the proxy being upgraded;
                                                  no getter counts as a pass
+                                    impl deployer the account that created
+                                                 the new implementation
   reputation   goplus on proxy    the address the transaction is sent to
                goplus on impl     the address named in the argument
   label-free   reuse              some proxy was upgraded to this
@@ -76,6 +83,14 @@ _OUT = os.path.join(_RES, "upgrade_detectors.json")
 CLONE = 0.90
 OWNER_SELECTOR = "0x8da5cb5b"  # owner()
 PROXY_OWNER_SELECTOR = "0x025313a2"  # proxyOwner(), OpenSea's OwnedUpgradeabilityProxy
+UPGRADE_TO = "0x3659cfe6"
+UPGRADE_TO_AND_CALL = "0x4f1ef286"
+
+
+def selector(h: str) -> str:
+    """Selector of the signed transaction, or 'create' for a contract creation."""
+    t = tx(h)
+    return t["input"][:10] if t.get("to") else "create"
 REP_FIELDS = ("goplus_proxy", "goplus_impl")
 
 
@@ -192,7 +207,9 @@ def main() -> None:
         mrows.append({
             "tx": r["tx"], "block": b, "implementation": a, "in_ptxphish": r["in_ptxphish"],
             "drained": r["drained"],
-            "type_rule": True,
+            "type_rule": selector(r["tx"]) == UPGRADE_TO,
+            "type_rule_either": selector(r["tx"]) in (UPGRADE_TO, UPGRADE_TO_AND_CALL),
+            "ptxphish_impl_deployer": impl[a]["deployer"] != r["victim"],
             "ptxphish_no_owner_fires": own is None or own != r["victim"],
             "ptxphish_no_owner_passes": own is not None and own != r["victim"],
             "ptxphish_proxy_owner": (lambda po: po is not None and po != r["victim"])(
@@ -227,7 +244,9 @@ def main() -> None:
         brows.append({
             "tx": r["tx"], "block": r["block"], "implementation": a,
             "wallet_relevant": r["wallet_relevant"],
-            "type_rule": True,
+            "type_rule": selector(r["tx"]) == UPGRADE_TO,
+            "type_rule_either": selector(r["tx"]) in (UPGRADE_TO, UPGRADE_TO_AND_CALL),
+            "ptxphish_impl_deployer": _deployer_of(a) != sender,
             "ptxphish_no_owner_fires": own is None or own != sender,
             "ptxphish_no_owner_passes": own is not None and own != sender,
             "ptxphish_proxy_owner": (lambda po: po is not None and po != sender)(
@@ -247,7 +266,7 @@ def main() -> None:
         b["label_free_no_age"] = b["drained_via_proxy_before"] or b["clone"] or b["deployer"]
         b["any_label_free"] = b["label_free_no_age"] or b["age"]
 
-    fields = ["type_rule", "ptxphish_no_owner_fires", "ptxphish_no_owner_passes",
+    fields = ["type_rule", "type_rule_either", "ptxphish_impl_deployer", "ptxphish_no_owner_fires", "ptxphish_no_owner_passes",
               "ptxphish_proxy_owner", *REP_FIELDS,
               "reuse", "drained_before", "drained_via_proxy_before", "clone", "deployer", "age", "label_free_no_age", "any_label_free"]
     out_of_sample = [m for m in mrows if not m["in_ptxphish"]]
