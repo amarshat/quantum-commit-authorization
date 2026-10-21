@@ -1,0 +1,950 @@
+{
+ "note": "Check the label-free split of upgrade_population_eval.py against labels.",
+ "summary": {
+  "unseeded_kit": {
+   "implementations": 40,
+   "upgrades": 336,
+   "implementations_goplus_flagged": 5,
+   "upgrades_goplus_flagged": 82,
+   "implementations_in_scamsniffer": 3,
+   "upgrades_in_scamsniffer": 33,
+   "upgrades_to_codeless": 18,
+   "upgrades_before_warning": 91,
+   "drained_via_proxy_before_warning": 34
+  },
+  "benign": {
+   "implementations": 86,
+   "upgrades": 140,
+   "implementations_goplus_flagged": 8,
+   "upgrades_goplus_flagged": 35,
+   "implementations_in_scamsniffer": 4,
+   "upgrades_in_scamsniffer": 16,
+   "upgrades_to_codeless": 56,
+   "upgrades_before_warning": 12,
+   "drained_via_proxy_before_warning": 0
+  }
+ },
+ "per_implementation": {
+  "0x0000000000000000000000000000000000000000": {
+   "side": "benign",
+   "upgrades": 5,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x000000000000000000000000000000000000dead": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x00000000008fe2c0c1795fe9a8e2c1d3f913b35d": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x07cd15853cc4d18023d8ebf60222bc14dcdf326e": {
+   "side": "unseeded_kit",
+   "upgrades": 9,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities"
+   ],
+   "scamsniffer": true,
+   "has_code": true
+  },
+  "0x0b3929cab166363179705e2c34adb741574bfaed": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x0c763c902a2d4a0e841ab8dc73a36fa776915950": {
+   "side": "unseeded_kit",
+   "upgrades": 3,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x137fcc71e3be35b45e6246e5f3cdcff2c457af78": {
+   "side": "benign",
+   "upgrades": 10,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities",
+    "stealing_attack"
+   ],
+   "scamsniffer": true,
+   "has_code": false
+  },
+  "0x150a49669f8a818b3ea8ba6fc7f02c26b608e2de": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x1a3ab1acc5c3915900f9f17ae97f4692792de436": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x1a4a4700485aad59e86d81c7d38fd503254460fb": {
+   "side": "unseeded_kit",
+   "upgrades": 9,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x1bb76be5c8b4f380fdd627207e5bc0746dc4296f": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x1d686b15380a6aa075323f3b4943ef6d0369d7c7": {
+   "side": "benign",
+   "upgrades": 4,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x2360e472be99943a68ace2a8c88ade33b424859f": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x2523816d573a69d8acb2890ff9d191ab63abd1b9": {
+   "side": "unseeded_kit",
+   "upgrades": 12,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x25afb63e846133e22e4d6691805f983175396e6e": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x2614883342b88ad0ec708949ea63b98d62c5cbe6": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x2816cfd9dbfac9645e232005dd93c5351d526566": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x34ca395f140603f4ea95e2a2a3deecb07a9a860b": {
+   "side": "unseeded_kit",
+   "upgrades": 16,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x34cfab9803fffd9e3352c716341bbc9aba56b619": {
+   "side": "unseeded_kit",
+   "upgrades": 25,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x352323a342ea5bcb1ff4509d67242f6df35798d5": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x364a60f579028061851c91928367bdb44709ff3c": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities"
+   ],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x3895c7e8c65c4ad1102e16689a9f83b56bc67c14": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities",
+    "stealing_attack"
+   ],
+   "scamsniffer": true,
+   "has_code": false
+  },
+  "0x3988f7eb084d586be22e5348fb1f8ca0932a7f71": {
+   "side": "benign",
+   "upgrades": 5,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x39e4f140b1aff7da719c0123a9c2951b8719f9ec": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x3cc77e6e19f50d58a6d93da3f4f269f1a0568510": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x3dbfae53d13b1df45534070920f77b84b3732fc1": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x3e4759da3b984c2be14b4b3aa102f12f1355a859": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x3ef49a8204dea874d57c723b31f49e93993c284f": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x40ab902624f7637a6c539bed05a3edb8cc666a09": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x46c5740161ef46156f76735c35c7a8000cf58f4c": {
+   "side": "unseeded_kit",
+   "upgrades": 56,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x495a9b23acca52fd7be1fec9b5460f4c578df889": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x49dab59e2e820645cf4964169e692c31cc72ff41": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x4a6ab995f771900799528ced70a32ea47682b840": {
+   "side": "unseeded_kit",
+   "upgrades": 12,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x4e57eb30ae6480595777a8757eca275683567560": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x4fe8c769d34321da5f0c4f1d3a5c27fd77538a11": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x51c6b41d5eb4a5da9a89810703c45fea1c6f1962": {
+   "side": "unseeded_kit",
+   "upgrades": 9,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x52ab411d095b2f5eb02c1c7b37e8473cd18d82bf": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x550e8b3b6a4d231ba9bb94cffbd55754b7d4f937": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x642cc4ce6a49d2f84aba76fc1a2563c05fe2b081": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x6509b3eb0bad4d899acfed2f5629edd3a5ff7c44": {
+   "side": "unseeded_kit",
+   "upgrades": 29,
+   "goplus": [
+    "phishing_activities"
+   ],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x67d6897ec4e903e4163649ac064ae1020635e379": {
+   "side": "unseeded_kit",
+   "upgrades": 17,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x680d7465ed525cd274f20c8a8fda52ba5b0fd54d": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x686b19a73271c532025ace44a1c6413112107ede": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x6915f133e08dce78658944b8f366a27b80b7d1fe": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x6a36a9e715403ad1bc6498ed7545c4e2aa624a3e": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x6b1eb7057e492ef3cb3a24964349920a52d68eb0": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x6ced525aea1f3589c06466de3bf537d80bff0c30": {
+   "side": "benign",
+   "upgrades": 3,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities"
+   ],
+   "scamsniffer": true,
+   "has_code": false
+  },
+  "0x6ea25c16c702971e21fdf84de740eab4dbc2e925": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x6f881b6cb02aed635dc18b459c1765b8e05463f9": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x761036d65943d0d6ec774019ff78e3d9a3e3c3de": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x7b2247e974d320f85ed69811ccdb16bdc7a031cf": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x7e7ed1b73cad52e32b93f34ae013bae2b4f618b4": {
+   "side": "unseeded_kit",
+   "upgrades": 5,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x8093a4b089e0fe6fe65a4fe7978fa9575dd84b62": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x85af48a8d7ea7a758aaf394c9725b0c43e7af48b": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x892b59cc5a1aef00f8888888888888bee8cc402c": {
+   "side": "unseeded_kit",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x8a43193e8796ddfbc587b1050c6eedbd1c298846": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x8b02b330eb208cbbe2dedf5f49155de5e6fd0208": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x8c8fe672a84a675c8a5b4c0b02b985341af9e83b": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0x911456403f2d94c0407e3abe097bb669c821076c": {
+   "side": "unseeded_kit",
+   "upgrades": 20,
+   "goplus": [
+    "phishing_activities"
+   ],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x94e496474f1725f1c1824cb5bdb92d7691a4f03a": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x96289f8c7fa20ff4f340c93e2b0710d7ae1ea1c6": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x97ec899fc8d9228947cfa7ffc90ddbee9c7bd2eb": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x99380a106586bb933adf0f5e4b9b18ba6471d20a": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x9a724f9806df726c13f9576c30c8111d5ce01a06": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0x9fd83ab64edbeaa39299644135f1fcff5c418f8f": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa3518855cd480429aa0f27c7cbdd116f8e01f886": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa35a48a2a309f7bc519d40305c9d290cf4db37f2": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa35c38f2c6d7c9fe2483cf7cd4e3e22d8a3a554b": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [
+    "stealing_attack"
+   ],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa438ba002cc34d4e4dbb41969999d249039271e7": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa5409ec958c83c3f309868babaca7c86dcb077c1": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa71335326bec9673221d4d23836c61bd0190e162": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xa8a0bd415e8a777536c3738d258f959206e748d8": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xac8e5035f6156e6c5b5104fe2efde0c2053b17db": {
+   "side": "unseeded_kit",
+   "upgrades": 4,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xacdaeeb57ff6886fc8e203b9dd4c2b241df89b7a": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xad5058d76cfbf7f962a44df808412f021ad1a30e": {
+   "side": "unseeded_kit",
+   "upgrades": 9,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xae90a7868c46861912a5cb12c1c5e9d3a1dd3e60": {
+   "side": "unseeded_kit",
+   "upgrades": 33,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xaecc8103fb616ad2a2a8e23eb0cc869a109fb175": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xb2074e03d3f81885260065461f7155a150134fd0": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xb334a4eb0a2d6cc24fd451e779c002b9b33228c3": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xb59421e4bc66710c96cfa34c8fa2e727297a1520": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xb79fa444acd910503ca41e4273f894d068a70549": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities"
+   ],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xb8a7a8d5209044ce21d663431775bdd57d06eb13": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xba5edc0d2ae493c9574328d77dc36eef19f699e2": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xbe0055a4e4af7d67574df2af7428a77366eadbd9": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xbe275258013e5bbb740f77fd5c34e424e6841c86": {
+   "side": "unseeded_kit",
+   "upgrades": 18,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xbe38d2cdccfccc14c8b848c4ed110c982e277613": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xbf9b4a88dee919ecb9702d84a9fd1f33a282f5b9": {
+   "side": "unseeded_kit",
+   "upgrades": 15,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities"
+   ],
+   "scamsniffer": true,
+   "has_code": true
+  },
+  "0xc01716080ff57d33ca777187cfba338b135cee1f": {
+   "side": "benign",
+   "upgrades": 8,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xc1c9c049b6b07eab7e0432801acc487c3f0b1fcf": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xc31630fd294592c907e0fe8b32929d46bfe981bc": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xc38b983e8581d63bd866517b7fd2347483af4789": {
+   "side": "benign",
+   "upgrades": 3,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xc463b4d431901545e31fbaebb67aaee14605a9e9": {
+   "side": "unseeded_kit",
+   "upgrades": 4,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xc6a3648fa77718ba604614eea563324c6f644bdf": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xc839de0fed241607d50aa4107ae582443b906e4c": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xc9980ea320b100c593317267179453e91c5195db": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xca11bde05977b3631167028862be2a173976ca11": {
+   "side": "benign",
+   "upgrades": 15,
+   "goplus": [
+    "phishing_activities",
+    "stealing_attack"
+   ],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xca57e96db0d59f8ea2eb301a2a64dddc9b96d006": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xcd0d14f889183d7fb45ab228bc1716eabf2f52c5": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xcd1a512e50c0027cd95316b14d6c22e20708ad69": {
+   "side": "unseeded_kit",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xce9e999aba6b9c292e7be704ab9796ee08a4537d": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xcfe7a8febbff6e61782c40ba4ad104ab9c6cec90": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xd2ce3b5ac4cec766951795db92ba34924242e18c": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xd376b34c8678f9bd534631db061ae04008970a7d": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xd4718d8865296b3113dce6dd81d5b453b838ea08": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xd52573f6d4f68d8e7f8fe2ed50a1023c5f6fe82a": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xd5b6e0aeacf4b17fa522e783a0e82029138111e1": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities",
+    "stealing_attack"
+   ],
+   "scamsniffer": true,
+   "has_code": false
+  },
+  "0xdb98eafb04718aa02cc53d758d136b6a7b26405f": {
+   "side": "unseeded_kit",
+   "upgrades": 9,
+   "goplus": [
+    "blacklist_doubt",
+    "phishing_activities"
+   ],
+   "scamsniffer": true,
+   "has_code": true
+  },
+  "0xe4bbf16961f38abe1a144800a3d608f844b42cd4": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xe71f4da9fc0a0c9ace7af2a4090165400bfc4e81": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xea134f21f02417619d89faa90819f3f3f032e882": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xeb78d5cd7200d6092cb2593de9312907cd6c5e35": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xed8ea16ed092aba045d85099efd6c3d68a95b541": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xedb6a724e96c9eef769e59d6e98054cb423b20ff": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xee63189a3b5d35ff8e6f67bd2b2a3aca4e084e85": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xef8acdceee68227988cc980a7c9216c4f328c23d": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xf128ffd659858a38aa6b7f991ccb7598a8185320": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xf16679064d5e8ddf5af2ac09ca85ce1cdbc1ff93": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xf4b2c455116f0229c640d7f0299efb164de703c7": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xf7231b3970b127512cfcd0fa994b0578c9236de0": {
+   "side": "unseeded_kit",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xf8515f66369b9c8806c9c7e2b464bf0032ff9946": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  },
+  "0xf88e7ac66346986c88813d253217870b90bdad81": {
+   "side": "benign",
+   "upgrades": 2,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xf9e9621e433f272b9316fc170ada1c20dc207c40": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xfb6581d9a7d5c362d902d25c982d518520b9c8a3": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xfbc23e7a480a27ac40532bbd71ab24752c4611af": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": true
+  },
+  "0xfc11e0ea39b41b39455aa6e9ba1ebc0dfd48db6b": {
+   "side": "benign",
+   "upgrades": 1,
+   "goplus": [],
+   "scamsniffer": false,
+   "has_code": false
+  }
+ }
+}
