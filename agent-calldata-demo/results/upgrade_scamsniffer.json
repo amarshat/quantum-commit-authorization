@@ -8,7 +8,10 @@
   "implementations": 6,
   "victims_covered": 76,
   "victims_after_list_existed": 611,
-  "victims_total": 1389
+  "victims_total": 1389,
+  "benign_listed_now": 0,
+  "benign_wallet_relevant_listed_now": 0,
+  "benign_total": 781
  },
  "per_implementation": {
   "0x00005df0bf6e7f9cbf697f3019212ca2084e0000": {

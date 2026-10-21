@@ -31,6 +31,7 @@ from .intent_gap import block_at
 
 _HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _EXPAND = os.path.join(_HERE, "results", "upgrade_expand.json")
+_BASE = os.path.join(_HERE, "results", "upgrade_baseline.json")
 _OUT = os.path.join(_HERE, "results", "upgrade_scamsniffer.json")
 
 FILES = ["blacklist/all.json", "blacklist/address.json"]
@@ -51,6 +52,7 @@ def first_listed(repo: str, address: str) -> str | None:
 def main() -> None:
     repo = sys.argv[1]
     rows = json.load(open(_EXPAND))["rows"]
+    benign = json.load(open(_BASE))["rows"]
     impls = sorted({r["implementation"] for r in rows})
     list_start = git(repo, "log", "--reverse", "--format=%cs", "--", FILES[1]).splitlines()[0]
     listed_now = open(os.path.join(repo, FILES[0])).read().lower()
@@ -83,6 +85,13 @@ def main() -> None:
         "victims_covered": sum(v["victims_after_listing"] for v in per_impl.values()),
         "victims_after_list_existed": after_list_exists,
         "victims_total": len(rows),
+        # Benign side against today's list, so an upper bound on its false positives.
+        "benign_listed_now": sum(r["implementation"] in listed_now or r["proxy"] in listed_now
+                                 for r in benign),
+        "benign_wallet_relevant_listed_now": sum(
+            r["wallet_relevant"] and (r["implementation"] in listed_now or r["proxy"] in listed_now)
+            for r in benign),
+        "benign_total": len(benign),
     }
     with open(_OUT, "w") as f:
         json.dump({"note": __doc__.split("\n\n")[0], "summary": summary, "per_implementation": per_impl},
