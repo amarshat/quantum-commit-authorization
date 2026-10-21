@@ -82,9 +82,14 @@ def main() -> None:
     flagged = {r["implementation"].lower() for r in pop["rows"] if r["reputation_flags"]}
     events = pop["upgrade_events"]
     # A wallet only ever sees an upgrade an EOA signs and sends to the proxy
-    # itself, the same rule type_rule_limit.py uses for its 117.
+    # itself. type_rule_limit.py read the sender's code at the latest block, so
+    # an EOA that later added an EIP-7702 delegation (0xef0100...) looked like a
+    # contract; it had no code when it signed, so it counts as an EOA here.
+    def eoa(e: dict) -> bool:
+        return not e["from_is_contract"] or runtime_code(e["from"]).startswith("0xef0100")
+
     relevant_tx = {e["tx"] for e in pop["sender_classification"]["per_event"]
-                   if not e["from_is_contract"] and e["sent_directly_to_proxy"]}
+                   if e["sent_directly_to_proxy"] and eoa(e)}
 
     excluded = [e for e in events
                 if e["implementation"].lower() in drainers or e["implementation"].lower() in flagged]

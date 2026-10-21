@@ -73,6 +73,11 @@ def main() -> None:
             "victims": len(mine),
             "victims_after_listing": sum(cut is not None and r["block"] >= cut for r in mine),
         }
+        # Sensitivity: a wallet that pulls ScamSniffer's feed directly may not wait
+        # out the public repository's delay.
+        if date:
+            cut0 = block_at(calendar.timegm(time.strptime(date, "%Y-%m-%d")))
+            per_impl[a]["victims_after_listing_no_delay"] = sum(r["block"] >= cut0 for r in mine)
 
     starts = [v["covered_from_block"] for v in per_impl.values() if v["covered_from_block"]]
     after_list_exists = sum(r["block"] >= min(starts) for r in rows) if starts else 0
@@ -83,6 +88,7 @@ def main() -> None:
         "implementations_ever_listed": sum(v["first_listed"] is not None for v in per_impl.values()),
         "implementations": len(impls),
         "victims_covered": sum(v["victims_after_listing"] for v in per_impl.values()),
+        "victims_covered_no_delay": sum(v.get("victims_after_listing_no_delay", 0) for v in per_impl.values()),
         "victims_after_list_existed": after_list_exists,
         "victims_total": len(rows),
         # Benign side against today's list, so an upper bound on its false positives.

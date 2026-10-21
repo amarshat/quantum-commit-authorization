@@ -136,11 +136,11 @@
   "deployer_fires": 0
  },
  "wallet_relevant": {
-  "events": 99,
-  "age_known": 99,
+  "events": 105,
+  "age_known": 105,
   "age_days_median": 0.0,
-  "age_under_1_day": 89,
-  "age_in_malicious_range": 6,
+  "age_under_1_day": 94,
+  "age_in_malicious_range": 7,
   "clone_fires": {
    "0.8": 0,
    "0.9": 0,
@@ -1797,7 +1797,7 @@
    "proxy": "0xcb3e1e1f7f17540d0d332e780e6ecd0ad39d7c18",
    "implementation": "0x6c9bf6cea929931af9cd3d2952694ce649e1bc8b",
    "block": 18012344,
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "age_days": 0.0,
    "max_sim_to_drainer": 0.0718,
    "deployer_shipped_a_drainer": false
@@ -2147,7 +2147,7 @@
    "proxy": "0x135c4e5e427ebed0f8bf7966cec4117b1cae2137",
    "implementation": "0xf62b0d56ba617f803df1c464c519ff7d29451b2f",
    "block": 18017493,
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "age_days": 20.17,
    "max_sim_to_drainer": 0.0402,
    "deployer_shipped_a_drainer": false
@@ -2167,7 +2167,7 @@
    "proxy": "0x4065c17e406c6caade0779b4829a7a7b3942612d",
    "implementation": "0x9df3fe6dbd38891a691792956f065c9029f94b30",
    "block": 18017652,
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "age_days": 0.74,
    "max_sim_to_drainer": 0.0516,
    "deployer_shipped_a_drainer": false
@@ -7507,7 +7507,7 @@
    "proxy": "0xe8309124cc3dd86845253664ce86a38bf0ad06f2",
    "implementation": "0x1b667667d9bdcd8e417181aff51c14ec38a133b6",
    "block": 21010931,
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "age_days": 0.0,
    "max_sim_to_drainer": 0.0413,
    "deployer_shipped_a_drainer": false
@@ -7937,7 +7937,7 @@
    "proxy": "0x111111677601ec955b89f68c2e4399ddb5a46f39",
    "implementation": "0xf61199574081898cdc5eaeb648a267e02cbd3201",
    "block": 21013474,
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "age_days": 0.0,
    "max_sim_to_drainer": 0.0748,
    "deployer_shipped_a_drainer": false
@@ -7967,7 +7967,7 @@
    "proxy": "0xe15aeb63eb2bf58a73dd871f4a1cf0d0a97f80f3",
    "implementation": "0xb9dcae6ddea550a87a0a77a5da7de44543a94884",
    "block": 21013721,
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "age_days": 0.0,
    "max_sim_to_drainer": 0.1628,
    "deployer_shipped_a_drainer": false

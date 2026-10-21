@@ -1,10 +1,10 @@
 """The history detectors measured on the benign side, not assumed.
 
-upgrade_detectors.py sets `reuse` and `drained_before` to False for every
-benign row, because no benign implementation is a known drainer. That makes
-the benign false-positive count for the paper's main detector zero by
-construction. This module measures it instead, with the same definitions as
-the malicious side:
+upgrade_detectors.py used to set `reuse` and `drained_before` to False for
+every benign row, because no benign implementation is a known drainer, which
+made their benign false-positive count zero by construction. This module
+measures them on both sides with the same definitions, and
+upgrade_detectors.py reads its output:
 
   reuse            some proxy was upgraded to this implementation at an
                    earlier block

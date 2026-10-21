@@ -91,6 +91,8 @@ def selector(h: str) -> str:
     """Selector of the signed transaction, or 'create' for a contract creation."""
     t = tx(h)
     return t["input"][:10] if t.get("to") else "create"
+
+
 REP_FIELDS = ("goplus_proxy", "goplus_impl")
 
 

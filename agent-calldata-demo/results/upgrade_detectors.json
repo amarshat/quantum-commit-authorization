@@ -510,147 +510,147 @@
   },
   "benign_wallet_relevant": {
    "type_rule": {
-    "fires": 25,
-    "of": 99,
-    "rate": 0.2525,
+    "fires": 29,
+    "of": 105,
+    "rate": 0.2762,
     "ci95": [
-     0.1773,
-     0.3462
+     0.1997,
+     0.3685
     ]
    },
    "type_rule_either": {
-    "fires": 95,
-    "of": 99,
-    "rate": 0.9596,
+    "fires": 101,
+    "of": 105,
+    "rate": 0.9619,
     "ci95": [
-     0.9007,
-     0.9842
+     0.9061,
+     0.9851
     ]
    },
    "ptxphish_impl_deployer": {
-    "fires": 9,
-    "of": 99,
-    "rate": 0.0909,
+    "fires": 10,
+    "of": 105,
+    "rate": 0.0952,
     "ci95": [
-     0.0486,
-     0.1638
+     0.0526,
+     0.1665
     ]
    },
    "ptxphish_no_owner_fires": {
-    "fires": 99,
-    "of": 99,
+    "fires": 105,
+    "of": 105,
     "rate": 1.0,
     "ci95": [
-     0.9626,
+     0.9647,
      1.0
     ]
    },
    "ptxphish_no_owner_passes": {
-    "fires": 75,
-    "of": 99,
-    "rate": 0.7576,
+    "fires": 79,
+    "of": 105,
+    "rate": 0.7524,
     "ci95": [
-     0.6646,
-     0.8313
+     0.6619,
+     0.8251
     ]
    },
    "ptxphish_proxy_owner": {
     "fires": 7,
-    "of": 99,
-    "rate": 0.0707,
+    "of": 105,
+    "rate": 0.0667,
     "ci95": [
-     0.0347,
-     0.1388
+     0.0327,
+     0.1313
     ]
    },
    "goplus_proxy": {
     "fires": 0,
-    "of": 99,
+    "of": 105,
     "rate": 0.0,
     "ci95": [
      0.0,
-     0.0374
+     0.0353
     ]
    },
    "goplus_impl": {
     "fires": 0,
-    "of": 99,
+    "of": 105,
     "rate": 0.0,
     "ci95": [
      0.0,
-     0.0374
+     0.0353
     ]
    },
    "reuse": {
-    "fires": 54,
-    "of": 99,
-    "rate": 0.5455,
+    "fires": 55,
+    "of": 105,
+    "rate": 0.5238,
     "ci95": [
-     0.4475,
-     0.64
+     0.4291,
+     0.6168
     ]
    },
    "drained_before": {
-    "fires": 1,
-    "of": 99,
-    "rate": 0.0101,
+    "fires": 2,
+    "of": 105,
+    "rate": 0.019,
     "ci95": [
-     0.0018,
-     0.055
+     0.0052,
+     0.0668
     ]
    },
    "drained_via_proxy_before": {
     "fires": 0,
-    "of": 99,
+    "of": 105,
     "rate": 0.0,
     "ci95": [
      0.0,
-     0.0374
+     0.0353
     ]
    },
    "clone": {
     "fires": 0,
-    "of": 99,
+    "of": 105,
     "rate": 0.0,
     "ci95": [
      0.0,
-     0.0374
+     0.0353
     ]
    },
    "deployer": {
     "fires": 0,
-    "of": 99,
+    "of": 105,
     "rate": 0.0,
     "ci95": [
      0.0,
-     0.0374
+     0.0353
     ]
    },
    "age": {
-    "fires": 10,
-    "of": 99,
-    "rate": 0.101,
+    "fires": 11,
+    "of": 105,
+    "rate": 0.1048,
     "ci95": [
-     0.0558,
-     0.176
+     0.0595,
+     0.1779
     ]
    },
    "label_free_no_age": {
     "fires": 0,
-    "of": 99,
+    "of": 105,
     "rate": 0.0,
     "ci95": [
      0.0,
-     0.0374
+     0.0353
     ]
    },
    "any_label_free": {
-    "fires": 10,
-    "of": 99,
-    "rate": 0.101,
+    "fires": 11,
+    "of": 105,
+    "rate": 0.1048,
     "ci95": [
-     0.0558,
-     0.176
+     0.0595,
+     0.1779
     ]
    }
   }
@@ -38883,7 +38883,7 @@
    "tx": "0x5169031fb521d81a29da212ad943fb808a46ac2e0fab82539aaa5a66e0094d88",
    "block": 18012344,
    "implementation": "0x6c9bf6cea929931af9cd3d2952694ce649e1bc8b",
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "type_rule": true,
    "type_rule_either": true,
    "ptxphish_impl_deployer": false,
@@ -39688,7 +39688,7 @@
    "tx": "0xef664947205eccb0d907a614f091f490ac8f6058cb9db80858bda90de3b12be1",
    "block": 18017493,
    "implementation": "0xf62b0d56ba617f803df1c464c519ff7d29451b2f",
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "type_rule": true,
    "type_rule_either": true,
    "ptxphish_impl_deployer": true,
@@ -39734,7 +39734,7 @@
    "tx": "0x9b7785bc0df0cbf726a298dc07321ebfe74419855df2949a25b1e807dc0a6f84",
    "block": 18017652,
    "implementation": "0x9df3fe6dbd38891a691792956f065c9029f94b30",
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "type_rule": true,
    "type_rule_either": true,
    "ptxphish_impl_deployer": false,
@@ -52016,7 +52016,7 @@
    "tx": "0x5c5383cccd079b3486c09d4963203f39f4f53dd2bdcae5d865586c182bf175c2",
    "block": 21010931,
    "implementation": "0x1b667667d9bdcd8e417181aff51c14ec38a133b6",
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "type_rule": true,
    "type_rule_either": true,
    "ptxphish_impl_deployer": false,
@@ -53005,7 +53005,7 @@
    "tx": "0xf530aedd2779d6f278a7ac8df6afc17271e23dd86c10afa7c1b1d19cd29121a0",
    "block": 21013474,
    "implementation": "0xf61199574081898cdc5eaeb648a267e02cbd3201",
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "type_rule": false,
    "type_rule_either": true,
    "ptxphish_impl_deployer": false,
@@ -53074,7 +53074,7 @@
    "tx": "0x9f3328b3af60c674442c5a93c8004a1d95253cde5de5371b65c1e6c61b5fe65e",
    "block": 21013721,
    "implementation": "0xb9dcae6ddea550a87a0a77a5da7de44543a94884",
-   "wallet_relevant": false,
+   "wallet_relevant": true,
    "type_rule": false,
    "type_rule_either": true,
    "ptxphish_impl_deployer": false,

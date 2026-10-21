@@ -7,6 +7,7 @@
   "implementations_ever_listed": 4,
   "implementations": 6,
   "victims_covered": 76,
+  "victims_covered_no_delay": 81,
   "victims_after_list_existed": 611,
   "victims_total": 1389,
   "benign_listed_now": 0,
@@ -28,7 +29,8 @@
    "listed_now": true,
    "covered_from_block": 18744962,
    "victims": 22,
-   "victims_after_listing": 10
+   "victims_after_listing": 10,
+   "victims_after_listing_no_delay": 15
   },
   "0x66833c45d52b3f950cb60368a5fd30b84754c17f": {
    "first_listed": "2023-12-02",
@@ -36,7 +38,8 @@
    "listed_now": true,
    "covered_from_block": 18744962,
    "victims": 111,
-   "victims_after_listing": 0
+   "victims_after_listing": 0,
+   "victims_after_listing_no_delay": 0
   },
   "0x987411b73708d5746de2c412cc234da90b1245a7": {
    "first_listed": null,
@@ -52,7 +55,8 @@
    "listed_now": true,
    "covered_from_block": 18744962,
    "victims": 172,
-   "victims_after_listing": 66
+   "victims_after_listing": 66,
+   "victims_after_listing_no_delay": 66
   },
   "0xfc48255bff44906c8ab25ccfdb15e2fed953084a": {
    "first_listed": "2023-12-02",
@@ -60,7 +64,8 @@
    "listed_now": true,
    "covered_from_block": 18744962,
    "victims": 93,
-   "victims_after_listing": 0
+   "victims_after_listing": 0,
+   "victims_after_listing_no_delay": 0
   }
  }
 }

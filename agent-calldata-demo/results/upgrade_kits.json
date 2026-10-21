@@ -1,0 +1,157 @@
+{
+ "note": "Where each drain went, and how long each kit ran before a wallet could know.",
+ "summary": {
+  "malicious_rows": 1389,
+  "distinct_victims": 1382,
+  "drained_rows": 1194,
+  "drained_distinct_victims": 1187,
+  "rows_drained_via_proxy": 1111,
+  "victims_drained_via_proxy": 1105,
+  "drain_txs": 2337,
+  "drain_txs_to_proxy": 1202,
+  "drain_txs_elsewhere": 1135,
+  "top_elsewhere_destinations": [
+   [
+    "0x00000000000000adc04c56bf30ac9d3c0aaf14dc",
+    80
+   ],
+   [
+    "0xed0e416e0feea5b484ba5c95d375545ac2b60572",
+    66
+   ],
+   [
+    "0x000000000000ad05ccc4f10045630fb830b95127",
+    38
+   ],
+   [
+    "0x00004fd598eacfda276553cdf9f1be668eab0000",
+    35
+   ],
+   [
+    "0x0000c84206a971ba91b6ca790636cff1640d0000",
+    35
+   ],
+   [
+    "0x0000bdf9df069b009f79f075b50e0d86b8880000",
+    28
+   ],
+   [
+    "0x0000e7b921d2b6ca0ca54b08d41d09fad41d0000",
+    24
+   ],
+   [
+    "0x00002d98735603b0447b46c7807c385c29230000",
+    24
+   ],
+   [
+    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    22
+   ],
+   [
+    "0x000000000022d473030f116ddee9f6b43ac78ba3",
+    18
+   ],
+   [
+    "0x7840df300e1523fddf412fa6d62484bd149c866e",
+    15
+   ],
+   [
+    "0xd57474e76c9ebecc01b65a1494f0a1211df7bcd8",
+    15
+   ],
+   [
+    "0x0000c5d73291e9ae226e7fe59ea1e6b68be30000",
+    14
+   ],
+   [
+    "0x2efa07cac3395599db83035d196f2a0e7263f766",
+    13
+   ],
+   [
+    "0x139732c3f717071843f90977d93400393bdf9664",
+    12
+   ]
+  ],
+  "kits": [
+   {
+    "implementation": "0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5",
+    "upgrades": 172,
+    "first_block": 17062185,
+    "caught": 171,
+    "missed_before_first_catch": 1,
+    "delay_blocks": 1044,
+    "delay_days": 0.14,
+    "first_caught_block": 17063229,
+    "missed_rows": [
+     "0x7ad9d33dcbb3ccd4f2a88153dd0fbed0f6e30c55947862d20d2a4bf8c0781e54"
+    ]
+   },
+   {
+    "implementation": "0x987411b73708d5746de2c412cc234da90b1245a7",
+    "upgrades": 157,
+    "first_block": 17294373,
+    "caught": 156,
+    "missed_before_first_catch": 1,
+    "delay_blocks": 3226,
+    "delay_days": 0.45,
+    "first_caught_block": 17297599,
+    "missed_rows": [
+     "0xe67a6a04a47c76d190324b1fc05632699d27c3d592f27bfa8a9d8cfe25eecb28"
+    ]
+   },
+   {
+    "implementation": "0x3de34a1fd5c088821aa1a03f0f2284af9bff8b37",
+    "upgrades": 22,
+    "first_block": 17712312,
+    "caught": 21,
+    "missed_before_first_catch": 1,
+    "delay_blocks": 934075,
+    "delay_days": 129.73,
+    "first_caught_block": 18646387,
+    "missed_rows": [
+     "0x5b0fee33412d154c6190e9506118c2b159207b8642919500e905670d96e4ece2"
+    ]
+   },
+   {
+    "implementation": "0xfc48255bff44906c8ab25ccfdb15e2fed953084a",
+    "upgrades": 93,
+    "first_block": 17714775,
+    "caught": 92,
+    "missed_before_first_catch": 1,
+    "delay_blocks": 976,
+    "delay_days": 0.14,
+    "first_caught_block": 17715751,
+    "missed_rows": [
+     "0x8d0dbb809338f5875173f5171d035582b4ef55bebf5e35029c929a9dfa804fcd"
+    ]
+   },
+   {
+    "implementation": "0x66833c45d52b3f950cb60368a5fd30b84754c17f",
+    "upgrades": 111,
+    "first_block": 17852138,
+    "caught": 110,
+    "missed_before_first_catch": 1,
+    "delay_blocks": 3781,
+    "delay_days": 0.53,
+    "first_caught_block": 17855919,
+    "missed_rows": [
+     "0xbbb57884040dbb2d9a5ca80f91c8a8b46eadad43cf514acba739fbc62279fb4a"
+    ]
+   },
+   {
+    "implementation": "0x00005df0bf6e7f9cbf697f3019212ca2084e0000",
+    "upgrades": 834,
+    "first_block": 18100269,
+    "caught": 832,
+    "missed_before_first_catch": 2,
+    "delay_blocks": 4442,
+    "delay_days": 0.62,
+    "first_caught_block": 18104711,
+    "missed_rows": [
+     "0x8b34c2caf5a5eb4c742ec9e4b20d7420234ae0f8d524d4428a7f481e7c616258",
+     "0xbd32c4feb87c8037035d29a269045ce068f027a87809c6ab128026218426ec7f"
+    ]
+   }
+  ]
+ }
+}

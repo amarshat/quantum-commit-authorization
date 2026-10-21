@@ -118,13 +118,58 @@ def upgraded_logs(lo: int, hi: int) -> list[list]:
     return rows
 
 
-def code(address: str) -> str:
-    return rpc("eth_getCode", [address, "latest"], key="code:" + address)
+def rpc_batch(calls: list[tuple[str, list]]) -> list:
+    """One JSON-RPC batch; results in call order. Raises if any call errors."""
+    body = json.dumps([{"jsonrpc": "2.0", "id": i, "method": m, "params": p}
+                       for i, (m, p) in enumerate(calls)]).encode()
+    out = None
+    for attempt in range(8):
+        try:
+            req = urllib.request.Request(os.environ["ALCHEMY_ENDPOINT_URL"], data=body,
+                                         headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=120) as r:
+                out = json.load(r)
+            if isinstance(out, list) and not any("error" in o for o in out):
+                break
+        except (OSError, ValueError):
+            pass
+        if attempt == 7:
+            raise SystemExit(f"batch failed: {str(out)[:300]}")
+        time.sleep(2 * (attempt + 1))
+    return [o["result"] for o in sorted(out, key=lambda o: o["id"])]
 
 
-def transaction(h: str) -> dict:
-    t = rpc("eth_getTransactionByHash", [h], key="tx:" + h)
-    return {"from": t["from"].lower(), "to": (t.get("to") or "").lower(), "selector": t["input"][:10]}
+BATCH = 100
+
+
+def classify(addresses: list[str], ref: str) -> set[str]:
+    """Addresses whose runtime code equals `ref`, cached as one flag each."""
+    cache = _load()
+    for k in [k for k in cache if k.startswith("code:")]:  # older runs stored the code itself
+        cache["os:" + k[5:]] = cache.pop(k) == ref
+    todo = [a for a in addresses if "os:" + a not in cache]
+    for i in range(0, len(todo), BATCH):
+        chunk = todo[i:i + BATCH]
+        for a, c in zip(chunk, rpc_batch([("eth_getCode", [a, "latest"]) for a in chunk])):
+            cache["os:" + a] = c == ref
+        if i // BATCH % 100 == 0:
+            print(f"  classified {i + len(chunk):,}/{len(todo):,}", flush=True)
+        if time.monotonic() - _last_save > 30:
+            _save()
+    return {a for a in addresses if cache["os:" + a]}
+
+
+def transactions(hashes: list[str]) -> dict[str, dict]:
+    cache = _load()
+    todo = sorted({h for h in hashes if "tx:" + h not in cache})
+    for i in range(0, len(todo), BATCH):
+        chunk = todo[i:i + BATCH]
+        for h, t in zip(chunk, rpc_batch([("eth_getTransactionByHash", [h]) for h in chunk])):
+            cache["tx:" + h] = {"from": t["from"].lower(), "to": (t.get("to") or "").lower(),
+                                "selector": t["input"][:10]}
+        if time.monotonic() - _last_save > 30:
+            _save()
+    return {h: cache["tx:" + h] for h in hashes}
 
 
 def main() -> None:
@@ -139,17 +184,18 @@ def main() -> None:
             print(f"  block {lo:,}: {total:,} Upgraded events, {len(later):,} not to AuthenticatedProxy",
                   flush=True)
 
-    ref = code(REFERENCE_PROXY)
+    ref = rpc("eth_getCode", [REFERENCE_PROXY, "latest"])
     emitters = sorted({r[2] for r in later})
     print(f"{len(emitters):,} distinct emitters to classify")
-    opensea = {e for i, e in enumerate(emitters) if code(e) == ref}
+    opensea = classify(emitters, ref)
     pop = [r for r in later if r[2] in opensea]
     print(f"{len(pop):,} upgrades of {len(opensea):,} OpenSea user proxies")
 
     kits = {r["implementation"] for r in json.load(open(_EXPAND))["rows"]}
+    txs = transactions([r[1] for r in pop])
     rows = []
     for block, h, proxy, impl in pop:
-        t = transaction(h)
+        t = txs[h]
         rows.append({"tx": h, "block": block, "proxy": proxy, "implementation": impl,
                      "sender": t["from"], "to": t["to"], "selector": t["selector"],
                      "sent_to_proxy": t["to"] == proxy, "known_kit": impl in kits})
