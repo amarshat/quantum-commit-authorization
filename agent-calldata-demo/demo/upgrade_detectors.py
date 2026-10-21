@@ -23,8 +23,16 @@ Detectors, by defense category:
                                                  no getter counts as a pass
   reputation   goplus on proxy    the address the transaction is sent to
                goplus on impl     the address named in the argument
-  label-free   reuse              this implementation was already the target
-                                  of an earlier upgrade in the malicious set
+  label-free   reuse              some proxy was upgraded to this
+                                  implementation at an earlier block
+               drained before     an earlier upgrader (EOA) of this
+                                  implementation lost tokens in a transaction
+                                  it did not send
+               drained via proxy  the same, counting only transactions sent
+                                  to that upgrader's own proxy
+                                  (these three come from
+                                  upgrade_benign_history.py, measured on both
+                                  sides with one rule)
                clone              opcode similarity >= CLONE to an
                                   implementation first used earlier
                deployer           deployer also deployed an implementation
@@ -32,12 +40,13 @@ Detectors, by defense category:
                age                implementation at least AGE_DAYS old; the
                                   cutoff is fitted on the 19 PTXPHISH rows
                                   only and tested on the rest
-               any label-free     OR of the four
+               label-free         drained via proxy OR clone OR deployer
+               any label-free     label-free OR age
 
-"Earlier" on the malicious side means an upgrade at a lower block in this set,
-which is on-chain history a wallet could have indexed. The benign side is
-compared against every drainer regardless of date, so its false-positive
-counts are upper bounds. Intervals are Wilson 95%.
+"Earlier" means at a lower block, which is on-chain history a wallet could
+have indexed. For clone and deployer the benign side is compared against
+every drainer regardless of date, so those false-positive counts are upper
+bounds. Intervals are Wilson 95%.
 
 Needs ETHERSCAN_API_KEY, ALCHEMY_ENDPOINT_URL and GoPlus credentials. Calls
 are cached.
@@ -138,6 +147,13 @@ def main() -> None:
     expand = json.load(open(os.path.join(_RES, "upgrade_expand.json")))
     base = json.load(open(os.path.join(_RES, "upgrade_baseline.json")))
     pop = json.load(open(os.path.join(_RES, "type_rule_limit.json")))
+    # reuse and drained-before are measured, on both sides with one rule, by
+    # upgrade_benign_history.py; run it first.
+    hist = json.load(open(os.path.join(_RES, "upgrade_benign_history.json")))
+    # Malicious transactions are unique; a benign transaction can upgrade
+    # several proxies, so benign rows are matched by position (same order).
+    seen = {h["tx"]: h for h in hist["malicious"]}
+    assert len(seen) == len(expand["rows"])
 
     # Implementation facts for every drainer, including the sixth family.
     impl = {a: dict(v) for a, v in sig["implementations"].items()}
@@ -154,19 +170,13 @@ def main() -> None:
     for r in mal:
         first_use.setdefault(r["implementation"], r["block"])
 
-    # First drain of each victim, and so the first block at which each kit had
-    # visibly drained someone.
+    # Upgrade-to-first-drain latency of each drained victim.
     drain_at, latency = {}, []
     for r in mal:
         blocks = [int(tx(h)["blockNumber"], 16) for h in r["drain_txs"]]
         drain_at[r["tx"]] = min(blocks) if blocks else None
         if blocks:
             latency.append(min(blocks) - r["block"])
-    kit_drained_by: dict[str, int] = {}
-    for r in mal:
-        d = drain_at[r["tx"]]
-        if d is not None:
-            kit_drained_by[r["implementation"]] = min(d, kit_drained_by.get(r["implementation"], d))
 
     ptx = [r for r in mal if r["in_ptxphish"]]
     # Fit the age cutoff on PTXPHISH only: the youngest implementation any of
@@ -189,23 +199,26 @@ def main() -> None:
                 proxy_owner(r["proxy"], b - 1)),
             "goplus_proxy": bool(r["reputation_on_proxy"]),
             "goplus_impl": bool(r["reputation_on_implementation"]),
-            "reuse": first_use[a] < b,
-            "drained_before": kit_drained_by.get(a, 1 << 62) < b,
+            "first_use": first_use[a] == b,
+            "reuse": seen[r["tx"]]["reuse"],
+            "drained_before": seen[r["tx"]]["drained_before"],
+            "drained_via_proxy_before": seen[r["tx"]]["drained_via_proxy_before"],
             "clone": any(sim[(a, o)] >= CLONE for o in earlier),
             "deployer": any(impl[o]["deployer"] == impl[a]["deployer"] for o in earlier),
             "age": age >= age_cut,
             "age_days": round(age, 2),
         })
     for m in mrows:
-        m["any_label_free"] = m["reuse"] or m["clone"] or m["deployer"] or m["age"]
-        m["label_free_no_age"] = m["reuse"] or m["clone"] or m["deployer"]
+        m["label_free_no_age"] = m["drained_via_proxy_before"] or m["clone"] or m["deployer"]
+        m["any_label_free"] = m["label_free_no_age"] or m["age"]
 
     # --- benign rows
     drainer_deployers = {v["deployer"] for v in impl.values()}
     senders = {e["tx"]: e["from"].lower() for e in pop["sender_classification"]["per_event"]}
     cand = [a for a in impl if a not in sig["implementations"]]
     brows = []
-    for r in base["rows"]:
+    for r, h in zip(base["rows"], hist["benign"], strict=True):
+        assert h["tx"] == r["tx"] and h["implementation"] == r["implementation"]
         a = r["implementation"]
         bops = opcodes(runtime_code(a))
         best = max([r["max_sim_to_drainer"]] + [similarity(bops, ops[c]) for c in cand])
@@ -221,8 +234,9 @@ def main() -> None:
                 proxy_owner(r["proxy"], r["block"] - 1)),
             "goplus_proxy": reputation(r["proxy"]),
             "goplus_impl": reputation(a),
-            "reuse": False,  # benign implementations are not drainers by construction
-            "drained_before": False,
+            "reuse": h["reuse"],
+            "drained_before": h["drained_before"],
+            "drained_via_proxy_before": h["drained_via_proxy_before"],
             "clone": best >= CLONE,
             "deployer": bool(r["deployer_shipped_a_drainer"]),
             "age": r["age_days"] is not None and r["age_days"] >= age_cut,
@@ -230,14 +244,14 @@ def main() -> None:
         })
         b = brows[-1]
         b["deployer"] = b["deployer"] or (_deployer_of(a) in drainer_deployers)
-        b["any_label_free"] = b["reuse"] or b["clone"] or b["deployer"] or b["age"]
-        b["label_free_no_age"] = b["reuse"] or b["clone"] or b["deployer"]
+        b["label_free_no_age"] = b["drained_via_proxy_before"] or b["clone"] or b["deployer"]
+        b["any_label_free"] = b["label_free_no_age"] or b["age"]
 
     fields = ["type_rule", "ptxphish_no_owner_fires", "ptxphish_no_owner_passes",
               "ptxphish_proxy_owner", *REP_FIELDS,
-              "reuse", "drained_before", "clone", "deployer", "age", "label_free_no_age", "any_label_free"]
+              "reuse", "drained_before", "drained_via_proxy_before", "clone", "deployer", "age", "label_free_no_age", "any_label_free"]
     out_of_sample = [m for m in mrows if not m["in_ptxphish"]]
-    first = [m for m in mrows if not m["reuse"]]
+    first = [m for m in mrows if m["first_use"]]
     latency.sort()
     summary = {
         "upgrade_to_first_drain_blocks": {

@@ -37,7 +37,7 @@ import json
 import os
 
 from . import goplus
-from .intent_gap import _get
+from .intent_gap import _get, _load_cache
 from .type_rule_limit import UPGRADED_TOPIC
 from .upgrade_signals import SECONDS_PER_BLOCK, opcodes, runtime_code, similarity
 
@@ -65,6 +65,9 @@ def logs(impl: str, lo: int, hi: int) -> list[dict]:
             return []
         raise SystemExit(f"getLogs failed for {impl} [{lo},{hi}]: {r}")
     if len(res) >= PAGE and hi > lo:
+        # A full page is only a step towards its two halves; keeping it would
+        # store every log twice per split level.
+        _load_cache().pop(f"upgraded-to:{impl}:{lo}:{hi}", None)
         mid = (lo + hi) // 2
         return logs(impl, lo, mid) + logs(impl, mid + 1, hi)
     return res

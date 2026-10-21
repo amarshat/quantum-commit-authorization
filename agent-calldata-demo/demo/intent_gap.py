@@ -44,6 +44,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import atexit
 import json
 import os
 import time
@@ -64,6 +65,8 @@ _CACHE_FILE = os.path.join(_CACHE_DIR, "intent_gap.json")
 
 STATS = {"live": 0, "cache": 0}
 _cache: dict | None = None
+_SAVE_EVERY = 30.0  # seconds; the cache is large enough that saving per call dominates a run
+_last_save = 0.0
 
 
 def available() -> bool:
@@ -78,13 +81,19 @@ def _load_cache() -> dict:
                 _cache = json.load(f)
         except (OSError, ValueError):
             _cache = {}
+        atexit.register(_save_cache)
     return _cache
 
 
 def _save_cache() -> None:
+    global _last_save
+    _last_save = time.monotonic()
+    # Write then rename, so an interrupted run cannot leave a truncated cache.
     os.makedirs(_CACHE_DIR, exist_ok=True)
-    with open(_CACHE_FILE, "w") as f:
+    tmp = _CACHE_FILE + ".tmp"
+    with open(tmp, "w") as f:
         json.dump(_cache, f)
+    os.replace(tmp, _CACHE_FILE)
 
 
 def _get(params: dict, cache_key: str | None = None) -> dict:
@@ -115,7 +124,8 @@ def _get(params: dict, cache_key: str | None = None) -> dict:
         time.sleep(1.5 * (attempt + 1))
     if cache_key:
         cache[cache_key] = out
-        _save_cache()
+        if time.monotonic() - _last_save > _SAVE_EVERY:
+            _save_cache()
     return out
 
 
