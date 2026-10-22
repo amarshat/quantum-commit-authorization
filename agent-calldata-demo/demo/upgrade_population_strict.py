@@ -48,7 +48,7 @@ _LABELS = os.path.join(_RES, "upgrade_population_labels.json")
 _OUT = os.path.join(_RES, "upgrade_population_strict.json")
 
 RIG_IMPLEMENTATIONS = 3
-WARNING_BLOCK = 15_850_000
+WARNING_BLOCK = 15_850_000  # 29 October 2022, a day after the first public warnings
 
 
 def restorations(proxies: set[str], first_later: dict[str, int]) -> list[list]:
@@ -118,7 +118,9 @@ def main() -> None:
         nxt = next_event(r["proxy"], r["block"])
         r["strict_drained"] = v is not None and (nxt is None or v < nxt)
         r["first_drain_block"] = v if r["strict_drained"] else None
+        r["window_end"] = nxt
         r["rig"] = r["proxy"] in rigs
+        r["loose_drained"] = v is not None
 
     by_impl = defaultdict(list)
     for r in rows:
@@ -128,6 +130,12 @@ def main() -> None:
                    if not rows_known(rs) and reasons[a] is None
                    and any(r["strict_drained"] and not r["rig"] for r in rs)}
     loose_kits = {a for a, rs in by_impl.items() if rs[0]["side"] == "unseeded_kit"}
+
+    def kits_under(window: bool, rig: bool, targets: bool) -> int:
+        return sum(1 for a, rs in by_impl.items()
+                   if not rows_known(rs) and (not targets or reasons[a] is None)
+                   and any((r["strict_drained"] if window else r["loose_drained"]) and not (rig and r["rig"])
+                           for r in rs))
     known = {a for a, rs in by_impl.items() if rows_known(rs)}
 
     def side(a: str) -> str:
@@ -160,15 +168,42 @@ def main() -> None:
                 n += sum(r["block"] > min(drains) for r in mine)
         return n
 
+    # The history index rerun on the strict attribution: some earlier upgrade
+    # of the same implementation, on a proxy that is not a rig, was drained
+    # through its proxy before this upgrade and before that proxy's next one.
+    drains = defaultdict(list)
+    for r in rows:
+        if r["strict_drained"] and not r["rig"]:
+            drains[r["implementation"]].append(r["first_drain_block"])
+    for r in rows:
+        r["strict_index"] = any(b < r["block"] for b in drains[r["implementation"]])
+        ds = [x["first_drain_block"] for x in by_impl[r["implementation"]] if x["strict_drained"]]
+        r["after_first_drain"] = bool(ds) and r["block"] > min(ds)
+
     kit_rows = known_rows + unseeded
     warned = [r for r in rows if r["sent_to_proxy"]]
+    upgraders = defaultdict(set)
+    for r in rows:
+        upgraders[r["proxy"]].add(r["sender"])
+    other_norig = [r for r in other if not r["rig"]]
+
+    def precision(kits: set[str]) -> dict:
+        return rate(sum(r["sent_to_proxy"] and (r["known_kit"] or r["implementation"] in kits) for r in rows),
+                    len(warned) + len(restore))
     summary = {
         "rig_threshold_implementations": RIG_IMPLEMENTATIONS,
         "rig_proxies": len(rigs),
         "restorations": len(restore),
         "restoration_proxies": len({p for _, _, p in restore}),
-        "restorations_sent_by_proxy_upgrader": sum(
-            (t.get("from") or "").lower() in senders for t in restore_tx),
+        "restorations_sent_by_that_proxys_upgrader": sum(
+            (t.get("from") or "").lower() in upgraders[p] for (_, _, p), t in zip(restore, restore_tx)),
+        "restorations_sent_to_the_proxy": sum(
+            (t.get("to") or "").lower() == p for (_, _, p), t in zip(restore, restore_tx)),
+        "kits_under_rules": {"loose": kits_under(False, False, False),
+                             "window_only": kits_under(True, False, False),
+                             "rig_only": kits_under(False, True, False),
+                             "window_and_rig": kits_under(True, True, False),
+                             "window_rig_and_non_target": kits_under(True, True, True)},
         "loose_unseeded_kits": len(loose_kits),
         "strict_unseeded_kits": len(strict_kits),
         "loose_kits_dropped": {
@@ -189,6 +224,25 @@ def main() -> None:
         "detector_fires": {"known_kit": rate(sum(r["drained_via_proxy_before"] for r in known_rows), len(known_rows)),
                            "unseeded_kit": rate(sum(r["drained_via_proxy_before"] for r in unseeded), len(unseeded)),
                            "other": rate(sum(r["drained_via_proxy_before"] for r in other), len(other))},
+        "detector_matches_ceiling_rows": {
+            s_: sum(r["drained_via_proxy_before"] == r["after_first_drain"] for r in rs)
+            for s_, rs in (("known_kit", known_rows), ("unseeded_kit", unseeded))},
+        "strict_index_fires": {"known_kit": rate(sum(r["strict_index"] for r in known_rows), len(known_rows)),
+                               "unseeded_kit": rate(sum(r["strict_index"] for r in unseeded), len(unseeded)),
+                               "other": rate(sum(r["strict_index"] for r in other), len(other)),
+                               "other_not_rig": rate(sum(r["strict_index"] for r in other_norig), len(other_norig))},
+        "other_not_rig": {f: rate(sum(r[f] for r in other_norig), len(other_norig))
+                          for f in ("type_rule", "type_rule_either", "ptxphish_impl_deployer",
+                                    "drained_via_proxy_before")},
+        "other_implementations_only_on_rigs": len(
+            {r["implementation"] for r in other} - {r["implementation"] for r in other_norig}),
+        "kit_upgrades_followed_by_strict_drain": rate(sum(r["strict_drained"] for r in kit_rows), len(kit_rows)),
+        "precision_sensitivity": {"seeded_only": precision(set()),
+                                  "strict": precision(strict_kits),
+                                  "loose": precision(loose_kits),
+                                  "followed_by_strict_drain": rate(
+                                      sum(r["sent_to_proxy"] and r["strict_drained"] for r in rows),
+                                      len(warned) + len(restore))},
         "base_rate": {
             "upgrades_to_a_kit": rate(len(kit_rows), len(rows)),
             "upgrades_followed_by_strict_drain": rate(sum(r["strict_drained"] for r in rows), len(rows)),
@@ -211,7 +265,9 @@ def main() -> None:
         json.dump({"note": __doc__.split("\n\n")[0], "summary": summary,
                    "restorations": [{"block": b, "tx": h, "proxy": p} for b, h, p in restore],
                    "rows": [{k: r[k] for k in ("tx", "block", "proxy", "implementation", "sender",
-                                                "strict_side", "strict_drained", "rig")} for r in rows]},
+                                                "strict_side", "strict_drained", "first_drain_block",
+                                                "window_end", "rig", "strict_index",
+                                                "after_first_drain")} for r in rows]},
                   f, indent=1)
         f.write("\n")
     print(json.dumps({k: v for k, v in summary.items() if k != "strict_unseeded_kits_list"}, indent=1))

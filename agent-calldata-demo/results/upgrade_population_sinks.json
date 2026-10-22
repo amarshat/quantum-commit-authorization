@@ -1,0 +1,276 @@
+{
+ "note": "Where the tokens went: a check of the strict census kits against rescues.",
+ "summary": {
+  "known_kit": {
+   "implementations": 6,
+   "pass": 6,
+   "untestable": 0,
+   "fail": [],
+   "victims": 1107,
+   "victims_at_shared_or_seed_sink": 775
+  },
+  "unseeded_kit": {
+   "implementations": 18,
+   "pass": 13,
+   "untestable": 2,
+   "fail": [
+    "0x51c6b41d5eb4a5da9a89810703c45fea1c6f1962",
+    "0x67d6897ec4e903e4163649ac064ae1020635e379",
+    "0xbe275258013e5bbb740f77fd5c34e424e6841c86"
+   ],
+   "victims": 143,
+   "victims_at_shared_or_seed_sink": 113
+  },
+  "unseeded_upgrades_of_passing_kits": 233,
+  "precision_passing_kits_only": {
+   "k": 1622,
+   "n": 1879,
+   "ci95": [
+    0.8469,
+    0.878
+   ]
+  }
+ },
+ "per_implementation": {
+  "0xcd0d14f889183d7fb45ab228bc1716eabf2f52c5": {
+   "side": "unseeded_kit",
+   "victims": 1,
+   "sinks": 1,
+   "shared_sink": 0,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": false,
+   "testable": false
+  },
+  "0xbe275258013e5bbb740f77fd5c34e424e6841c86": {
+   "side": "unseeded_kit",
+   "victims": 3,
+   "sinks": 3,
+   "shared_sink": 0,
+   "seed_sink": 0,
+   "callers": 3,
+   "passes": false,
+   "testable": true
+  },
+  "0x34ca395f140603f4ea95e2a2a3deecb07a9a860b": {
+   "side": "unseeded_kit",
+   "victims": 4,
+   "sinks": 3,
+   "shared_sink": 2,
+   "seed_sink": 0,
+   "callers": 3,
+   "passes": true,
+   "testable": true
+  },
+  "0xae90a7868c46861912a5cb12c1c5e9d3a1dd3e60": {
+   "side": "unseeded_kit",
+   "victims": 13,
+   "sinks": 5,
+   "shared_sink": 12,
+   "seed_sink": 0,
+   "callers": 4,
+   "passes": true,
+   "testable": true
+  },
+  "0x7e7ed1b73cad52e32b93f34ae013bae2b4f618b4": {
+   "side": "unseeded_kit",
+   "victims": 3,
+   "sinks": 1,
+   "shared_sink": 3,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0x0c763c902a2d4a0e841ab8dc73a36fa776915950": {
+   "side": "unseeded_kit",
+   "victims": 3,
+   "sinks": 3,
+   "shared_sink": 3,
+   "seed_sink": 0,
+   "callers": 3,
+   "passes": true,
+   "testable": true
+  },
+  "0x911456403f2d94c0407e3abe097bb669c821076c": {
+   "side": "unseeded_kit",
+   "victims": 8,
+   "sinks": 5,
+   "shared_sink": 7,
+   "seed_sink": 0,
+   "callers": 4,
+   "passes": true,
+   "testable": true
+  },
+  "0x46c5740161ef46156f76735c35c7a8000cf58f4c": {
+   "side": "unseeded_kit",
+   "victims": 39,
+   "sinks": 1,
+   "shared_sink": 39,
+   "seed_sink": 0,
+   "callers": 2,
+   "passes": true,
+   "testable": true
+  },
+  "0x1a4a4700485aad59e86d81c7d38fd503254460fb": {
+   "side": "unseeded_kit",
+   "victims": 3,
+   "sinks": 2,
+   "shared_sink": 2,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0x67d6897ec4e903e4163649ac064ae1020635e379": {
+   "side": "unseeded_kit",
+   "victims": 2,
+   "sinks": 2,
+   "shared_sink": 0,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": false,
+   "testable": true
+  },
+  "0x6509b3eb0bad4d899acfed2f5629edd3a5ff7c44": {
+   "side": "unseeded_kit",
+   "victims": 11,
+   "sinks": 1,
+   "shared_sink": 11,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0xbdadd6dc0a1f8905cc339b9ce0a25208fd2b5da5": {
+   "side": "known_kit",
+   "victims": 147,
+   "sinks": 64,
+   "shared_sink": 108,
+   "seed_sink": null,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0xdb98eafb04718aa02cc53d758d136b6a7b26405f": {
+   "side": "unseeded_kit",
+   "victims": 5,
+   "sinks": 1,
+   "shared_sink": 5,
+   "seed_sink": 0,
+   "callers": 2,
+   "passes": true,
+   "testable": true
+  },
+  "0x987411b73708d5746de2c412cc234da90b1245a7": {
+   "side": "known_kit",
+   "victims": 130,
+   "sinks": 75,
+   "shared_sink": 82,
+   "seed_sink": null,
+   "callers": 4,
+   "passes": true,
+   "testable": true
+  },
+  "0x150a49669f8a818b3ea8ba6fc7f02c26b608e2de": {
+   "side": "unseeded_kit",
+   "victims": 1,
+   "sinks": 1,
+   "shared_sink": 0,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": false,
+   "testable": false
+  },
+  "0x07cd15853cc4d18023d8ebf60222bc14dcdf326e": {
+   "side": "unseeded_kit",
+   "victims": 5,
+   "sinks": 3,
+   "shared_sink": 4,
+   "seed_sink": 0,
+   "callers": 3,
+   "passes": true,
+   "testable": true
+  },
+  "0xbf9b4a88dee919ecb9702d84a9fd1f33a282f5b9": {
+   "side": "unseeded_kit",
+   "victims": 11,
+   "sinks": 2,
+   "shared_sink": 10,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0xac8e5035f6156e6c5b5104fe2efde0c2053b17db": {
+   "side": "unseeded_kit",
+   "victims": 3,
+   "sinks": 3,
+   "shared_sink": 0,
+   "seed_sink": 2,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0x3de34a1fd5c088821aa1a03f0f2284af9bff8b37": {
+   "side": "known_kit",
+   "victims": 22,
+   "sinks": 3,
+   "shared_sink": 22,
+   "seed_sink": null,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0xfc48255bff44906c8ab25ccfdb15e2fed953084a": {
+   "side": "known_kit",
+   "victims": 81,
+   "sinks": 43,
+   "shared_sink": 55,
+   "seed_sink": null,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0x66833c45d52b3f950cb60368a5fd30b84754c17f": {
+   "side": "known_kit",
+   "victims": 97,
+   "sinks": 54,
+   "shared_sink": 61,
+   "seed_sink": null,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0x00005df0bf6e7f9cbf697f3019212ca2084e0000": {
+   "side": "known_kit",
+   "victims": 630,
+   "sinks": 296,
+   "shared_sink": 447,
+   "seed_sink": null,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  },
+  "0x51c6b41d5eb4a5da9a89810703c45fea1c6f1962": {
+   "side": "unseeded_kit",
+   "victims": 3,
+   "sinks": 6,
+   "shared_sink": 0,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": false,
+   "testable": true
+  },
+  "0x34cfab9803fffd9e3352c716341bbc9aba56b619": {
+   "side": "unseeded_kit",
+   "victims": 25,
+   "sinks": 18,
+   "shared_sink": 13,
+   "seed_sink": 0,
+   "callers": 1,
+   "passes": true,
+   "testable": true
+  }
+ }
+}
