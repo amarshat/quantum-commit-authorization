@@ -48,7 +48,7 @@ _LABELS = os.path.join(_RES, "upgrade_population_labels.json")
 _OUT = os.path.join(_RES, "upgrade_population_strict.json")
 
 RIG_IMPLEMENTATIONS = 3
-WARNING_BLOCK = 15_850_000  # 29 October 2022, a day after the first public warnings
+WARNING_BLOCK = 15_850_000  # 23:59:59 UTC on 28 October 2022, the day of the first public warnings
 
 
 def restorations(proxies: set[str], first_later: dict[str, int]) -> list[list]:
