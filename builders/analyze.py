@@ -44,11 +44,12 @@ COALITIONS = (1, 2, 3)
 TARGETS = (1e-3, 1e-6)
 # Local-share windows. The top builder's share drifts within an anchor, so its
 # long runs exceed the anchor-wide beta^a; averaging beta_W^a over each
-# block's own W-block neighbourhood accounts for that. 128 is the smallest
-# window tried that never underpredicts the direct runs at a = 4..8 for any
-# coalition, so it is the conservative sizing; 256 is reported beside it.
+# block's own W-block neighbourhood accounts for that. With W = 128 the direct
+# runs at a = 4..8 lie between 90% of the prediction and 0.2% above it for
+# every coalition, so it is the conservative sizing; 256 is reported beside it.
 WINDOWS = (128, 256)
 A_TTL = 256
+CURVE = (1, 2, 4, 8, 13, 16, 25, 32, 48, 64, 80, 96, 112, 128, 160, 192, 224, 256)
 
 
 def load_rows(use_cache):
@@ -214,7 +215,8 @@ def local_sizing(seqs):
                     for t in TARGETS}
             out[f"top{k}"][str(w)] = {"obs_over_pred": {a: obs[a] / pred[a] for a in range(4, A_MAX + 1)},
                                       "max_local_beta": high,
-                                      "min_commit_age": need}
+                                      "min_commit_age": need,
+                                      "theft_by_a": {a: pred[a] / n for a in CURVE}}
     return out
 
 
