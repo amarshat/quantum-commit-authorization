@@ -21,7 +21,7 @@ contract Receiver {
 /// action, age it in wall-clock time, then authorize a reveal UserOp whose
 /// signature carries the secret and Merkle proof and whose callData is the
 /// action. No ECDSA anywhere in the account's authorization.
-contract QCAAccount4337Test is Test {
+abstract contract QCAAccount4337Base is Test {
     bytes32 constant TAG_ACTION = keccak256("QCA/v1/action");
     bytes32 constant TAG_COMMIT = keccak256("QCA/v1/commit");
     bytes32 constant TAG_BURN = keccak256("QCA/v1/burn");
@@ -42,7 +42,7 @@ contract QCAAccount4337Test is Test {
     bytes32 secret;
     bytes32[] proof;
 
-    function setUp() public {
+    function setUp() public virtual {
         string memory json = vm.readFile("test/vectors/bench-depth8.json");
         root = vm.parseJsonBytes32(json, ".root");
         leafIndex = vm.parseJsonUint(json, ".leaves[0].index");
@@ -105,9 +105,11 @@ contract QCAAccount4337Test is Test {
         view
         returns (PackedUserOperation memory op)
     {
-        return buildOp(target, value, data, 1 gwei, 1_000_000);
+        return buildOp(target, value, data, 1 gwei, CALL_GAS_FLOOR);
     }
+}
 
+contract QCAAccount4337Test is QCAAccount4337Base {
     function test_commitRevealExecutesThroughEntryPoint() public {
         bytes memory data = abi.encodeCall(Receiver.setX, (42));
         address target = address(receiver);
@@ -163,7 +165,7 @@ contract QCAAccount4337Test is Test {
         vm.warp(block.timestamp + MIN_AGE + 1);
 
         PackedUserOperation[] memory ops = new PackedUserOperation[](1);
-        ops[0] = buildOp(address(receiver), 0, data, MAX_FEE_CAP + 1, 1_000_000);
+        ops[0] = buildOp(address(receiver), 0, data, MAX_FEE_CAP + 1, CALL_GAS_FLOOR);
         vm.expectRevert(); // FeeCapExceeded inside validation
         entryPoint.handleOps(ops, payable(address(0xB0B)));
         assertEq(receiver.x(), 0);
@@ -200,6 +202,24 @@ contract QCAAccount4337Test is Test {
         ops[0].preVerificationGas = MAX_PVG_CEIL + 1; // just over the committed ceiling
 
         vm.expectRevert(); // PreVerificationGasAboveCeiling inside validation
+        entryPoint.handleOps(ops, payable(address(0xB0B)));
+        assertFalse(account.usedLeaves(keccak256(abi.encode(TAG_LEAF, secret))), "leaf must not be burned");
+        assertEq(receiver.x(), 0, "action must not execute");
+    }
+
+    function test_bundlerCannotInflateCallGasToDrainDeposit() public {
+        // F7: the EntryPoint bills 10% of unused call gas to the account. With
+        // only a floor on callGasLimit a bundler raises it to 25M for a 40K
+        // action and bills the account for gas that never runs, about nine
+        // times the honest cost at the same price. The committed budget is
+        // also a ceiling, so validation rejects it and the leaf survives.
+        bytes memory data = abi.encodeCall(Receiver.setX, (42));
+        account.commit(commitmentOf(address(receiver), 0, data));
+        vm.warp(block.timestamp + MIN_AGE + 1);
+
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = buildOp(address(receiver), 0, data, 1 gwei, 25_000_000);
+        vm.expectRevert(); // CallGasAboveBudget inside validation
         entryPoint.handleOps(ops, payable(address(0xB0B)));
         assertFalse(account.usedLeaves(keccak256(abi.encode(TAG_LEAF, secret))), "leaf must not be burned");
         assertEq(receiver.x(), 0, "action must not execute");

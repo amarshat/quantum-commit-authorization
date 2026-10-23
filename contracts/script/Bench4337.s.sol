@@ -108,7 +108,7 @@ contract Bench4337Script is Script {
         o.sender = address(account);
         o.nonce = entryPoint.getNonce(address(account), 0);
         o.callData = abi.encodeCall(QCAAccount4337.execute, (address(account), 0, ""));
-        o.accountGasLimits = bytes32((uint256(1_500_000) << 128) | uint256(1_000_000));
+        o.accountGasLimits = bytes32((uint256(1_500_000) << 128) | CALL_GAS_FLOOR);
         o.preVerificationGas = 100_000;
         o.gasFees = bytes32((uint256(1 gwei) << 128) | uint256(1 gwei));
         o.signature = abi.encode(leafIndex, secret, proof, MAX_FEE_CAP, CALL_GAS_FLOOR, MAX_PVG_CEIL);

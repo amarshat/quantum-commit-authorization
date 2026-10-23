@@ -40,6 +40,11 @@ contract QCAAccount4337 is IAccount {
     // ERC-4337 validationData: 0 authorizer == success, 1 == signature failure.
     uint256 internal constant SIG_OK = 0;
     uint256 internal constant SIG_FAIL = 1;
+    // EntryPoint v0.8 bills 10% of unused call gas once the limit exceeds use
+    // by more than this (PENALTY_GAS_THRESHOLD). Capping callGasLimit at the
+    // committed budget plus this slack keeps the penalty a function of the
+    // committed budget alone.
+    uint256 internal constant CALL_GAS_SLACK = 40_000;
 
     IEntryPoint public immutable entryPoint;
 
@@ -85,6 +90,7 @@ contract QCAAccount4337 is IAccount {
     error BadCallData();
     error FeeCapExceeded();
     error CallGasBelowFloor();
+    error CallGasAboveBudget();
     error PreVerificationGasAboveCeiling();
     error NotSelf();
 
@@ -136,7 +142,12 @@ contract QCAAccount4337 is IAccount {
     ///         EntryPoint adds to the gas billed to the account and pays to the
     ///         beneficiary, draining the deposit even though the per-gas price
     ///         is capped (the fee cap bounds price per unit, not unit count).
-    ///         Binding all three closes those surfaces. Even so, a bundler
+    ///         The call-gas floor is also a ceiling, up to CALL_GAS_SLACK above
+    ///         it: the EntryPoint bills 10% of unused call gas, so a bundler
+    ///         that raises callGasLimit far above the action's need drains the
+    ///         deposit through that penalty (F7, found by the field-by-field
+    ///         harness in test/BindingSurface4337.t.sol, not by inspection).
+    ///         Binding these closes those surfaces. Even so, a bundler
     ///         that receives the reveal privately can still withhold it and win
     ///         a withhold-and-age race (GAME.md Theorem 3); this construction
     ///         downgrades a PUBLIC-mempool bundler to censorship, not a trusted
@@ -171,7 +182,9 @@ contract QCAAccount4337 is IAccount {
         // ceiling, so it needs an explicit committed cap or it becomes a
         // deposit-drain axis the fee cap does not close.
         if (uint128(uint256(userOp.gasFees)) > maxFeeCap) revert FeeCapExceeded();
-        if (uint128(uint256(userOp.accountGasLimits)) < callGasFloor) revert CallGasBelowFloor();
+        uint256 callGasLimit = uint128(uint256(userOp.accountGasLimits));
+        if (callGasLimit < callGasFloor) revert CallGasBelowFloor();
+        if (callGasLimit > callGasFloor + CALL_GAS_SLACK) revert CallGasAboveBudget();
         if (userOp.preVerificationGas > maxPvgCeil) revert PreVerificationGasAboveCeiling();
 
         bytes32 leafHash = _verifyMembership(leafIndex, secret, proof);

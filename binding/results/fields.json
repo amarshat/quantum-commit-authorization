@@ -1,0 +1,139 @@
+{
+ "erc4337": {
+  "struct_fields": [
+   "sender",
+   "nonce",
+   "initCode",
+   "callData",
+   "accountGasLimits",
+   "preVerificationGas",
+   "gasFees",
+   "paymasterAndData",
+   "signature"
+  ],
+  "unpacked": {
+   "gasFees": [
+    "maxPriorityFeePerGas",
+    "maxFeePerGas"
+   ],
+   "accountGasLimits": [
+    "verificationGasLimit",
+    "callGasLimit"
+   ],
+   "paymasterAndData": [
+    "paymaster",
+    "paymasterVerificationGasLimit",
+    "postOpGasLimit",
+    "paymasterData"
+   ]
+  },
+  "inputs": [
+   "sender",
+   "nonce",
+   "initCode",
+   "callData",
+   "verificationGasLimit",
+   "callGasLimit",
+   "preVerificationGas",
+   "maxPriorityFeePerGas",
+   "maxFeePerGas",
+   "paymaster",
+   "paymasterVerificationGasLimit",
+   "postOpGasLimit",
+   "paymasterData",
+   "signature",
+   "beneficiary"
+  ],
+  "harness": "contracts/test/BindingSurface4337.t.sol"
+ },
+ "zksync": [
+  {
+   "field": "txType",
+   "class": "not_read",
+   "evidence": null
+  },
+  {
+   "field": "from",
+   "class": "protocol",
+   "evidence": "onlyBootloader"
+  },
+  {
+   "field": "to",
+   "class": "commitment",
+   "evidence": "address target = address\\(uint160\\(transaction\\.to\\)\\)"
+  },
+  {
+   "field": "gasLimit",
+   "class": "ceiling",
+   "evidence": "transaction\\.gasLimit > maxGasCeil"
+  },
+  {
+   "field": "gasPerPubdataByteLimit",
+   "class": "ceiling",
+   "evidence": "transaction\\.gasPerPubdataByteLimit > maxPubdataCeil"
+  },
+  {
+   "field": "maxFeePerGas",
+   "class": "ceiling",
+   "evidence": "transaction\\.maxFeePerGas > maxFeeCap"
+  },
+  {
+   "field": "maxPriorityFeePerGas",
+   "class": "not_read",
+   "evidence": null
+  },
+  {
+   "field": "paymaster",
+   "class": "rejected",
+   "evidence": "transaction\\.paymaster != 0"
+  },
+  {
+   "field": "nonce",
+   "class": "protocol",
+   "evidence": "incrementMinNonceIfEquals, \\(transaction\\.nonce\\)"
+  },
+  {
+   "field": "value",
+   "class": "commitment",
+   "evidence": "TAG_ACTION, target, transaction\\.value"
+  },
+  {
+   "field": "reserved",
+   "class": "not_read",
+   "evidence": null
+  },
+  {
+   "field": "data",
+   "class": "commitment",
+   "evidence": "keccak256\\(transaction\\.data\\)"
+  },
+  {
+   "field": "signature",
+   "class": "commitment",
+   "evidence": "abi\\.decode\\(transaction\\.signature"
+  },
+  {
+   "field": "factoryDeps",
+   "class": "rejected",
+   "evidence": "transaction\\.factoryDeps\\.length != 0"
+  },
+  {
+   "field": "paymasterInput",
+   "class": "rejected",
+   "evidence": "transaction\\.paymaster != 0",
+   "why": "read only by processPaymasterInput, which the bootloader calls only when paymaster is non-zero, and a non-zero paymaster is rejected"
+  },
+  {
+   "field": "reservedDynamic",
+   "class": "not_read",
+   "evidence": null
+  },
+  {
+   "helpers_called": [
+    "processPaymasterInput",
+    "payToTheBootloader",
+    "totalRequiredBalance"
+   ]
+  }
+ ]
+}

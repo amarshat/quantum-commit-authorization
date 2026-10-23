@@ -157,6 +157,14 @@ otherwise choose at reveal time to its own advantage:
   call runs out of gas, and the bundle still succeeds. The result is a forced,
   repeatable, irrecoverable leaf burn (worse than censorship, which is
   recoverable). Binding the floor closes it.
+- **The call-gas ceiling.** The same committed budget is also a ceiling:
+  validation rejects a `callGasLimit` more than 40,000 above it. EntryPoint
+  v0.8 bills the account 10% of unused call gas once the limit exceeds the gas
+  used by more than 40,000, so with a floor alone a bundler raises
+  `callGasLimit` far above the action's need and bills the account for gas that
+  never runs (raising it from 1M to 25M for a 40k action cost about nine times
+  the honest fee at the same price). This was missed by inspection too, and was
+  found by the field-by-field harness described below.
 - **The preVerificationGas ceiling.** The commitment binds a `maxPvgCeil`, and
   validation rejects any UserOp whose `preVerificationGas` exceeds it. This one
   was missed in the first implementation and is the sharper theft axis, because
@@ -183,7 +191,9 @@ an attacker value and the aged commitment still matches.
 share the same aged commitment `c`; the bundler opens `c` with its chosen `f`.
 For `f = maxFeePerGas` or `f = preVerificationGas` this drains the deposit
 (theft, on the price and the quantity axis respectively); for `f = callGasLimit`
-it forces a leaf burn; for `f = target/value/data` it would retarget the action.
+it forces a leaf burn when set low and drains the deposit through the
+unused-gas penalty when set high; for `f = target/value/data` it would retarget
+the action.
 ∎
 
 `preVerificationGas` is the concrete instance this lemma flagged in the abstract
@@ -196,7 +206,17 @@ a red-team review found `preVerificationGas` was not in it. The four tests
 these fields against a real EntryPoint v0.8. This is the crux: commit-reveal
 composes with a hostile bundler only to the extent that binding is complete, and
 completeness here means the action *and* the fee ceiling *and* the call-gas floor
-*and* the preVerificationGas ceiling.
+and ceiling *and* the preVerificationGas ceiling.
+
+The field list is no longer written by hand. `binding/enumerate.py` derives
+every input a bundler controls from the pinned sources (each field of
+`PackedUserOperation`, each subfield `UserOperationLib` unpacks, and each
+`handleOps` argument other than the operations: 15 inputs) and fails unless
+`contracts/test/BindingSurface4337.t.sol` has a test for each. Each test moves
+one input to an adversarial value on a real EntryPoint and checks that the
+operation is either rejected, or runs the committed action with a loss no
+larger than the worst case at the committed ceilings. That harness found the
+call-gas ceiling gap above.
 
 ### Lemma 2 (with complete binding, a public-mempool bundler is limited to censorship, under a precondition)
 

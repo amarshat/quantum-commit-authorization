@@ -23,6 +23,24 @@ jobs:
         working-directory: contracts
         run: forge test -vv
 
+  # The binding surface is derived, not listed: binding/enumerate.py reads the
+  # pinned PackedUserOperation, UserOperationLib, EntryPoint and zkSync
+  # Transaction sources, and fails if any includer-controlled input lacks a
+  # measuring test (4337) or an evidenced class (zkSync).
+  binding-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: init submodules
+        run: git submodule update --init contracts/lib/account-abstraction
+      - name: pinned zkSync sources
+        working-directory: contracts-zksync
+        run: npm ci --ignore-scripts
+      - name: enumerate and check
+        run: |
+          python3 binding/enumerate.py
+          git diff --exit-code binding/results
+
   # The benchmark receipts and RESULTS.md are committed and quoted in the
   # paper. Re-measure receipts against anvil under the pinned toolchain and
   # rebuild the report from committed inputs; fail on drift, same policy as

@@ -1,0 +1,28 @@
+{
+  "note": "Classification of every field of the zkSync Era Transaction struct for contracts-zksync/src/QCAAccountZkSync.sol. enumerate.py fails if a field of the pinned struct is missing here, if an evidence pattern is not found in the account source, or if a field classed not_read is read by the account or by a TransactionHelper function the account calls.",
+  "classes": {
+    "commitment": "an input to the commitment preimage, so any change fails the commitment lookup",
+    "ceiling": "the account rejects values above a bound carried in the commitment",
+    "rejected": "the account rejects any non-empty value",
+    "protocol": "fixed or checked by the protocol, not by the includer's choice",
+    "not_read": "read neither by the account nor by any helper it calls"
+  },
+  "fields": {
+    "txType":                 {"class": "not_read",   "evidence": null},
+    "from":                   {"class": "protocol",   "evidence": "onlyBootloader"},
+    "to":                     {"class": "commitment", "evidence": "address target = address\\(uint160\\(transaction\\.to\\)\\)"},
+    "gasLimit":               {"class": "ceiling",    "evidence": "transaction\\.gasLimit > maxGasCeil"},
+    "gasPerPubdataByteLimit": {"class": "ceiling",    "evidence": "transaction\\.gasPerPubdataByteLimit > maxPubdataCeil"},
+    "maxFeePerGas":           {"class": "ceiling",    "evidence": "transaction\\.maxFeePerGas > maxFeeCap"},
+    "maxPriorityFeePerGas":   {"class": "not_read",   "evidence": null},
+    "paymaster":              {"class": "rejected",   "evidence": "transaction\\.paymaster != 0"},
+    "nonce":                  {"class": "protocol",   "evidence": "incrementMinNonceIfEquals, \\(transaction\\.nonce\\)"},
+    "value":                  {"class": "commitment", "evidence": "TAG_ACTION, target, transaction\\.value"},
+    "reserved":               {"class": "not_read",   "evidence": null},
+    "data":                   {"class": "commitment", "evidence": "keccak256\\(transaction\\.data\\)"},
+    "signature":              {"class": "commitment", "evidence": "abi\\.decode\\(transaction\\.signature"},
+    "factoryDeps":            {"class": "rejected",   "evidence": "transaction\\.factoryDeps\\.length != 0"},
+    "paymasterInput":         {"class": "rejected",   "evidence": "transaction\\.paymaster != 0", "why": "read only by processPaymasterInput, which the bootloader calls only when paymaster is non-zero, and a non-zero paymaster is rejected"},
+    "reservedDynamic":        {"class": "not_read",   "evidence": null}
+  }
+}
