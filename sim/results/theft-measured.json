@@ -1,0 +1,866 @@
+[
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 18972793,
+    "adversary_steals": 1027207,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.05136035,
+    "ci95": 0.00009673991405386047,
+    "bound_upper": 0.051379837442864104,
+    "bound_lower": 0.024461940606547602
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 17834314,
+    "adversary_steals": 2165686,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.1082843,
+    "ci95": 0.00013618743075828916,
+    "bound_upper": 0.10832766936225609,
+    "bound_lower": 0.06214758391312632
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 12626030,
+    "adversary_steals": 7373970,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.3686985,
+    "ci95": 0.00021144390434357717,
+    "bound_upper": 0.36882360202608006,
+    "bound_lower": 0.2874242330589242
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 7110090,
+    "adversary_steals": 12889910,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.6444955,
+    "ci95": 0.0002097845832661456,
+    "bound_upper": 0.6445135298560002,
+    "bound_lower": 0.5774841227509762
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 8357489,
+    "adversary_steals": 11642511,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.58212555,
+    "ci95": 0.00021615849760457,
+    "bound_upper": 0.5821724335050626,
+    "bound_lower": 0.5085276206666722
+  },
+  {
+    "params": {
+      "age": 4,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 5980561,
+    "adversary_steals": 14019439,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.70097195,
+    "ci95": 0.00020065378561631716,
+    "bound_upper": 0.7009457006250002,
+    "bound_lower": 0.6413653160718752
+  },
+  {
+    "params": {
+      "age": 8,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19947277,
+    "adversary_steals": 52723,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.00263615,
+    "ci95": 0.000022472580470144815,
+    "bound_upper": 0.0026398876956551403,
+    "bound_lower": 0.0012568505319014123
+  },
+  {
+    "params": {
+      "age": 8,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19765780,
+    "adversary_steals": 234220,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.011711,
+    "ci95": 0.00004714982061648082,
+    "bound_upper": 0.011734883949458276,
+    "bound_lower": 0.006732302921804213
+  },
+  {
+    "params": {
+      "age": 8,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 17279336,
+    "adversary_steals": 2720664,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.1360332,
+    "ci95": 0.00015024916174491537,
+    "bound_upper": 0.1360308494114923,
+    "bound_lower": 0.10600884094637594
+  },
+  {
+    "params": {
+      "age": 8,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 11695352,
+    "adversary_steals": 8304648,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.4152324,
+    "ci95": 0.00021596249749075718,
+    "bound_upper": 0.41539769016744127,
+    "bound_lower": 0.37219633039002736
+  },
+  {
+    "params": {
+      "age": 8,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 13221954,
+    "adversary_steals": 6778046,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.3389023,
+    "ci95": 0.00020744890880645454,
+    "bound_upper": 0.3389247423332066,
+    "bound_lower": 0.29605076242805595
+  },
+  {
+    "params": {
+      "age": 8,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 10170575,
+    "adversary_steals": 9829425,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.49147125,
+    "ci95": 0.00021910277995072054,
+    "bound_upper": 0.4913248752246724,
+    "bound_lower": 0.44956226083057527
+  },
+  {
+    "params": {
+      "age": 13,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19998693,
+    "adversary_steals": 1307,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.00006535,
+    "ci95": 3.5428248190998945e-6,
+    "bound_upper": 0.00006457677601907185,
+    "bound_lower": 0.00003074500306268011
+  },
+  {
+    "params": {
+      "age": 13,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19985376,
+    "adversary_steals": 14624,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0007312,
+    "ci95": 0.000011846780143450151,
+    "bound_upper": 0.0007292946849597573,
+    "bound_lower": 0.0004183963607614128
+  },
+  {
+    "params": {
+      "age": 13,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19217903,
+    "adversary_steals": 782097,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.03910485,
+    "ci95": 0.00008495606457752266,
+    "bound_upper": 0.039098562564452176,
+    "bound_lower": 0.03046950980647758
+  },
+  {
+    "params": {
+      "age": 13,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 15204546,
+    "adversary_steals": 4795454,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.2397727,
+    "ci95": 0.00018711675229238854,
+    "bound_upper": 0.2398855706991266,
+    "bound_lower": 0.21493747134641747
+  },
+  {
+    "params": {
+      "age": 13,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 16551306,
+    "adversary_steals": 3448694,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.1724347,
+    "ci95": 0.00016555966637811755,
+    "bound_upper": 0.1723525928037705,
+    "bound_lower": 0.15054998981409357
+  },
+  {
+    "params": {
+      "age": 13,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 13698072,
+    "adversary_steals": 6301928,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.3150964,
+    "ci95": 0.00020359988046275528,
+    "bound_upper": 0.31511873389244666,
+    "bound_lower": 0.28833364151158875
+  },
+  {
+    "params": {
+      "age": 25,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19999999,
+    "adversary_steals": 1,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 5e-8,
+    "ci95": 9.799999754999995e-8,
+    "bound_upper": 8.759000212176798e-9,
+    "bound_lower": 4.1701600010173734e-9
+  },
+  {
+    "params": {
+      "age": 25,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19999983,
+    "adversary_steals": 17,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 8.5e-7,
+    "ci95": 4.0406417958314497e-7,
+    "bound_upper": 9.270886134051799e-7,
+    "bound_lower": 5.318707375105516e-7
+  },
+  {
+    "params": {
+      "age": 25,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19960817,
+    "adversary_steals": 39183,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.00195915,
+    "ci95": 0.000019379790436013035,
+    "bound_upper": 0.001961629147448199,
+    "bound_lower": 0.0015286975946063816
+  },
+  {
+    "params": {
+      "age": 25,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 18714664,
+    "adversary_steals": 1285336,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0642668,
+    "ci95": 0.00010747573671523886,
+    "bound_upper": 0.06422442748844384,
+    "bound_lower": 0.05754508702964568
+  },
+  {
+    "params": {
+      "age": 25,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19319219,
+    "adversary_steals": 680781,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.03403905,
+    "ci95": 0.00007947116396445147,
+    "bound_upper": 0.03400734544497118,
+    "bound_lower": 0.029705416246182326
+  },
+  {
+    "params": {
+      "age": 25,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 17830760,
+    "adversary_steals": 2169240,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.108462,
+    "ci95": 0.00013628554873616088,
+    "bound_upper": 0.10852438956281814,
+    "bound_lower": 0.09929981644997861
+  },
+  {
+    "params": {
+      "age": 63,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 4.95433572692832e-21,
+    "bound_lower": 2.358759239590573e-21
+  },
+  {
+    "params": {
+      "age": 63,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 6.268238933376072e-16,
+    "bound_lower": 3.5960886760778517e-16
+  },
+  {
+    "params": {
+      "age": 63,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19999996,
+    "adversary_steals": 4,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 2e-7,
+    "ci95": 1.9599998039999902e-7,
+    "bound_upper": 1.5045083522777755e-7,
+    "bound_lower": 1.1724633589300704e-7
+  },
+  {
+    "params": {
+      "age": 63,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19980293,
+    "adversary_steals": 19707,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.00098535,
+    "ci95": 0.000013750619430386043,
+    "bound_upper": 0.000989474505334177,
+    "bound_lower": 0.0008865691567794228
+  },
+  {
+    "params": {
+      "age": 63,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19995971,
+    "adversary_steals": 4029,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.00020145,
+    "ci95": 6.219865029866147e-6,
+    "bound_upper": 0.00019932569502159313,
+    "bound_lower": 0.0001741109946013616
+  },
+  {
+    "params": {
+      "age": 63,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19925529,
+    "adversary_steals": 74471,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.00372355,
+    "ci95": 0.000026693750738522147,
+    "bound_upper": 0.0037113244794837086,
+    "bound_lower": 0.0033958618987275945
+  },
+  {
+    "params": {
+      "age": 78,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 7.252006004533718e-26,
+    "bound_lower": 3.452680058758503e-26
+  },
+  {
+    "params": {
+      "age": 78,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 1.5045904150463e-19,
+    "bound_lower": 8.631835211120624e-20
+  },
+  {
+    "params": {
+      "age": 78,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 3.5724383812655424e-9,
+    "bound_lower": 2.7840012305202373e-9
+  },
+  {
+    "params": {
+      "age": 78,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19996204,
+    "adversary_steals": 3796,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0001898,
+    "ci95": 6.037372317688946e-6,
+    "bound_upper": 0.0001905569327318947,
+    "bound_lower": 0.00017073901172777762
+  },
+  {
+    "params": {
+      "age": 78,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19999416,
+    "adversary_steals": 584,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0000292,
+    "ci95": 2.368242433727763e-6,
+    "bound_upper": 0.00002621240846375669,
+    "bound_lower": 0.000022896538793091464
+  },
+  {
+    "params": {
+      "age": 78,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19980380,
+    "adversary_steals": 19620,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.000981,
+    "ci95": 0.000013720263470470238,
+    "bound_upper": 0.0009791412273305853,
+    "bound_lower": 0.0008959142230074854
+  },
+  {
+    "params": {
+      "age": 126,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 2.454544249511836e-41,
+    "bound_lower": 1.1686085171925851e-41
+  },
+  {
+    "params": {
+      "age": 126,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 3.9290819325891588e-31,
+    "bound_lower": 2.2541143047264003e-31
+  },
+  {
+    "params": {
+      "age": 126,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 2.2635453820735868e-14,
+    "bound_lower": 1.7639809162499462e-14
+  },
+  {
+    "params": {
+      "age": 126,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19999986,
+    "adversary_steals": 14,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 7e-7,
+    "ci95": 3.666822955649754e-7,
+    "bound_upper": 9.790597967063147e-7,
+    "bound_lower": 8.772375778488579e-7
+  },
+  {
+    "params": {
+      "age": 126,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 3.973073269584116e-8,
+    "bound_lower": 3.4704795009817254e-8
+  },
+  {
+    "params": {
+      "age": 126,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19999732,
+    "adversary_steals": 268,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0000134,
+    "ci95": 1.6043183942457307e-6,
+    "bound_upper": 0.00001377392939201503,
+    "bound_lower": 0.000012603145393693747
+  },
+  {
+    "params": {
+      "age": 156,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 5.2591591089793083e-51,
+    "bound_lower": 2.503885651785049e-51
+  },
+  {
+    "params": {
+      "age": 156,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 2.2637923170491972e-38,
+    "bound_lower": 1.2987376522911245e-38
+  },
+  {
+    "params": {
+      "age": 156,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 1.2762315987939172e-17,
+    "bound_lower": 9.945672849400995e-18
+  },
+  {
+    "params": {
+      "age": 156,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 3.631194461218784e-8,
+    "bound_lower": 3.253550237252031e-8
+  },
+  {
+    "params": {
+      "age": 156,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 20000000,
+    "adversary_steals": 0,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 0.0,
+    "ci95": 0.0,
+    "bound_upper": 6.870903574708232e-10,
+    "bound_lower": 6.00173427250764e-10
+  },
+  {
+    "params": {
+      "age": 156,
+      "q": 1.0,
+      "tie": "adversary_wins",
+      "remaining_ttl": 10000,
+      "burn_response": false
+    },
+    "trials": 20000000,
+    "victim_executes": 19999981,
+    "adversary_steals": 19,
+    "burned": 0,
+    "leaked_unresolved": 0,
+    "p_steal": 9.5e-7,
+    "ci95": 4.27171893560192e-7,
+    "bound_upper": 9.587175430584447e-7,
+    "bound_lower": 8.77226551898477e-7
+  }
+]

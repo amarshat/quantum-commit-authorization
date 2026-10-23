@@ -47,6 +47,15 @@ done
 $RUN sweep --ages 4 --betas 0.1,0.2,0.3,0.4,0.5 --persistence 0.75 \
     --trials 2000000 --seed 6 > sim/results/theft-concentrated.json
 
+# Measured shares (builders/results/stats.json, "sizing"): the median and the
+# highest per-anchor share of the top one, two and three builders on mainnet,
+# at the minCommitAge values each needs for 1e-3 and 1e-6. Persistence was
+# measured close to share (median p - beta within 0.013), so the i.i.d. game
+# is the model these run.
+$RUN sweep --ages 4,8,13,25,63,78,126,156 \
+    --betas 0.4761,0.5737,0.7793,0.896,0.8735,0.915 \
+    --trials 20000000 --seed 8 > sim/results/theft-measured.json
+
 # --- Forcing adversary (docs/STATE_MODEL.md milestone M4) ---
 # The forcing sim's cross-checks live in its unit tests (run in the tooling job);
 # these vectors are the committed figures. Forcing games run a block horizon, so

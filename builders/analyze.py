@@ -41,6 +41,14 @@ RESULTS = HERE / "results"
 A_MAX = 8
 TOP = 5
 COALITIONS = (1, 2, 3)
+TARGETS = (1e-3, 1e-6)
+# Local-share windows. The top builder's share drifts within an anchor, so its
+# long runs exceed the anchor-wide beta^a; averaging beta_W^a over each
+# block's own W-block neighbourhood accounts for that. 128 is the smallest
+# window tried that never underpredicts the direct runs at a = 4..8 for any
+# coalition, so it is the conservative sizing; 256 is reported beside it.
+WINDOWS = (128, 256)
+A_TTL = 256
 
 
 def load_rows(use_cache):
@@ -144,6 +152,72 @@ def per_anchor_topk(anchors, seqs, k):
     return out
 
 
+def sizing(regime):
+    """minCommitAge each coalition requires: the smallest a with beta^a at or
+    below each target at the anchor where that coalition's share is highest,
+    with the medians that justify using beta^a (persistence close to share,
+    direct runs close to beta^4)."""
+    out = {}
+    for k, rows in regime.items():
+        betas = sorted(r["beta"] for r in rows)
+        gaps = sorted(r["p"] - r["beta"] for r in rows)
+        ratios = sorted(r["by_a"][4]["run"] / r["by_a"][4]["iid"] for r in rows)
+        worst = betas[-1]
+        need = {}
+        for t in TARGETS:
+            a = 1
+            while worst ** a > t:
+                a += 1
+            need[f"{t:g}"] = a
+        out[k] = {"beta_median": betas[len(betas) // 2], "beta_max": worst,
+                  "p_minus_beta_median": gaps[len(gaps) // 2],
+                  "run4_over_iid_median": ratios[len(ratios) // 2],
+                  "min_commit_age_at_max_beta": need}
+    return out
+
+
+def local_sizing(seqs):
+    """minCommitAge under each block's local share: for every position, the
+    share of the coalition in the W blocks around it, and the theft rate as
+    the mean of beta_W^a. Reports how well that predicts the direct runs at
+    a = 4..8, the highest local share seen, and the smallest a meeting each
+    target, up to commitTTL."""
+    out = {}
+    for k in COALITIONS:
+        out[f"top{k}"] = {}
+        for w in WINDOWS:
+            obs = Counter()
+            pred = [0.0] * (A_TTL + 1)
+            n = 0
+            high = 0.0
+            for seq in seqs:
+                c = Counter(x for x in seq if not x.startswith("self:"))
+                members = {x for x, _ in c.most_common(k)}
+                mine = [x in members for x in seq]
+                pre = [0]
+                for m in mine:
+                    pre.append(pre[-1] + m)
+                size = len(mine)
+                for i in range(size - A_MAX):
+                    hi = min(size, max(0, i - w // 2) + w)
+                    lo = max(0, hi - w)
+                    b = (pre[hi] - pre[lo]) / (hi - lo)
+                    high = max(high, b)
+                    n += 1
+                    x = 1.0
+                    for a in range(1, A_TTL + 1):
+                        x *= b
+                        pred[a] += x
+                    for a in range(4, A_MAX + 1):
+                        obs[a] += all(mine[i:i + a])
+            need = {f"{t:g}": next((a for a in range(1, A_TTL + 1) if pred[a] / n <= t), None)
+                    for t in TARGETS}
+            out[f"top{k}"][str(w)] = {"obs_over_pred": {a: obs[a] / pred[a] for a in range(4, A_MAX + 1)},
+                                      "max_local_beta": high,
+                                      "min_commit_age": need}
+    return out
+
+
 def main():
     use_cache = "--cache" in sys.argv
     variant = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--variant=")), None)
@@ -194,6 +268,8 @@ def main():
         "builders": singles,
         "coalitions": coalitions,
         "per_anchor_topk": regime,
+        "sizing": sizing(regime),
+        "local_sizing": local_sizing(seqs),
     }
     RESULTS.mkdir(exist_ok=True)
     suffix = f"-{variant}" if variant else ""
@@ -249,6 +325,29 @@ def report(o):
             b = r["by_a"]
             lines.append(f"| {k} | {r['anchor']} | {fmt(r['beta'])} | {fmt(r['p'])} | "
                          f"{fmt(b[4]['run'])} | {fmt(b[4]['iid'])} | {fmt(b[8]['run'])} | {fmt(b[8]['iid'])} |")
+    lines += ["", "## minCommitAge at measured shares", "",
+              "Per anchor, as above. `a` is the smallest minCommitAge with beta^a at or below",
+              "the target at the anchor where the coalition's share is highest.", "",
+              "| k | median beta | max beta | median p - beta | median run(4)/beta^4 | "
+              + " | ".join(f"a for {t:g}" for t in TARGETS) + " |",
+              "|---|---|---|---|---|" + "---|" * len(TARGETS)]
+    for k, z in o["sizing"].items():
+        lines.append(f"| {k} | {fmt(z['beta_median'])} | {fmt(z['beta_max'])} | "
+                     f"{z['p_minus_beta_median']:+.4f} | {z['run4_over_iid_median']:.2f} | "
+                     + " | ".join(str(v) for v in z["min_commit_age_at_max_beta"].values()) + " |")
+    lines += ["", "## minCommitAge under local share", "",
+              "Each block's adversary share is the coalition's share in the W blocks around it,",
+              "and the theft rate is the mean of beta_W^a. `obs/pred` compares the direct runs",
+              "with that prediction at a = 4..8; `none` means no a up to commitTTL (256) meets",
+              "the target.", "",
+              "| k | W | obs/pred a=4..8 | max local beta | "
+              + " | ".join(f"a for {t:g}" for t in TARGETS) + " |",
+              "|---|---|---|---|" + "---|" * len(TARGETS)]
+    for k, ws in o["local_sizing"].items():
+        for w, z in ws.items():
+            fit = " ".join(f"{v:.2f}" for v in z["obs_over_pred"].values())
+            lines.append(f"| {k} | {w} | {fit} | {z['max_local_beta']:.3f} | "
+                         + " | ".join(str(v) if v else "none" for v in z["min_commit_age"].values()) + " |")
     lines += ["", "## Top builders per anchor", "", "| anchor block | 1st | 2nd | 3rd | self-built |",
               "|---|---|---|---|---|"]
     for pa in o["per_anchor"]:

@@ -26,27 +26,34 @@ for c in sorted(theft, key=beta_of):
         b = beta_of(c)
         print(f"  beta={b:.2f}: sim={c['p_steal']:.5f}  beta^a={b**4:.5f}")
 
-conc = load("sim/results/theft-concentrated.json")
-print("\nProposition (Markov builders, persistence p=0.75, a=4):")
-for c in sorted(conc, key=beta_of):
-    b = beta_of(c)
-    p = 0.75
-    p_sw = b * (1 - p) / (1 - b)
-    lift = c["p_steal"] / (b**4)
-    if abs(b - 0.1) < 1e-6:
-        print(f"  beta={b:.1f}: sim={c['p_steal']:.5f}  honest-broadcast p_sw*p^3={p_sw*p**3:.5f}"
-              f"  stationary beta*p^3={b*p**3:.5f}  lift over beta^a={lift:.0f}x")
+print("\nMeasured builder concentration (builders/results/stats.json):")
+st = load("builders/results/stats.json")
+for k, z in st["sizing"].items():
+    loc = st["local_sizing"][k]
+    print(f"  {k}: median beta={z['beta_median']:.3f} max beta={z['beta_max']:.3f}"
+          f"  median p-beta={z['p_minus_beta_median']:+.4f}  run(4)/beta^4={z['run4_over_iid_median']:.2f}")
+    for t in ("0.001", "1e-06"):
+        print(f"    minCommitAge for {t}: anchor i.i.d. {z['min_commit_age_at_max_beta'][t]},"
+              f" local share W=256 {loc['256']['min_commit_age'][t]}, W=128 {loc['128']['min_commit_age'][t]}")
+measured = load("sim/results/theft-measured.json")
+print("Simulator at measured shares, a=13 and a=25 (sim vs beta^a):")
+for c in sorted(measured, key=lambda c: (c["params"]["age"], beta_of(c))):
+    if c["params"]["age"] in (13, 25):
+        b = beta_of(c)
+        print(f"  a={c['params']['age']} beta={b:.4f}: sim={c['p_steal']:.3g}  beta^a={b**c['params']['age']:.3g}")
 
 print("\n" + "=" * 64)
 print("Empirical fee cost (2 years of real Ethereum base fees)")
 print("=" * 64)
 stats = load("fees/results/basefee-stats.json")["ratio_percentiles_by_gap"]
-op = {g: s for g, s in stats.items() if int(g) <= 32}
-mx = max(s["max"] for s in op.values())
+cheaper = load("fees/results/basefee-stats.json")["flow_cheaper_fraction"]
+ethf = next(k for k in cheaper if k.startswith("g64|action|ETHFALCON")).split("|", 2)[2]
 print(f"  gaps sampled: {sorted(int(g) for g in stats)}")
-print(f"  max base-fee ratio over operating window (g<=32): {mx:.2f}x")
 print(f"  break-even against cheapest verifier: ~15x (value action) / ~23x (auth only)")
-print(f"  => cheaper at 100% of operating-window entry points")
+print("  operative gap is max(minCommitAge, finality), finality 64-95 blocks:")
+for g in (64, 96, 178, 234):
+    print(f"    g={g}: max ratio {stats[str(g)]['max']:.2f}x, flow cheaper than ETHFALCON at"
+          f" {cheaper[f'g{g}|action|{ethf}'] * 100:.3f}% of entry points")
 
 print("\n" + "=" * 64)
 print("L1 gas (from committed receipts)")

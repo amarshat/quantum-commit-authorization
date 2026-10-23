@@ -94,3 +94,14 @@ jobs:
         run: |
           python3 fees/analyze.py
           git diff --exit-code fees/results
+
+  # Builder share, persistence and minCommitAge sizing are a pure function of
+  # the committed mainnet block sample (builders/data). Recompute and diff.
+  builder-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: recompute and diff
+        run: |
+          python3 builders/analyze.py
+          git diff --exit-code builders/results

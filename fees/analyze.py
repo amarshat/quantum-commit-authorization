@@ -34,12 +34,15 @@ BENCH = ROOT / "bench" / "results"
 OUT_MD = ROOT / "fees" / "results" / "RESULTS.md"
 OUT_JSON = ROOT / "fees" / "results" / "basefee-stats.json"
 
-# Gaps in blocks between commit and reveal, up to commitTTL = 256. The starred
-# ones are the minCommitAge values builders/ says are needed at measured
-# builder concentration: the worst anchor's top 1, top 2 and top 3 builders
-# held to a 1e-3 theft rate (13, 63, 78) and to 1e-6 (25, 126, 156).
-GAPS = [1, 2, 4, 8, 13, 16, 25, 32, 63, 64, 78, 126, 128, 156, 256]
-HIGHLIGHT = [13, 25, 63, 78, 126, 156]
+# Gaps in blocks between commit and reveal, up to commitTTL = 256. The victim
+# reveals only once its commitment is both aged and final, so the gap is
+# max(minCommitAge, finality), and finality is 64 to 95 blocks. The starred
+# gaps are the operative ones: 64 and 96 (finality, which already covers any
+# minCommitAge up to it, including the values builders/ gives for a single top
+# builder at 1e-6 and a top two at 1e-3), and 178 and 234 (a colluding top two
+# at 1e-6 under the 256- and 128-block local-share models).
+GAPS = [1, 2, 4, 8, 13, 16, 25, 32, 63, 64, 78, 96, 126, 128, 156, 178, 234, 256]
+HIGHLIGHT = [64, 96, 178, 234]
 
 
 def load_gas():
@@ -177,11 +180,11 @@ def main():
             f"| {r['p99_9']:.2f}x | {r['max']:.2f}x |"
         )
     L.append("")
-    L.append("Rows marked * are the minCommitAge values needed at measured builder")
-    L.append("concentration (builders/results): 13 and 25 blocks hold a single top")
-    L.append("builder to theft rates of 1e-3 and 1e-6, 63 and 126 a colluding top")
-    L.append("two, 78 and 156 a top three. Even at those gaps the p99.9 ratio stays")
-    L.append("below the ML-DSA-44 break-even, and below the ETHFALCON one up to 78.")
+    L.append("Rows marked * are the operative gaps. The reveal waits for the commitment")
+    L.append("to be final (64 to 95 blocks) as well as aged, so the gap is")
+    L.append("max(minCommitAge, finality): 64 to 96 blocks for any minCommitAge up to")
+    L.append("finality, and 178 or 234 blocks when sized against a colluding top two")
+    L.append("at a 1e-6 theft rate (builders/results).")
     L.append("")
     L.append("## How often the flow was actually more expensive")
     L.append("")
@@ -197,21 +200,24 @@ def main():
         fm = cheaper_frac[f"g{g}|action|{mldsa}"]
         L.append(f"| {g} | action | {fe * 100:.3f}% | {fm * 100:.3f}% |")
     L.append("")
-    L.append("A user reveals as soon as the commitment ages, so the operative gap")
-    L.append("is minCommitAge. Sized against measured builder concentration that is")
-    L.append("13 to 156 blocks, not the 4 to 32 first assumed. Against a single")
-    L.append("top builder (up to 25 blocks) the flow was cheaper than both")
-    L.append("baselines at every historical entry point.")
-    fe2 = cheaper_frac[f"g126|action|{ethf}"]
-    fe3 = cheaper_frac[f"g156|action|{ethf}"]
-    L.append(f"Against a colluding top two or three (126, 156) it still won")
-    L.append(f"{fe2 * 100:.3f}% and {fe3 * 100:.3f}% of the time against ETHFALCON.")
+    f64 = cheaper_frac[f"g64|action|{ethf}"]
+    f96 = cheaper_frac[f"g96|action|{ethf}"]
+    f178 = cheaper_frac[f"g178|action|{ethf}"]
+    f234 = cheaper_frac[f"g234|action|{ethf}"]
+    L.append("A user reveals as soon as the commitment is aged and final, so the")
+    L.append("operative gap is 64 to 96 blocks for any minCommitAge up to finality.")
+    L.append(f"There the flow beat ETHFALCON at {f64 * 100:.3f}% to {f96 * 100:.3f}% of")
+    L.append("historical entry points and ML-DSA-44 at all of them. Sized against a")
+    L.append(f"colluding top two at 1e-6 (178 or 234 blocks) it won {f178 * 100:.3f}% and")
+    L.append(f"{f234 * 100:.3f}% of the time against ETHFALCON.")
     L.append("The economics only flip in the long tail, and only")
     L.append("when an adversary censors the reveal toward commitTTL (256 blocks):")
     worst = cheaper_frac[f"g256|action|{ethf}"]
     L.append(f"even at a full 256-block delay the flow still won {worst * 100:.2f}% of")
-    L.append("the time against the cheapest Falcon verifier, and was never beaten")
-    L.append("by the standards-compliant ML-DSA-44 verifier at any gap. This is")
+    worst_ml = min(cheaper_frac[f"g{g}|action|{mldsa}"] for g in GAPS)
+    L.append("the time against the cheapest Falcon verifier, and the standards-compliant")
+    L.append(f"ML-DSA-44 verifier beat it at no more than {(1 - worst_ml) * 100:.3f}% of entry points")
+    L.append("at any gap. This is")
     L.append("the honest, data-backed version of the benchmark's single-number")
     L.append("break-even, and it is the fee-spike model the mempool simulator")
     L.append("draws from: a base-fee spike large enough to flip the cost is also")

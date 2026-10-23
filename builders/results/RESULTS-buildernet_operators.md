@@ -261,6 +261,33 @@ that anchor's beta^a.
 | top3 | 25344804 | 0.8235 | 0.8259 | 0.4706 | 0.4599 | 0.2265 | 0.2115 |
 | top3 | 25479978 | 0.8254 | 0.8290 | 0.4784 | 0.4642 | 0.2455 | 0.2155 |
 
+## minCommitAge at measured shares
+
+Per anchor, as above. `a` is the smallest minCommitAge with beta^a at or below
+the target at the anchor where the coalition's share is highest.
+
+| k | median beta | max beta | median p - beta | median run(4)/beta^4 | a for 0.001 | a for 1e-06 |
+|---|---|---|---|---|---|---|
+| top1 | 0.4761 | 0.5737 | -0.0129 | 1.00 | 13 | 25 |
+| top2 | 0.7290 | 0.8960 | -0.0026 | 1.01 | 63 | 126 |
+| top3 | 0.8267 | 0.9150 | -0.0018 | 0.99 | 78 | 156 |
+
+## minCommitAge under local share
+
+Each block's adversary share is the coalition's share in the W blocks around it,
+and the theft rate is the mean of beta_W^a. `obs/pred` compares the direct runs
+with that prediction at a = 4..8; `none` means no a up to commitTTL (256) meets
+the target.
+
+| k | W | obs/pred a=4..8 | max local beta | a for 0.001 | a for 1e-06 |
+|---|---|---|---|---|---|
+| top1 | 128 | 0.91 0.89 0.89 0.92 0.99 | 0.922 | 12 | 53 |
+| top1 | 256 | 0.94 0.95 0.98 1.04 1.16 | 0.836 | 11 | 34 |
+| top2 | 128 | 0.98 0.98 0.97 0.96 0.96 | 0.977 | 57 | 235 |
+| top2 | 256 | 0.99 0.99 0.99 0.99 0.99 | 0.965 | 50 | 178 |
+| top3 | 128 | 0.98 0.98 0.97 0.97 0.96 | 0.992 | 81 | none |
+| top3 | 256 | 0.99 0.99 0.98 0.98 0.98 | 0.973 | 66 | 207 |
+
 ## Top builders per anchor
 
 | anchor block | 1st | 2nd | 3rd | self-built |

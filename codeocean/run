@@ -36,6 +36,11 @@ cp -r fees/results /tmp/fees-committed
 python3 fees/analyze.py >/dev/null
 check fees/results /tmp/fees-committed "fees/results/* (break-even, entry points)"
 
+echo "### 4b. Builder concentration (from committed mainnet block sample)"
+cp -r builders/results /tmp/builders-committed
+python3 builders/analyze.py >/dev/null
+check builders/results /tmp/builders-committed "builders/results/* (share, persistence, sizing)"
+
 echo "### 5. Gas report from committed receipts"
 python3 bench/report.py > "$OUT/gas-report.md"
 echo "  wrote $OUT/gas-report.md"

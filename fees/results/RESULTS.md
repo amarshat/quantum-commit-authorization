@@ -29,23 +29,26 @@ How much the base fee actually moved over a g-block gap, across all
 | 2 | 1.00x | 1.09x | 1.20x | 1.27x | 1.27x |
 | 4 | 0.99x | 1.11x | 1.26x | 1.43x | 1.60x |
 | 8 | 0.99x | 1.13x | 1.36x | 1.71x | 2.56x |
-| 13 * | 0.99x | 1.16x | 1.48x | 2.09x | 3.88x |
+| 13 | 0.99x | 1.16x | 1.48x | 2.09x | 3.88x |
 | 16 | 0.99x | 1.18x | 1.55x | 2.33x | 4.61x |
-| 25 * | 0.99x | 1.22x | 1.73x | 3.18x | 7.79x |
+| 25 | 0.99x | 1.22x | 1.73x | 3.18x | 7.79x |
 | 32 | 0.99x | 1.24x | 1.88x | 3.84x | 9.61x |
-| 63 * | 0.99x | 1.33x | 2.51x | 7.27x | 17.47x |
-| 64 | 0.99x | 1.33x | 2.53x | 7.49x | 17.90x |
-| 78 * | 0.99x | 1.36x | 2.81x | 8.86x | 20.12x |
-| 126 * | 0.98x | 1.45x | 3.80x | 16.21x | 42.73x |
+| 63 | 0.99x | 1.33x | 2.51x | 7.27x | 17.47x |
+| 64 * | 0.99x | 1.33x | 2.53x | 7.49x | 17.90x |
+| 78 | 0.99x | 1.36x | 2.81x | 8.86x | 20.12x |
+| 96 * | 0.99x | 1.40x | 3.21x | 10.74x | 26.50x |
+| 126 | 0.98x | 1.45x | 3.80x | 16.21x | 42.73x |
 | 128 | 0.98x | 1.45x | 3.83x | 16.14x | 43.89x |
-| 156 * | 0.98x | 1.50x | 4.45x | 17.47x | 65.27x |
+| 156 | 0.98x | 1.50x | 4.45x | 17.47x | 65.27x |
+| 178 * | 0.98x | 1.54x | 4.84x | 18.64x | 84.35x |
+| 234 * | 0.98x | 1.63x | 5.67x | 22.77x | 94.96x |
 | 256 | 0.98x | 1.65x | 6.06x | 27.81x | 84.13x |
 
-Rows marked * are the minCommitAge values needed at measured builder
-concentration (builders/results): 13 and 25 blocks hold a single top
-builder to theft rates of 1e-3 and 1e-6, 63 and 126 a colluding top
-two, 78 and 156 a top three. Even at those gaps the p99.9 ratio stays
-below the ML-DSA-44 break-even, and below the ETHFALCON one up to 78.
+Rows marked * are the operative gaps. The reveal waits for the commitment
+to be final (64 to 95 blocks) as well as aged, so the gap is
+max(minCommitAge, finality): 64 to 96 blocks for any minCommitAge up to
+finality, and 178 or 234 blocks when sized against a colluding top two
+at a 1e-6 theft rate (builders/results).
 
 ## How often the flow was actually more expensive
 
@@ -65,23 +68,26 @@ cost LESS than one direct-verification transaction:
 | 63 | action | 99.997% | 100.000% |
 | 64 | action | 99.996% | 100.000% |
 | 78 | action | 99.973% | 100.000% |
+| 96 | action | 99.941% | 100.000% |
 | 126 | action | 99.891% | 100.000% |
 | 128 | action | 99.888% | 100.000% |
 | 156 | action | 99.862% | 100.000% |
+| 178 | action | 99.837% | 99.999% |
+| 234 | action | 99.749% | 99.991% |
 | 256 | action | 99.712% | 99.999% |
 
-A user reveals as soon as the commitment ages, so the operative gap
-is minCommitAge. Sized against measured builder concentration that is
-13 to 156 blocks, not the 4 to 32 first assumed. Against a single
-top builder (up to 25 blocks) the flow was cheaper than both
-baselines at every historical entry point.
-Against a colluding top two or three (126, 156) it still won
-99.891% and 99.862% of the time against ETHFALCON.
+A user reveals as soon as the commitment is aged and final, so the
+operative gap is 64 to 96 blocks for any minCommitAge up to finality.
+There the flow beat ETHFALCON at 99.996% to 99.941% of
+historical entry points and ML-DSA-44 at all of them. Sized against a
+colluding top two at 1e-6 (178 or 234 blocks) it won 99.837% and
+99.749% of the time against ETHFALCON.
 The economics only flip in the long tail, and only
 when an adversary censors the reveal toward commitTTL (256 blocks):
 even at a full 256-block delay the flow still won 99.71% of
-the time against the cheapest Falcon verifier, and was never beaten
-by the standards-compliant ML-DSA-44 verifier at any gap. This is
+the time against the cheapest Falcon verifier, and the standards-compliant
+ML-DSA-44 verifier beat it at no more than 0.009% of entry points
+at any gap. This is
 the honest, data-backed version of the benchmark's single-number
 break-even, and it is the fee-spike model the mempool simulator
 draws from: a base-fee spike large enough to flip the cost is also

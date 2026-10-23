@@ -105,6 +105,14 @@
       "p99_9": 8.862260644537793,
       "max": 20.12276843759158
     },
+    "96": {
+      "samples": 160000,
+      "p50": 0.9854197369085447,
+      "p90": 1.3994621018290425,
+      "p99": 3.2098534374548207,
+      "p99_9": 10.738333428113377,
+      "max": 26.49828917227059
+    },
     "126": {
       "samples": 158800,
       "p50": 0.9841247713761623,
@@ -128,6 +136,22 @@
       "p99": 4.447540085425607,
       "p99_9": 17.470791657209357,
       "max": 65.27398722072016
+    },
+    "178": {
+      "samples": 156720,
+      "p50": 0.9830307592068617,
+      "p90": 1.5423175597325038,
+      "p99": 4.838200603137111,
+      "p99_9": 18.6416245956603,
+      "max": 84.35253622470766
+    },
+    "234": {
+      "samples": 154480,
+      "p50": 0.9828439814127723,
+      "p90": 1.63203471168508,
+      "p99": 5.671229957896193,
+      "p99_9": 22.771923880883122,
+      "max": 94.96066844184837
     },
     "256": {
       "samples": 153600,
@@ -183,6 +207,10 @@
     "g78|action|ML-DSA-44 (NIST)": 1.0,
     "g78|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 1.0,
     "g78|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g96|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.99940625,
+    "g96|action|ML-DSA-44 (NIST)": 1.0,
+    "g96|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.99990625,
+    "g96|auth_only|ML-DSA-44 (NIST)": 1.0,
     "g126|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9989105793450882,
     "g126|action|ML-DSA-44 (NIST)": 1.0,
     "g126|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9995277078085643,
@@ -195,6 +223,14 @@
     "g156|action|ML-DSA-44 (NIST)": 1.0,
     "g156|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9993718274111675,
     "g156|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g178|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9983665135273099,
+    "g178|action|ML-DSA-44 (NIST)": 0.9999872383869322,
+    "g178|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9993555385400714,
+    "g178|auth_only|ML-DSA-44 (NIST)": 1.0,
+    "g234|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9974883480062144,
+    "g234|action|ML-DSA-44 (NIST)": 0.9999093733816675,
+    "g234|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9989772138788192,
+    "g234|auth_only|ML-DSA-44 (NIST)": 1.0,
     "g256|action|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9971158854166666,
     "g256|action|ML-DSA-44 (NIST)": 0.9999869791666667,
     "g256|auth_only|ETHFALCON (Keccak PRNG, non-FIPS)": 0.9986328125,
