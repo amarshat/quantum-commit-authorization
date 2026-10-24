@@ -211,7 +211,7 @@ contract QCAAccount4337Test is QCAAccount4337Base {
         // F7: the EntryPoint bills 10% of unused call gas to the account. With
         // only a floor on callGasLimit a bundler raises it to 25M for a 40K
         // action and bills the account for gas that never runs, about nine
-        // times the honest cost at the same price. The committed budget is
+        // times the cost at a 1M limit and the same price. The committed budget is
         // also a ceiling, so validation rejects it and the leaf survives.
         bytes memory data = abi.encodeCall(Receiver.setX, (42));
         account.commit(commitmentOf(address(receiver), 0, data));

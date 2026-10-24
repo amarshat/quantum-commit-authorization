@@ -162,8 +162,8 @@ otherwise choose at reveal time to its own advantage:
   v0.8 bills the account 10% of unused call gas once the limit exceeds the gas
   used by more than 40,000, so with a floor alone a bundler raises
   `callGasLimit` far above the action's need and bills the account for gas that
-  never runs (raising it from 1M to 25M for a 40k action cost about nine times
-  the honest fee at the same price). This was missed by inspection too, and was
+  never runs (raising it from 1M to 25M for a 40k action raised the account's
+  cost about nine-fold at the same price). This was missed by inspection too, and was
   found by the field-by-field harness described below.
 - **The preVerificationGas ceiling.** The commitment binds a `maxPvgCeil`, and
   validation rejects any UserOp whose `preVerificationGas` exceeds it. This one
