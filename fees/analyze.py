@@ -58,8 +58,10 @@ def load_gas():
     # Parse "| <name> | <exec> | <total tx> | ..." rows from RESULTS.md.
     baselines = {}
     for line in (BENCH / "RESULTS.md").read_text().splitlines():
-        m = re.match(r"\|\s*(ETHFALCON \(Keccak[^|]*|ML-DSA-44 \(NIST\))\s*\|\s*([\d,]+)\s*\|\s*([\d,]+)", line)
-        if m:
+        # Whole-cell numbers only, so the lifetime table's "| 8 | 2.0x |" rows
+        # for the same baselines do not match.
+        m = re.match(r"\|\s*(ETHFALCON \(Keccak[^|]*|ML-DSA-44 \(NIST\))\s*\|\s*([\d,]+)\s*\|\s*([\d,]+)\s*\|", line)
+        if m and m.group(1).strip() not in baselines:
             baselines[m.group(1).strip()] = int(m.group(3).replace(",", ""))
     assert baselines, "failed to parse baseline totals from RESULTS.md"
     return gas, baselines
