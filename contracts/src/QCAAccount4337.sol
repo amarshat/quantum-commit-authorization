@@ -91,6 +91,8 @@ contract QCAAccount4337 is IAccount {
     error FeeCapExceeded();
     error CallGasBelowFloor();
     error CallGasAboveBudget();
+    error DepositTooLow();
+    error BadSignatureLength();
     error PreVerificationGasAboveCeiling();
     error NotSelf();
 
@@ -165,6 +167,17 @@ contract QCAAccount4337 is IAccount {
         onlyEntryPoint
         returns (uint256 validationData)
     {
+        // The account never tops up its EntryPoint deposit from its balance.
+        // The prefund the EntryPoint asks for scales with verificationGasLimit,
+        // which the bundler chooses and nothing caps; paying the shortfall from
+        // the balance let a bundler move the whole balance into the deposit,
+        // so a committed value transfer then failed and its leaf was burned
+        // (F8). With a deposit-only account an oversized limit is rejected
+        // before any effect, which leaves the bundler only censorship.
+        if (missingAccountFunds != 0) revert DepositTooLow();
+        // Exact lengths: trailing bytes after the ABI encoding decode away but
+        // are still copied and billed, an unbounded gas-quantity axis (F9).
+        if (userOp.signature.length != 32 * (7 + depth)) revert BadSignatureLength();
         (
             uint256 leafIndex,
             bytes32 secret,
@@ -212,8 +225,6 @@ contract QCAAccount4337 is IAccount {
         usedLeaves[leafHash] = true;
         delete commitments[c];
         emit LeafConsumed(leafHash, leafIndex);
-
-        _payPrefund(missingAccountFunds);
 
         // The aging and expiry gates are handed to the EntryPoint as a time
         // range; it enforces validAfter <= block.timestamp <= validUntil
@@ -316,16 +327,10 @@ contract QCAAccount4337 is IAccount {
     {
         if (callData.length < 4 || bytes4(callData[:4]) != this.execute.selector) revert BadCallData();
         (target, value, data) = abi.decode(callData[4:], (address, uint256, bytes));
+        if (callData.length != 4 + 128 + ((data.length + 31) / 32) * 32) revert BadCallData();
     }
 
     // --- helpers ------------------------------------------------------------
-
-    function _payPrefund(uint256 missingAccountFunds) internal {
-        if (missingAccountFunds != 0) {
-            (bool ok,) = payable(msg.sender).call{value: missingAccountFunds}("");
-            (ok); // EntryPoint handles a failed prefund; ignore per 4337 pattern.
-        }
-    }
 
     /// @dev Pack a time range into ERC-4337 validationData with a passing
     ///      authorizer: <20B 0><6B validUntil><6B validAfter>.

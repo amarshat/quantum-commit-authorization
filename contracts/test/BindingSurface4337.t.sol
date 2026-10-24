@@ -37,10 +37,14 @@ contract OpenPaymaster is IPaymaster {
 /// Each test takes an honest reveal, moves one input to the most adversarial
 /// value we can construct, and checks one of two outcomes:
 ///   rejected  the bundle reverts, the leaf survives and the action does not run;
-///   bound     the committed action runs unchanged, and the account's loss
-///             (EntryPoint deposit plus ETH balance) is no more than the worst
-///             case at the committed ceilings: every committed bound at its
-///             limit and every unbound input at its honest value.
+///   bound     the committed action runs unchanged, carrying its committed
+///             value; the account's ETH balance falls by exactly that value,
+///             so nothing is moved into the deposit; and the deposit's loss is
+///             no more than the worst case at the committed ceilings: every
+///             committed bound at its limit and every unbound input honest.
+/// The action carries value so that a failed transfer shows up: F8 moved the
+/// balance into the deposit, the 5 ETH transfer failed and the leaf burned,
+/// which a value-free action and a combined deposit-plus-balance metric hid.
 /// An input whose adversarial value is accepted and raises the loss above that
 /// worst case is unbound, which is what F1 (preVerificationGas) was and what
 /// F7 (callGasLimit with no ceiling) was until the fix.
@@ -50,17 +54,19 @@ contract BindingSurface4337Test is QCAAccount4337Base {
     // EntryPoint v0.8 charges no unused-gas penalty within 40,000 of the limit.
     uint256 constant CALL_GAS_SLACK = 40_000;
 
+    uint256 constant VALUE = 5 ether;
+
     bytes data42;
 
     function setUp() public override {
         super.setUp();
         data42 = abi.encodeCall(Receiver.setX, (42));
-        account.commit(commitmentOf(address(receiver), 0, data42));
+        account.commit(commitmentOf(address(receiver), VALUE, data42));
         vm.warp(block.timestamp + MIN_AGE + 1);
     }
 
     function honest() internal view returns (PackedUserOperation memory op) {
-        op = buildOp(address(receiver), 0, data42, 1 gwei, CALL_GAS_FLOOR);
+        op = buildOp(address(receiver), VALUE, data42, 1 gwei, CALL_GAS_FLOOR);
     }
 
     /// Every committed bound at its limit, every unbound input honest.
@@ -71,27 +77,27 @@ contract BindingSurface4337Test is QCAAccount4337Base {
         op.preVerificationGas = MAX_PVG_CEIL;
     }
 
-    function holdings() internal view returns (uint256) {
-        return entryPoint.balanceOf(address(account)) + address(account).balance;
-    }
-
+    /// Returns whether the bundle went through, the deposit's loss, and the
+    /// balance's loss (which for an included op must equal VALUE exactly).
     function run(PackedUserOperation memory op, address payable beneficiary)
         internal
-        returns (bool included, uint256 loss)
+        returns (bool included, uint256 loss, uint256 spent)
     {
         PackedUserOperation[] memory ops = new PackedUserOperation[](1);
         ops[0] = op;
-        uint256 before = holdings();
-        try entryPoint.handleOps(ops, beneficiary) {
+        uint256 deposit = entryPoint.balanceOf(address(account));
+        uint256 balance = address(account).balance;
+        try entryPoint.handleOps{gas: 30_000_000}(ops, beneficiary) {
             included = true;
-            loss = before - holdings();
+            loss = deposit - entryPoint.balanceOf(address(account));
+            spent = balance - address(account).balance;
         } catch {}
     }
 
     function bound() internal returns (uint256 loss) {
         uint256 snap = vm.snapshotState();
         bool ok;
-        (ok, loss) = run(worstAtCeilings(), payable(address(0xB0B)));
+        (ok, loss,) = run(worstAtCeilings(), payable(address(0xB0B)));
         require(ok, "worst case at the ceilings must be valid");
         vm.revertToState(snap);
     }
@@ -105,7 +111,7 @@ contract BindingSurface4337Test is QCAAccount4337Base {
     }
 
     function expectRejected(PackedUserOperation memory op, address payable beneficiary) internal {
-        (bool included,) = run(op, beneficiary);
+        (bool included,,) = run(op, beneficiary);
         assertFalse(included, "adversarial value accepted");
         assertFalse(leafUsed(), "leaf burned");
         assertEq(receiver.x(), 0, "action ran");
@@ -117,9 +123,11 @@ contract BindingSurface4337Test is QCAAccount4337Base {
 
     function expectBound(PackedUserOperation memory op, address payable beneficiary) internal {
         uint256 limit = bound();
-        (bool included, uint256 loss) = run(op, beneficiary);
+        (bool included, uint256 loss, uint256 spent) = run(op, beneficiary);
         assertTrue(included, "honest-shaped op rejected");
         assertEq(receiver.x(), 42, "committed action did not run");
+        assertEq(receiver.paid(), VALUE, "committed value not delivered");
+        assertEq(spent, VALUE, "balance moved beyond the committed value");
         assertLe(loss, limit, "loss above the worst case at the committed ceilings");
     }
 
@@ -157,7 +165,14 @@ contract BindingSurface4337Test is QCAAccount4337Base {
 
     function test_field_callData() public {
         PackedUserOperation memory op = honest();
-        op.callData = abi.encodeCall(account.execute, (address(receiver), 0, abi.encodeCall(Receiver.setX, (999))));
+        op.callData = abi.encodeCall(account.execute, (address(receiver), VALUE, abi.encodeCall(Receiver.setX, (999))));
+        expectRejected(op);
+    }
+
+    function test_field_callData_padding() public {
+        // F9: trailing bytes decode away but are copied and billed.
+        PackedUserOperation memory op = honest();
+        op.callData = abi.encodePacked(op.callData, new bytes(100_000));
         expectRejected(op);
     }
 
@@ -168,10 +183,11 @@ contract BindingSurface4337Test is QCAAccount4337Base {
     }
 
     function test_field_signature() public {
-        // Trailing bytes after the ABI-encoded authorization decode away.
+        // F9: trailing bytes after the ABI-encoded authorization decode away,
+        // but the EntryPoint copies and bills them, so the length is exact.
         PackedUserOperation memory op = honest();
-        op.signature = abi.encodePacked(op.signature, bytes32(uint256(0xbad)));
-        expectBound(op);
+        op.signature = abi.encodePacked(op.signature, new bytes(100_000));
+        expectRejected(op);
     }
 
     function test_field_signature_ceilings() public {
@@ -185,10 +201,20 @@ contract BindingSurface4337Test is QCAAccount4337Base {
     // --- subfields the EntryPoint unpacks ------------------------------------
 
     function test_field_verificationGasLimit() public {
-        // Unused verification gas is refunded, not penalized.
+        // Unused verification gas is refunded, not penalized, while the
+        // prefund it implies fits the deposit.
         PackedUserOperation memory op = honest();
         op.accountGasLimits = bytes32((HUGE << 128) | CALL_GAS_FLOOR);
         expectBound(op);
+    }
+
+    function test_field_verificationGasLimit_sweep() public {
+        // F8: a prefund beyond the deposit used to be paid from the balance,
+        // starving the committed transfer and burning the leaf.
+        PackedUserOperation memory op = honest();
+        op.gasFees = bytes32((MAX_FEE_CAP << 128) | MAX_FEE_CAP);
+        op.accountGasLimits = bytes32((uint256(99_000_000) << 128) | CALL_GAS_FLOOR);
+        expectRejected(op);
     }
 
     function test_field_callGasLimit() public {

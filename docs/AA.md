@@ -165,6 +165,18 @@ otherwise choose at reveal time to its own advantage:
   never runs (raising it from 1M to 25M for a 40k action raised the account's
   cost about nine-fold at the same price). This was missed by inspection too, and was
   found by the field-by-field harness described below.
+- **No prefund from the balance (F8).** The prefund the EntryPoint asks for is
+  `(verificationGasLimit + callGasLimit + preVerificationGas) x maxFeePerGas`,
+  and nothing caps `verificationGasLimit`. An account that pays the shortfall
+  from its balance lets a bundler set that limit to ~99M and move the whole
+  balance into the deposit (the refund goes to the deposit, not back to the
+  balance); a committed 5 ETH transfer then fails and its leaf is burned. The
+  account is deposit-only: it rejects any operation with a non-zero
+  `missingAccountFunds`, so an oversized limit is censorship, not a burn. The
+  owner keeps the deposit above the prefund at the committed ceilings.
+- **Exact lengths (F9).** Bytes appended after the ABI encoding of the
+  signature or `callData` decode away but are copied and billed by the
+  EntryPoint, an unbounded gas quantity. Both lengths must be exact.
 - **The preVerificationGas ceiling.** The commitment binds a `maxPvgCeil`, and
   validation rejects any UserOp whose `preVerificationGas` exceeds it. This one
   was missed in the first implementation and is the sharper theft axis, because

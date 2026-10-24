@@ -42,13 +42,13 @@ The base scheme's reveal is a plain transaction wrapped in the owner's ECDSA env
 
 | depth | base reveal | 4337 solo (1 op/bundle) | solo overhead | 4337 marginal (in a bundle) | one-time nonce init |
 |---|---|---|---|---|---|
-| 8 | 61,577 | 105,329 | +43,752 | 58,187 | 17,085 |
-| 16 | 68,950 | 113,300 | +44,350 | 66,133 | 17,085 |
-| 20 | 72,656 | 117,306 | +44,650 | 70,127 | 17,085 |
+| 8 | 61,577 | 105,819 | +44,242 | 58,677 | 17,085 |
+| 16 | 68,950 | 113,790 | +44,840 | 66,623 | 17,085 |
+| 20 | 72,656 | 117,796 | +45,140 | 70,617 | 17,085 |
 
-Three honest numbers, not one. A reveal sent alone in its own bundle (the worst case) costs 113,300 gas at depth 16, 44,350 over the base reveal. That overhead is almost entirely per-bundle fixed cost (the outer intrinsic gas, the beneficiary payout, EntryPoint setup), about 47,167 gas, which a real bundler amortizes across every op in the bundle: the marginal cost of one more reveal in a bundle is 66,133 gas, essentially the base reveal itself. Separately, an account pays a one-time 17,085-gas EntryPoint nonce-slot initialization on its very first op ever (a cold SSTORE, like the deploy, not a per-reveal cost). The solo overhead is flat across tree depth (both the base reveal and the 4337 reveal carry the same Merkle proof, which cancels in the difference).
+Three honest numbers, not one. A reveal sent alone in its own bundle (the worst case) costs 113,790 gas at depth 16, 44,840 over the base reveal. That overhead is almost entirely per-bundle fixed cost (the outer intrinsic gas, the beneficiary payout, EntryPoint setup), about 47,167 gas, which a real bundler amortizes across every op in the bundle: the marginal cost of one more reveal in a bundle is 66,623 gas, essentially the base reveal itself. Separately, an account pays a one-time 17,085-gas EntryPoint nonce-slot initialization on its very first op ever (a cold SSTORE, like the deploy, not a per-reveal cost). The solo overhead is flat across tree depth (both the base reveal and the 4337 reveal carry the same Merkle proof, which cancels in the difference).
 
-The full authorization-only flow (commit plus reveal) is 158,608 gas solo and 111,441 gas amortized, still 10.1x to 14.4x cheaper than the cheapest direct PQ verifier. Two caveats the paper must carry: the flow assumes the account holds an EntryPoint deposit (measured with missingAccountFunds = 0; a pay-per-op account adds the prefund transfer), and preVerificationGas and the gas limits are EntryPoint accounting bounds, not part of the measured gasUsed. Aging is wall-clock here, not block-denominated, per the 4337 validation rules; see docs/AA.md.
+The full authorization-only flow (commit plus reveal) is 159,098 gas solo and 111,931 gas amortized, still 10.1x to 14.3x cheaper than the cheapest direct PQ verifier. Two caveats the paper must carry: the flow assumes the account holds an EntryPoint deposit (measured with missingAccountFunds = 0; a pay-per-op account adds the prefund transfer), and preVerificationGas and the gas limits are EntryPoint accounting bounds, not part of the measured gasUsed. Aging is wall-clock here, not block-denominated, per the 4337 validation rules; see docs/AA.md.
 
 ## Direct on-chain PQ verification baselines, single transaction
 

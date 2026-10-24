@@ -2,24 +2,24 @@
   "hardfork": "prague",
   "depths": {
     "8": {
-      "warmup_first_op": 122414,
-      "single_op": 105329,
-      "bundle_of_two": 163516,
-      "marginal_per_op": 58187,
+      "warmup_first_op": 122904,
+      "single_op": 105819,
+      "bundle_of_two": 164496,
+      "marginal_per_op": 58677,
       "nonce_init_onetime": 17085
     },
     "16": {
-      "warmup_first_op": 130385,
-      "single_op": 113300,
-      "bundle_of_two": 179433,
-      "marginal_per_op": 66133,
+      "warmup_first_op": 130875,
+      "single_op": 113790,
+      "bundle_of_two": 180413,
+      "marginal_per_op": 66623,
       "nonce_init_onetime": 17085
     },
     "20": {
-      "warmup_first_op": 134391,
-      "single_op": 117306,
-      "bundle_of_two": 187433,
-      "marginal_per_op": 70127,
+      "warmup_first_op": 134881,
+      "single_op": 117796,
+      "bundle_of_two": 188413,
+      "marginal_per_op": 70617,
       "nonce_init_onetime": 17085
     }
   }
