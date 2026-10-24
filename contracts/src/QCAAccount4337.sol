@@ -93,6 +93,7 @@ contract QCAAccount4337 is IAccount {
     error CallGasAboveBudget();
     error DepositTooLow();
     error BadSignatureLength();
+    error PaymasterNotAllowed();
     error PreVerificationGasAboveCeiling();
     error NotSelf();
 
@@ -175,6 +176,11 @@ contract QCAAccount4337 is IAccount {
         // (F8). With a deposit-only account an oversized limit is rejected
         // before any effect, which leaves the bundler only censorship.
         if (missingAccountFunds != 0) revert DepositTooLow();
+        // No paymaster. A bundler-chosen paymaster whose postOp reverts makes
+        // the EntryPoint roll back the executed action while the nullifier set
+        // here survives, a forced leaf burn (F10). This account pays its own
+        // gas, as the native-AA account does.
+        if (userOp.paymasterAndData.length != 0) revert PaymasterNotAllowed();
         // Exact lengths: trailing bytes after the ABI encoding decode away but
         // are still copied and billed, an unbounded gas-quantity axis (F9).
         if (userOp.signature.length != 32 * (7 + depth)) revert BadSignatureLength();

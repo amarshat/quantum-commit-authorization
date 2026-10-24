@@ -177,6 +177,11 @@ otherwise choose at reveal time to its own advantage:
 - **Exact lengths (F9).** Bytes appended after the ABI encoding of the
   signature or `callData` decode away but are copied and billed by the
   EntryPoint, an unbounded gas quantity. Both lengths must be exact.
+- **No paymaster (F10).** A bundler can attach a paymaster of its own that
+  returns a context and reverts in `postOp`. The EntryPoint then rolls back the
+  executed action, but the nullifier set in validation survives: a forced leaf
+  burn at no cost to anyone but the owner. The account rejects any
+  `paymasterAndData`, as the native-AA account rejects any paymaster.
 - **The preVerificationGas ceiling.** The commitment binds a `maxPvgCeil`, and
   validation rejects any UserOp whose `preVerificationGas` exceeds it. This one
   was missed in the first implementation and is the sharper theft axis, because

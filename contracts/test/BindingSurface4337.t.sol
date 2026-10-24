@@ -6,24 +6,22 @@ import {IEntryPoint} from "@account-abstraction/interfaces/IEntryPoint.sol";
 import {IPaymaster} from "@account-abstraction/interfaces/IPaymaster.sol";
 import {PackedUserOperation} from "@account-abstraction/interfaces/PackedUserOperation.sol";
 
-/// A paymaster that sponsors anything. It stands in for a bundler-chosen
-/// paymaster: the question is whether choosing one can hurt the account.
-contract OpenPaymaster is IPaymaster {
-    IEntryPoint immutable ep;
-
-    constructor(IEntryPoint ep_) {
-        ep = ep_;
-    }
-
+/// A bundler-chosen paymaster that sponsors anything and then reverts in
+/// postOp. A non-empty context makes the EntryPoint call postOp; its revert
+/// rolls back the executed action while the account's nullifier survives,
+/// which was F10.
+contract HostilePaymaster is IPaymaster {
     function validatePaymasterUserOp(PackedUserOperation calldata, bytes32, uint256)
         external
         pure
         returns (bytes memory, uint256)
     {
-        return ("", 0);
+        return ("x", 0);
     }
 
-    function postOp(PostOpMode, bytes calldata, uint256, uint256) external {}
+    function postOp(PostOpMode, bytes calldata, uint256, uint256) external pure {
+        revert("postOp");
+    }
 }
 
 /// The binding surface of the 4337 account, measured rather than listed.
@@ -135,7 +133,7 @@ contract BindingSurface4337Test is QCAAccount4337Base {
         internal
         returns (PackedUserOperation memory)
     {
-        OpenPaymaster pm = new OpenPaymaster(IEntryPoint(address(entryPoint)));
+        HostilePaymaster pm = new HostilePaymaster();
         entryPoint.depositTo{value: 1 ether}(address(pm));
         op.paymasterAndData = abi.encodePacked(address(pm), uint128(vgl), uint128(postOp), pmData);
         return op;
@@ -240,24 +238,25 @@ contract BindingSurface4337Test is QCAAccount4337Base {
     }
 
     function test_field_paymaster() public {
-        // A bundler-chosen paymaster pays instead of the account.
+        // F10: a bundler-chosen paymaster could revert in postOp after the
+        // nullifier was set; the account accepts no paymaster.
         PackedUserOperation memory op = withPaymaster(honest(), 100_000, 0, "");
-        expectBound(op);
+        expectRejected(op);
     }
 
     function test_field_paymasterVerificationGasLimit() public {
         PackedUserOperation memory op = withPaymaster(honest(), HUGE, 0, "");
-        expectBound(op);
+        expectRejected(op);
     }
 
     function test_field_postOpGasLimit() public {
         PackedUserOperation memory op = withPaymaster(honest(), 100_000, HUGE, "");
-        expectBound(op);
+        expectRejected(op);
     }
 
     function test_field_paymasterData() public {
         PackedUserOperation memory op = withPaymaster(honest(), 100_000, 0, hex"deadbeef");
-        expectBound(op);
+        expectRejected(op);
     }
 
     // --- handleOps arguments -------------------------------------------------
