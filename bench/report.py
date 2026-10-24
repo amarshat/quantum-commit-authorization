@@ -292,6 +292,42 @@ def main() -> None:
         print(f"| {r['name']} | {r['total'] / auth16:.1f}x | {r['total'] / act16:.1f}x |")
     print()
 
+    print("## Lifetime cost per action")
+    print()
+    print("The ratios above compare one flow with one verification and leave out "
+          "one-time costs. Over an account that authorizes N actions, our cost per "
+          "action is (deploy + N flows + rotations) / N, where a rotation is one more "
+          "flow each time the tree's 2^d leaves run out; a baseline's is "
+          "(one-time key setup + N verifications) / N. The deploy of a baseline's "
+          "own account contract is not measured and not counted, which leans "
+          "against us.")
+    print()
+    LIFETIME_N = (1, 10, 100, 1000)
+    print("| baseline | depth | " + " | ".join(f"N={n}" for n in LIFETIME_N) + " |")
+    print("|---|---|" + "---|" * len(LIFETIME_N))
+
+    def ours_per_action(d, n):
+        rotations = math.ceil(n / 2**d) - 1
+        return (ours[d]["deploy"]["gasUsed"] + (n + rotations) * flow(d, "noop")) / n
+
+    for r in baselines():
+        for d in (8, 16):
+            cells = [(r["onetime"] + n * r["total"]) / n / ours_per_action(d, n) for n in LIFETIME_N]
+            print(f"| {r['name']} | {d} | " + " | ".join(f"{c:.1f}x" for c in cells) + " |")
+    print()
+    print("A cited hash-based signature changes the picture more than amortization "
+          "does. SPHINCS- C13 claims 105-127K gas to verify a 3,704-byte signature; "
+          "with the same transaction model as the baselines (32-byte key), one "
+          "verification would cost the following, against our depth-16 "
+          "authorization-only flow. It is not re-run here (see the last section).")
+    print()
+    print("| SPHINCS- C13 claimed exec | modeled tx | vs auth-only flow |")
+    print("|---|---|---|")
+    for ex in (105_000, 127_000):
+        t = total_tx(ex, abi_call_bytes(3704, 32))
+        print(f"| {ex:,} | {t:,} | {t / auth16:.2f}x |")
+    print()
+
     print("## Fee variance between the two transactions (depth 16)")
     print()
     commit_g = d16["commit_action"]["gasUsed"]

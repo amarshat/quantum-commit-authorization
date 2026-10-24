@@ -72,6 +72,30 @@ Depth-16 authorization-only flow = 114,258 gas (like-for-like: baselines execute
 | ML-DSA-44 (NIST) | 71.7x | 55.2x |
 | ETHDILITHIUM (Keccak, non-FIPS) | 42.8x | 33.0x |
 
+## Lifetime cost per action
+
+The ratios above compare one flow with one verification and leave out one-time costs. Over an account that authorizes N actions, our cost per action is (deploy + N flows + rotations) / N, where a rotation is one more flow each time the tree's 2^d leaves run out; a baseline's is (one-time key setup + N verifications) / N. The deploy of a baseline's own account contract is not measured and not counted, which leans against us.
+
+| baseline | depth | N=1 | N=10 | N=100 | N=1000 |
+|---|---|---|---|---|---|
+| ETHFALCON (Keccak PRNG, non-FIPS) | 8 | 2.0x | 9.2x | 14.1x | 14.9x |
+| ETHFALCON (Keccak PRNG, non-FIPS) | 16 | 2.0x | 8.8x | 13.3x | 14.0x |
+| Falcon-512 (NIST hash, precomputed NTT pk) | 8 | 6.2x | 23.2x | 35.0x | 36.8x |
+| Falcon-512 (NIST hash, precomputed NTT pk) | 16 | 6.1x | 22.2x | 32.8x | 34.5x |
+| Falcon-512 (FIPS-206, wire format) | 8 | 6.2x | 27.8x | 42.8x | 45.1x |
+| Falcon-512 (FIPS-206, wire format) | 16 | 6.1x | 26.7x | 40.2x | 42.4x |
+| ML-DSA-44 (NIST) | 8 | 16.0x | 49.3x | 72.4x | 75.9x |
+| ML-DSA-44 (NIST) | 16 | 15.9x | 47.3x | 68.0x | 71.3x |
+| ETHDILITHIUM (Keccak, non-FIPS) | 8 | 11.9x | 30.5x | 43.4x | 45.4x |
+| ETHDILITHIUM (Keccak, non-FIPS) | 16 | 11.7x | 29.3x | 40.8x | 42.6x |
+
+A cited hash-based signature changes the picture more than amortization does. SPHINCS- C13 claims 105-127K gas to verify a 3,704-byte signature; with the same transaction model as the baselines (32-byte key), one verification would cost the following, against our depth-16 authorization-only flow. It is not re-run here (see the last section).
+
+| SPHINCS- C13 claimed exec | modeled tx | vs auth-only flow |
+|---|---|---|
+| 105,000 | 188,856 | 1.65x |
+| 127,000 | 210,856 | 1.85x |
+
 ## Fee variance between the two transactions (depth 16)
 
 Cost in commit-block gas units: 45,308 + m x 102,948, where the reveal lands at m times the commit basefee. Break-even against the cheapest baseline (ETHFALCON (Keccak PRNG, non-FIPS), 1,605,156 gas) is m = 15.2. Under EIP-1559 the basefee grows at most 12.5% per block, so reaching that multiple takes about 23 consecutive completely full blocks between commit and reveal. That is not a guarantee: the commit stays valid for commitTTL (256 blocks here) and sustained congestion or censorship, exactly the adversarial conditions in the threat model, can push the reveal deep into that window. The holder can also simply wait out a spike anywhere inside the TTL, at the cost of delay. The paper must present m as an empirical distribution from historical basefee traces, not a bound.
